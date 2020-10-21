@@ -1,0 +1,5100 @@
+-   model: register.registrationslot
+    pk: 1
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 2
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 3
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 4
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 5
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 6
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 7
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 8
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 9
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 10
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 11
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 12
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 13
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 14
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 15
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 16
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 17
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 18
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 19
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 20
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 21
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 22
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 23
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 24
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 25
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 26
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 27
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 28
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 29
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 30
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 31
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 32
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 33
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 34
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 35
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 36
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 37
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 38
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 39
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 40
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 41
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 42
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 43
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 44
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 45
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 46
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 47
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 48
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 49
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 50
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 51
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 52
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 53
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 54
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 55
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 56
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 57
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 58
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 59
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 60
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 61
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 62
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 63
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 64
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 65
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 66
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 67
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 68
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 69
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 70
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 71
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 72
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 73
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 74
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 75
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 76
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 77
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 78
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 79
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 80
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 81
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 82
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 83
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 84
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 85
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 86
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 87
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 88
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 89
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 90
+    fields:
+        event: 3
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 91
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 92
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 93
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 94
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 95
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 96
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 97
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 98
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 99
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 100
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 101
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 102
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 103
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 104
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 105
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 106
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 107
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 108
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 109
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 110
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 111
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 112
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 113
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 114
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 115
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 116
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 117
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 118
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 119
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 120
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 121
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 122
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 123
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 124
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 125
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 126
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 127
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 128
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 129
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 130
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 131
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 132
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 133
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 134
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 135
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 136
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 137
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 138
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 139
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 140
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 141
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 142
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 143
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 144
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 145
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 146
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 147
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 148
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 149
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 150
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 151
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 152
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 153
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 154
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 155
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 156
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 157
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 158
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 159
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 160
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 161
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 162
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 163
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 164
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 165
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 166
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 167
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 168
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 169
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 170
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 171
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 172
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 173
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 174
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 175
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 176
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 177
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 178
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 179
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 180
+    fields:
+        event: 3
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 181
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 182
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 183
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 184
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 185
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 186
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 187
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 188
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 189
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 190
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 191
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 192
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 193
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 194
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 195
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 2
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 196
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 197
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 198
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 199
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 200
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 3
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 201
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 202
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 203
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 204
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 205
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 4
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 206
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 207
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 208
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 209
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 210
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 5
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 211
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 212
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 213
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 214
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 215
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 6
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 216
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 217
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 218
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 219
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 220
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 7
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 221
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 222
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 223
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 224
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 225
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 8
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 226
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 227
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 228
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 229
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 230
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 9
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 231
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 232
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 233
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 234
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 235
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 10
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 236
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 237
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 238
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 239
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 240
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 11
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 241
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 242
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 243
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 244
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 245
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 12
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 246
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 247
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 248
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 249
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 250
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 13
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 251
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 252
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 253
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 254
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 255
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 14
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 256
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 257
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 258
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 259
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 260
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 15
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 261
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 262
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 263
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 264
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 265
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 16
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 266
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 267
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 268
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 269
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 270
+    fields:
+        event: 3
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 17
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 271
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 272
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 273
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 274
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 275
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 276
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 277
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 278
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 279
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 280
+    fields:
+        event: 6
+        hole: 1
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 281
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 282
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 283
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 284
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 285
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 286
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 287
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 288
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 289
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 290
+    fields:
+        event: 6
+        hole: 2
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 291
+    fields:
+        event: 6
+        hole: 3
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 292
+    fields:
+        event: 6
+        hole: 3
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 293
+    fields:
+        event: 6
+        hole: 3
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 294
+    fields:
+        event: 6
+        hole: 3
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 295
+    fields:
+        event: 6
+        hole: 3
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 296
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 297
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 298
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 299
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 300
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 301
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 302
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 303
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 304
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 305
+    fields:
+        event: 6
+        hole: 4
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 306
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 307
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 308
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 309
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 310
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 311
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 312
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 313
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 314
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 315
+    fields:
+        event: 6
+        hole: 5
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 316
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 317
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 318
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 319
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 320
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 321
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 322
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 323
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 324
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 325
+    fields:
+        event: 6
+        hole: 6
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 326
+    fields:
+        event: 6
+        hole: 7
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 327
+    fields:
+        event: 6
+        hole: 7
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 328
+    fields:
+        event: 6
+        hole: 7
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 329
+    fields:
+        event: 6
+        hole: 7
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 330
+    fields:
+        event: 6
+        hole: 7
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 331
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 332
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 333
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 334
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 335
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 336
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 337
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 338
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 339
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 340
+    fields:
+        event: 6
+        hole: 8
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 341
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 342
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 343
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 344
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 345
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 346
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 347
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 348
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 349
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 350
+    fields:
+        event: 6
+        hole: 9
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 351
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 352
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 353
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 354
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 355
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 356
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 357
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 358
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 359
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 360
+    fields:
+        event: 6
+        hole: 10
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 361
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 362
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 363
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 364
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 365
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 366
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 367
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 368
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 369
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 370
+    fields:
+        event: 6
+        hole: 11
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 371
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 372
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 373
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 374
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 375
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 376
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 377
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 378
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 379
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 380
+    fields:
+        event: 6
+        hole: 12
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 381
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 382
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 383
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 384
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 385
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 386
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 387
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 388
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 389
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 390
+    fields:
+        event: 6
+        hole: 13
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 391
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 392
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 393
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 394
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 395
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 396
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 397
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 398
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 399
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 400
+    fields:
+        event: 6
+        hole: 14
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 401
+    fields:
+        event: 6
+        hole: 15
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 402
+    fields:
+        event: 6
+        hole: 15
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 403
+    fields:
+        event: 6
+        hole: 15
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 404
+    fields:
+        event: 6
+        hole: 15
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 405
+    fields:
+        event: 6
+        hole: 15
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 406
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 407
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 408
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 409
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 410
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 411
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 412
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 413
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 414
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 415
+    fields:
+        event: 6
+        hole: 16
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 416
+    fields:
+        event: 6
+        hole: 17
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 417
+    fields:
+        event: 6
+        hole: 17
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 418
+    fields:
+        event: 6
+        hole: 17
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 419
+    fields:
+        event: 6
+        hole: 17
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 420
+    fields:
+        event: 6
+        hole: 17
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 421
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 422
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 423
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 424
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 425
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 426
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 427
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 428
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 429
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 430
+    fields:
+        event: 6
+        hole: 18
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 431
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 432
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 433
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 434
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 435
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 436
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 437
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 438
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 439
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 440
+    fields:
+        event: 6
+        hole: 19
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 441
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 442
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 443
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 444
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 445
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 446
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 447
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 448
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 449
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 450
+    fields:
+        event: 6
+        hole: 20
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 451
+    fields:
+        event: 6
+        hole: 21
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 452
+    fields:
+        event: 6
+        hole: 21
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 453
+    fields:
+        event: 6
+        hole: 21
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 454
+    fields:
+        event: 6
+        hole: 21
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 455
+    fields:
+        event: 6
+        hole: 21
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 456
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 457
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 458
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 459
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 460
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 461
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 462
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 463
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 464
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 465
+    fields:
+        event: 6
+        hole: 22
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 466
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 467
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 468
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 469
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 470
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 471
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 472
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 473
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 474
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 475
+    fields:
+        event: 6
+        hole: 23
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 476
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 477
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 478
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 479
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 480
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 481
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 482
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 483
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 484
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 485
+    fields:
+        event: 6
+        hole: 24
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 486
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 487
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 488
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 489
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 490
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 491
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 492
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 493
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 494
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 495
+    fields:
+        event: 6
+        hole: 25
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 496
+    fields:
+        event: 6
+        hole: 26
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 497
+    fields:
+        event: 6
+        hole: 26
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 498
+    fields:
+        event: 6
+        hole: 26
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 499
+    fields:
+        event: 6
+        hole: 26
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 500
+    fields:
+        event: 6
+        hole: 26
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 501
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 502
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 503
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 504
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 505
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 0
+        slot: 4
+        status: A
+-   model: register.registrationslot
+    pk: 506
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 0
+        status: A
+-   model: register.registrationslot
+    pk: 507
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 1
+        status: A
+-   model: register.registrationslot
+    pk: 508
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 2
+        status: A
+-   model: register.registrationslot
+    pk: 509
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 3
+        status: A
+-   model: register.registrationslot
+    pk: 510
+    fields:
+        event: 6
+        hole: 27
+        registration: null
+        player: null
+        starting_order: 1
+        slot: 4
+        status: A

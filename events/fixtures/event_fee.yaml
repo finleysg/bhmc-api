@@ -1,0 +1,160 @@
+-   model: events.eventfee
+    pk: 1
+    fields:
+        event: 1
+        fee_type: 1
+        amount: '75.00'
+        is_required: true
+        display_order: 1
+-   model: events.eventfee
+    pk: 2
+    fields:
+        event: 1
+        fee_type: 2
+        amount: '105.00'
+        is_required: true
+        display_order: 2
+-   model: events.eventfee
+    pk: 3
+    fields:
+        event: 1
+        fee_type: 3
+        amount: '55.00'
+        is_required: false
+        display_order: 3
+-   model: events.eventfee
+    pk: 4
+    fields:
+        event: 1
+        fee_type: 4
+        amount: '35.00'
+        is_required: false
+        display_order: 4
+-   model: events.eventfee
+    pk: 5
+    fields:
+        event: 2
+        fee_type: 5
+        amount: '30.00'
+        is_required: true
+        display_order: 1
+-   model: events.eventfee
+    pk: 6
+    fields:
+        event: 3
+        fee_type: 5
+        amount: '5.00'
+        is_required: true
+        display_order: 1
+-   model: events.eventfee
+    pk: 7
+    fields:
+        event: 3
+        fee_type: 6
+        amount: '5.00'
+        is_required: false
+        display_order: 2
+-   model: events.eventfee
+    pk: 8
+    fields:
+        event: 3
+        fee_type: 7
+        amount: '5.00'
+        is_required: false
+        display_order: 3
+-   model: events.eventfee
+    pk: 9
+    fields:
+        event: 3
+        fee_type: 8
+        amount: '19.00'
+        is_required: false
+        display_order: 4
+-   model: events.eventfee
+    pk: 10
+    fields:
+        event: 3
+        fee_type: 9
+        amount: '10.00'
+        is_required: false
+        display_order: 5
+-   model: events.eventfee
+    pk: 11
+    fields:
+        event: 6
+        fee_type: 5
+        amount: '5.00'
+        is_required: true
+        display_order: 1
+-   model: events.eventfee
+    pk: 12
+    fields:
+        event: 6
+        fee_type: 6
+        amount: '5.00'
+        is_required: false
+        display_order: 2
+-   model: events.eventfee
+    pk: 13
+    fields:
+        event: 6
+        fee_type: 7
+        amount: '5.00'
+        is_required: false
+        display_order: 3
+-   model: events.eventfee
+    pk: 14
+    fields:
+        event: 6
+        fee_type: 8
+        amount: '19.00'
+        is_required: false
+        display_order: 4
+-   model: events.eventfee
+    pk: 15
+    fields:
+        event: 6
+        fee_type: 9
+        amount: '10.00'
+        is_required: false
+        display_order: 5
+-   model: events.eventfee
+    pk: 16
+    fields:
+        event: 4
+        fee_type: 5
+        amount: '10.00'
+        is_required: true
+        display_order: 1
+-   model: events.eventfee
+    pk: 17
+    fields:
+        event: 4
+        fee_type: 6
+        amount: '10.00'
+        is_required: false
+        display_order: 2
+-   model: events.eventfee
+    pk: 18
+    fields:
+        event: 4
+        fee_type: 7
+        amount: '10.00'
+        is_required: false
+        display_order: 3
+-   model: events.eventfee
+    pk: 19
+    fields:
+        event: 4
+        fee_type: 8
+        amount: '38.00'
+        is_required: false
+        display_order: 4
+-   model: events.eventfee
+    pk: 20
+    fields:
+        event: 4
+        fee_type: 9
+        amount: '18.00'
+        is_required: false
+        display_order: 5

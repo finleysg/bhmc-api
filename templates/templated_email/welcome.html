@@ -1,0 +1,19 @@
+{% extends "templated_email/email_base.html" %}
+{% block subject %}Welcome to BHMC{% endblock %}
+{% block content %}
+    <h3 style="font-size: 1.2em;">Welcome to the Bunker Hills Men's Golf Club</h3>
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Hello, {{first_name}}, you are receiving this email because you just registered for the {{year}} golf season.</p>
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">If you haven't already, <a href="{{login_url}}" style="color: #ee6a56;text-decoration: underline;">log in</a> to the website. You cannot
+        register for our events without being logged in. The first event you should consider is our
+        <a href="{{matchplay_url}}" style="color: #ee6a56;text-decoration: underline;">season long match play.</a>
+    </p>
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">You can also go to your <a href="{{account_url}}" style="color: #ee6a56;text-decoration: underline;">account</a> page to update your contact information or
+        log-in information as needed.
+    </p>
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Thank you again for joining our club. If you have any questions, please contact a board
+        member or send us a note at <a href="mailto:contact@bhmc.org" style="color: #ee6a56;text-decoration: underline;">contact@bhmc.org</a>.
+        We hope you have a great year.
+    </p>
+    <p>&nbsp;</p>
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;"><strong><i>The BHMC Board</i></strong></p>
+{% endblock %}

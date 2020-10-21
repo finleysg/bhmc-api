@@ -1,0 +1,74 @@
+import random
+import string
+
+from django.contrib.auth.models import User, Group
+from rest_framework.exceptions import ValidationError
+
+from register.models import Player
+from .models import SeasonSettings
+from rest_framework import serializers
+
+
+class SettingsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SeasonSettings
+        fields = ('year', 'reg_event', 'match_play_event', 'accept_new_members', 'raven_dsn', 'stripe_pk', )
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ("name",)
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ("id", "username", "first_name", "last_name", "email",
+                  "is_authenticated", "is_staff", "is_active", "groups", )
+        read_only_fields = ("id", "is_authenticated", "is_staff", "is_active", )
+
+    def update(self, instance, validated_data):
+        player = Player.objects.get(email=instance.email)
+
+        instance.first_name = validated_data.get("first_name", instance.first_name)
+        instance.last_name = validated_data.get("last_name", instance.last_name)
+        instance.username = validated_data.get("username", instance.username)
+        instance.email = validated_data.get("email", instance.email)
+        instance.save()
+
+        player.email = validated_data.get("email", instance.email)
+        player.first_name = validated_data.get("first_name", instance.first_name)
+        player.last_name = validated_data.get("last_name", instance.last_name)
+        player.save()
+
+        return instance
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("email", "password", "first_name", "last_name", )
+
+    def create(self, validated_data):
+        email = validated_data["email"]
+        exists = User.objects.filter(email=email).exists()
+        if exists:
+            raise ValidationError("user already exists")
+
+        uname = "".join([random.choice(string.ascii_lowercase) for n in range(24)])
+        user = User.objects.create_user(
+            username=uname,
+            email=validated_data["email"],
+            password=validated_data["password"],
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            is_active=False,
+        )
+
+        Player.objects.create(first_name=user.first_name, last_name=user.last_name, email=user.email)
+
+        return user

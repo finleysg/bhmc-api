@@ -1,0 +1,223 @@
+-   model: events.event
+    pk: 1
+    fields:
+        event_type: R
+        name: 2021 Season Signup
+        rounds: null
+        registration_type: O
+        skins_type: null
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 1
+        group_size: null
+        total_groups: null
+        start_type: null
+        can_choose: false
+        ghin_required: false
+        season_points: null
+        notes: Season signup info text
+        start_date: 2020-10-12
+        start_time: Open
+        signup_start: 2020-10-12 05:00:00+00:00
+        signup_end: 2020-11-30 06:00:00+00:00
+        payments_end: null
+        registration_maximum: null
+        portal_url: null
+        external_url: null
+        status: S
+        courses: []
+-   model: events.event
+    pk: 2
+    fields:
+        event_type: O
+        name: 2021 Season Long Match Play
+        rounds: null
+        registration_type: M
+        skins_type: null
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 1
+        group_size: null
+        total_groups: null
+        start_type: null
+        can_choose: false
+        ghin_required: false
+        season_points: null
+        notes: Match play event details
+        start_date: 2020-11-01
+        start_time: null
+        signup_start: 2020-10-12 17:00:00+00:00
+        signup_end: 2020-10-31 23:00:00+00:00
+        payments_end: null
+        registration_maximum: null
+        portal_url: null
+        external_url: null
+        status: S
+        courses: []
+-   model: events.event
+    pk: 3
+    fields:
+        event_type: N
+        name: Low Gross / Low Net
+        rounds: 1
+        registration_type: M
+        skins_type: I
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 5
+        group_size: 5
+        total_groups: 18
+        start_type: TT
+        can_choose: true
+        ghin_required: false
+        season_points: 30
+        notes: Event details test
+        start_date: 2020-11-04
+        start_time: 3:00 PM
+        signup_start: 2020-11-01 12:00:00+00:00
+        signup_end: 2020-11-04 00:00:00+00:00
+        payments_end: 2020-11-04 18:00:00+00:00
+        registration_maximum: null
+        portal_url: null
+        external_url: null
+        status: S
+        courses:
+        - 1
+        - 2
+        - 3
+-   model: events.event
+    pk: 4
+    fields:
+        event_type: W
+        name: 2 Man Best Ball
+        rounds: 1
+        registration_type: M
+        skins_type: T
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 4
+        group_size: 4
+        total_groups: null
+        start_type: TT
+        can_choose: false
+        ghin_required: false
+        season_points: 60
+        notes: Major event details
+        start_date: 2020-11-14
+        start_time: Morning Swing
+        signup_start: 2020-11-01 12:00:00+00:00
+        signup_end: 2020-11-11 00:00:00+00:00
+        payments_end: 2020-11-14 00:00:00+00:00
+        registration_maximum: 144
+        portal_url: null
+        external_url: null
+        status: S
+        courses: []
+-   model: events.event
+    pk: 5
+    fields:
+        event_type: W
+        name: Club Championship
+        rounds: 2
+        registration_type: M
+        skins_type: I
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 1
+        group_size: 3
+        total_groups: null
+        start_type: TT
+        can_choose: false
+        ghin_required: false
+        season_points: 75
+        notes: Club championship notes
+        start_date: 2020-12-25
+        start_time: Morning Swing
+        signup_start: 2020-12-13 12:00:00+00:00
+        signup_end: 2020-12-23 00:00:00+00:00
+        payments_end: 2020-12-25 00:00:00+00:00
+        registration_maximum: 180
+        portal_url: null
+        external_url: null
+        status: S
+        courses: []
+-   model: events.event
+    pk: 6
+    fields:
+        event_type: N
+        name: Individual Stableford
+        rounds: 1
+        registration_type: M
+        skins_type: I
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 5
+        group_size: 5
+        total_groups: null
+        start_type: SG
+        can_choose: true
+        ghin_required: false
+        season_points: 30
+        notes: Event details test
+        start_date: 2020-11-11
+        start_time: 5:00 PM
+        signup_start: 2020-11-08 12:00:00+00:00
+        signup_end: 2020-11-11 00:00:00+00:00
+        payments_end: 2020-11-11 21:00:00+00:00
+        registration_maximum: null
+        portal_url: null
+        external_url: null
+        status: S
+        courses:
+        - 1
+        - 2
+        - 3
+-   model: events.event
+    pk: 7
+    fields:
+        event_type: P
+        name: One Man Scramble
+        rounds: 1
+        registration_type: O
+        skins_type: I
+        minimum_signup_group_size: 1
+        maximum_signup_group_size: 3
+        group_size: 3
+        total_groups: null
+        start_type: SG
+        can_choose: true
+        ghin_required: false
+        season_points: null
+        notes: One man details
+        start_date: 2020-12-12
+        start_time: 1:00 PM
+        signup_start: 2020-11-29 12:00:00+00:00
+        signup_end: 2020-12-09 00:00:00+00:00
+        payments_end: 2020-12-12 18:00:00+00:00
+        registration_maximum: 90
+        portal_url: null
+        external_url: null
+        status: S
+        courses:
+        - 4
+-   model: events.event
+    pk: 8
+    fields:
+        event_type: E
+        name: External Event
+        rounds: 3
+        registration_type: N
+        skins_type: null
+        minimum_signup_group_size: null
+        maximum_signup_group_size: null
+        group_size: null
+        total_groups: null
+        start_type: null
+        can_choose: false
+        ghin_required: false
+        season_points: null
+        notes: ''
+        start_date: 2020-11-26
+        start_time: null
+        signup_start: null
+        signup_end: null
+        payments_end: null
+        registration_maximum: null
+        portal_url: null
+        external_url: https://mpga.net/tournaments/detail/publinks/2020
+        status: S
+        courses: []

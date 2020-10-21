@@ -1,0 +1,62 @@
+{% extends "templated_email/email_base.html" %}
+{% block subject %}BHMC Event Signup Confirmation{% endblock %}
+{% block content %}
+<h3 style="font-size: 1.2em;">BHMC Event Signup Confirmation</h3>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">You have been signed up for a Bunker Hills Golf Event by {{user_name}}.</p>
+<table class="inner-columns" style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Event:</td>
+        <td style="padding: 6px;font-size: 14px;"><a href="{{event_url}}" style="color: #ee6a56;text-decoration: underline;">{{event_name}}</a></td>
+    </tr>
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Date:</td>
+        <td style="padding: 6px;font-size: 14px;">{{event_date}}</td>
+    </tr>
+<!--    <tr>-->
+<!--        <td style="padding: 6px;font-size: 14px;">Start Time:</td>-->
+<!--        <td style="padding: 6px;font-size: 14px;">{{event_start}}</td>-->
+<!--    </tr>-->
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Start Time:</td>
+        <td style="padding: 6px;font-size: 14px;">{{event_hole}}</td>
+    </tr>
+</table>
+<h4>Event Fees</h4>
+<table class="inner-columns" style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Required Event Fees:</td>
+        <td class="payment-column" style="padding: 6px;text-align: right;font-weight: bold;font-size: 14px;">{{required_fees}}</td>
+    </tr>
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Optional Fees:</td>
+        <td class="payment-column" style="padding: 6px;text-align: right;font-weight: bold;font-size: 14px;">{{optional_fees}}</td>
+    </tr>
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Transaction Fees:</td>
+        <td class="payment-column" style="padding: 6px;text-align: right;font-weight: bold;font-size: 14px;">{{transaction_fees}}</td>
+    </tr>
+    <tr>
+        <td style="padding: 6px;font-size: 14px;">Total Event Cost:</td>
+        <td class="payment-column" style="padding: 6px;text-align: right;font-weight: bold;font-size: 14px;">{{total_fees}}</td>
+    </tr>
+</table>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">&nbsp;</p>
+{% if show_confirmation_code %}
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Payment Confirmation Code: {{payment_confirmation_code}}</p>
+{% endif %}
+<h4>Members that have been signed up</h4>
+<hr>
+{% for member in members %}
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">{{member.name}} ({{member.email}})</p>
+{% for fee in member.fees %}
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">{{fee.description}}: {{fee.amount}}</p>
+{% endfor %}
+<hr>
+{% endfor %}
+</p><p style="margin: 0;font-size: 14px;margin-bottom: 10px;">&nbsp;</p>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Please pay for your green fees in the Pro Shop prior to the event unless you have
+    already paid online.  Bunker Hills GC reserves the right to check at random for payment
+    receipts.  Failure to pay for green fees prior to an event will result in
+    disqualification from the event and may result in expulsion from BHMC pending a Board of
+    Directors inquiry.</p>
+{% endblock %}

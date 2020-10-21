@@ -1,0 +1,24 @@
+{% extends "templated_email/email_base.html" %}
+{% block subject %}BHMC Event Notes Notification{% endblock %}
+{% block content %}
+<h3 style="font-size: 1.2em;">Event Notification: Notes Included</h3>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">You are receiving this email because a member has submitted an event registration with notes:</p>
+<table style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+    <tr>
+        <td class="inner" style="padding: 10px;">Name:</td>
+        <td class="inner" style="padding: 10px;">{{name}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Email:</td>
+        <td class="inner" style="padding: 10px;">{{email}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Event:</td>
+        <td class="inner" style="padding: 10px;">{{event}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Notes:</td>
+        <td class="inner" style="padding: 10px;">{{notes}}</td>
+    </tr>
+</table>
+{% endblock %}

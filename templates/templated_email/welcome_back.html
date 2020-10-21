@@ -1,0 +1,16 @@
+{% extends "templated_email/email_base.html" %}
+{% block subject %}BHMC Registration Confirmation{% endblock %}
+{% block content %}
+<h3 style="font-size: 1.2em;">Welcome Back!</h3>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Hello, {{first_name}}, you are receiving this email because you just registered for the {{year}} golf season. We're
+    happy you decided to join us again this year.</p>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">If you haven't already, please consider signing up for the
+    <a href="{{matchplay_url}}" style="color: #ee6a56;text-decoration: underline;">season long match play.</a></p>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">You can also go to your <a href="{{account_url}}" style="color: #ee6a56;text-decoration: underline;">account</a> page to update your contact information or
+    log-in information as needed.</p>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Thank you again for re-joining the club. If you have any questions, please contact a board
+    member or send us a note at <a href="mailto:contact@bhmc.org" style="color: #ee6a56;text-decoration: underline;">contact@bhmc.org</a>.
+    We hope you have a great year.<p style="margin: 0;font-size: 14px;margin-bottom: 10px;"></p>
+</p><p style="margin: 0;font-size: 14px;margin-bottom: 10px;">&nbsp;</p>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;"><strong><i>The BHMC Board</i></strong></p>
+{% endblock %}

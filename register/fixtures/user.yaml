@@ -1,0 +1,135 @@
+-   model: auth.user
+    pk: 1
+    fields:
+        password: pbkdf2_sha256$216000$0742LMk1QoWg$1FS+OBTx5BgvT+8fbMP4qveFhnPpLYWVKi7jaFf347w=
+        last_login: 2020-10-19 00:37:22+00:00
+        is_superuser: true
+        username: finleysg
+        first_name: Stuart
+        last_name: Finley
+        email: finleysg@gmail.com
+        is_staff: true
+        is_active: true
+        date_joined: 2020-10-19 00:32:49+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 2
+    fields:
+        password: pbkdf2_sha256$216000$xSX8s7VROPbv$ldK7paf8AxgkcyvhoBnOAbcNmbOlE7X0pQwOqPWhrBc=
+        last_login: null
+        is_superuser: false
+        username: revyfmeaagzvrdojdiiirbxl
+        first_name: Ben
+        last_name: Hogan
+        email: hogan@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:51:07.994003+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 3
+    fields:
+        password: pbkdf2_sha256$216000$WSirHeS3CVZg$PYydqK2QMgRNxO7EaeyhMzTuPf2Rn4hAxam7gC2UjXc=
+        last_login: null
+        is_superuser: false
+        username: mpdiwwbxoirdatoyesurbmvr
+        first_name: Arnold
+        last_name: Palmer
+        email: palmer@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:51:31.512156+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 4
+    fields:
+        password: pbkdf2_sha256$216000$NPPky8Hs5Qvd$IGTpQ1r2SY6pdYQYR6trw0JQCr3VRgJmYOsuomNsiSg=
+        last_login: null
+        is_superuser: false
+        username: zeymxdlcsvwtuxwajzqaitcq
+        first_name: Jack
+        last_name: Nicklaus
+        email: nicklaus@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:51:53.363053+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 5
+    fields:
+        password: pbkdf2_sha256$216000$xyVFsy2ZK5vq$z0WhasNkYh3/P4/F/6mZiQNzc2CPgvJDmHyOFHVCxVs=
+        last_login: null
+        is_superuser: false
+        username: dintiidwfnqjzqmkuwtlbcvv
+        first_name: Lee
+        last_name: Trevino
+        email: trevino@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:52:16.739071+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 6
+    fields:
+        password: pbkdf2_sha256$216000$rtdhcIf02Fcm$p9bKlO86IfIvNQ/nOOr5ioimJa4zjAcY9sahvuEJBYs=
+        last_login: null
+        is_superuser: false
+        username: vwgcrijrggyluvmtjlaahope
+        first_name: Tom
+        last_name: Watson
+        email: watson@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:52:33.619751+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 7
+    fields:
+        password: pbkdf2_sha256$216000$mJBSJKvT8RoT$aKXbHEaIbtgZZ7GqflcKZrwDc6evkQuuqJvhwV6VWy0=
+        last_login: null
+        is_superuser: false
+        username: laamidyatldplaxkjwtlfout
+        first_name: Bernhard
+        last_name: Langer
+        email: langer@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:53:02.648547+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 8
+    fields:
+        password: pbkdf2_sha256$216000$5YBzingzTeok$p3JcZyjyFlsJRg81RIn/6XB8SrJ8HUxSLDw0+3+6FYk=
+        last_login: null
+        is_superuser: false
+        username: hroujgoecfzhatkasdpfqurr
+        first_name: Nick
+        last_name: Faldo
+        email: faldo@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:53:20.413200+00:00
+        groups: []
+        user_permissions: []
+-   model: auth.user
+    pk: 9
+    fields:
+        password: pbkdf2_sha256$216000$VRpRTO2i9JoR$fiP77wa4xQlckMx2S1kHycYqzeWc5XwkWn1dIu/GvYg=
+        last_login: null
+        is_superuser: false
+        username: kfphxnhaimfdccnuzdmbtcbh
+        first_name: Greg
+        last_name: Norman
+        email: norman@golf.com
+        is_staff: false
+        is_active: true
+        date_joined: 2020-10-19 22:53:44.951286+00:00
+        groups: []
+        user_permissions: []

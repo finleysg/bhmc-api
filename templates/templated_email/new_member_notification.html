@@ -1,0 +1,46 @@
+{% extends "templated_email/email_base.html" %}
+{% block subject %}BHMC New Member Notification{% endblock %}
+{% block content %}
+<h3 style="font-size: 1.2em;">New Member Notification</h3>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">A new member just registered for the {{year}} golf season.</p>
+<table style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+    <tr>
+        <td class="inner" style="padding: 10px;">Name:</td>
+        <td class="inner" style="padding: 10px;">{{name}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Email:</td>
+        <td class="inner" style="padding: 10px;">{{email}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Phone Number:</td>
+        <td class="inner" style="padding: 10px;">{{phone}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Address:</td>
+        <td class="inner" style="padding: 10px;">{{address}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">City:</td>
+        <td class="inner" style="padding: 10px;">{{city}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">State:</td>
+        <td class="inner" style="padding: 10px;">{{state}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Zip Code:</td>
+        <td class="inner" style="padding: 10px;">{{zip}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">GHIN:</td>
+        <td class="inner" style="padding: 10px;">{{ghin}}</td>
+    </tr>
+    <tr>
+        <td class="inner" style="padding: 10px;">Former Club:</td>
+        <td class="inner" style="padding: 10px;">{{club}}</td>
+    </tr>
+</table>
+<p>&nbsp;</p>
+<p style="margin: 0;font-size: 14px;margin-bottom: 10px;">To view or update update this member's user record, click <a href="{{admin_url}}" style="color: #ee6a56;text-decoration: underline;">here</a>.</p>
+{% endblock %}

@@ -1,0 +1,36 @@
+-   model: events.feetype
+    pk: 1
+    fields:
+        name: Returning Member Dues
+-   model: events.feetype
+    pk: 2
+    fields:
+        name: New Member Dues
+-   model: events.feetype
+    pk: 3
+    fields:
+        name: Patron Card
+-   model: events.feetype
+    pk: 4
+    fields:
+        name: Sr. Patron Card
+-   model: events.feetype
+    pk: 5
+    fields:
+        name: Event Fee
+-   model: events.feetype
+    pk: 6
+    fields:
+        name: Gross Skins
+-   model: events.feetype
+    pk: 7
+    fields:
+        name: Net Skins
+-   model: events.feetype
+    pk: 8
+    fields:
+        name: Greens Fee
+-   model: events.feetype
+    pk: 9
+    fields:
+        name: Cart Fee

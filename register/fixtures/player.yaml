@@ -1,0 +1,99 @@
+-   model: register.player
+    pk: 1
+    fields:
+        first_name: Stuart
+        last_name: Finley
+        email: finleysg@gmail.com
+        phone_number: null
+        ghin: '125741'
+        tee: Club
+        birth_date: 1960-10-27
+        favorites: []
+-   model: register.player
+    pk: 2
+    fields:
+        first_name: Ben
+        last_name: Hogan
+        email: hogan@golf.com
+        phone_number: null
+        ghin: '2'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 3
+    fields:
+        first_name: Arnold
+        last_name: Palmer
+        email: palmer@golf.com
+        phone_number: null
+        ghin: '6'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 4
+    fields:
+        first_name: Jack
+        last_name: Nicklaus
+        email: nicklaus@golf.com
+        phone_number: null
+        ghin: '4'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 5
+    fields:
+        first_name: Lee
+        last_name: Trevino
+        email: trevino@golf.com
+        phone_number: null
+        ghin: '7'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 6
+    fields:
+        first_name: Tom
+        last_name: Watson
+        email: watson@golf.com
+        phone_number: null
+        ghin: '8'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 7
+    fields:
+        first_name: Bernhard
+        last_name: Langer
+        email: langer@golf.com
+        phone_number: null
+        ghin: '3'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 8
+    fields:
+        first_name: Nick
+        last_name: Faldo
+        email: faldo@golf.com
+        phone_number: null
+        ghin: '1'
+        tee: Club
+        birth_date: null
+        favorites: []
+-   model: register.player
+    pk: 9
+    fields:
+        first_name: Greg
+        last_name: Norman
+        email: norman@golf.com
+        phone_number: null
+        ghin: '5'
+        tee: Club
+        birth_date: null
+        favorites: []

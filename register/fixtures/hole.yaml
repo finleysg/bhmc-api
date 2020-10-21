@@ -1,0 +1,270 @@
+-   model: courses.hole
+    pk: 1
+    fields:
+        course: 1
+        hole_number: 1
+        par: 4
+-   model: courses.hole
+    pk: 2
+    fields:
+        course: 1
+        hole_number: 2
+        par: 4
+-   model: courses.hole
+    pk: 3
+    fields:
+        course: 1
+        hole_number: 3
+        par: 3
+-   model: courses.hole
+    pk: 4
+    fields:
+        course: 1
+        hole_number: 4
+        par: 5
+-   model: courses.hole
+    pk: 5
+    fields:
+        course: 1
+        hole_number: 5
+        par: 4
+-   model: courses.hole
+    pk: 6
+    fields:
+        course: 1
+        hole_number: 6
+        par: 5
+-   model: courses.hole
+    pk: 7
+    fields:
+        course: 1
+        hole_number: 7
+        par: 3
+-   model: courses.hole
+    pk: 8
+    fields:
+        course: 1
+        hole_number: 8
+        par: 4
+-   model: courses.hole
+    pk: 9
+    fields:
+        course: 1
+        hole_number: 9
+        par: 4
+-   model: courses.hole
+    pk: 10
+    fields:
+        course: 2
+        hole_number: 1
+        par: 4
+-   model: courses.hole
+    pk: 11
+    fields:
+        course: 2
+        hole_number: 2
+        par: 4
+-   model: courses.hole
+    pk: 12
+    fields:
+        course: 2
+        hole_number: 3
+        par: 4
+-   model: courses.hole
+    pk: 13
+    fields:
+        course: 2
+        hole_number: 4
+        par: 5
+-   model: courses.hole
+    pk: 14
+    fields:
+        course: 2
+        hole_number: 5
+        par: 4
+-   model: courses.hole
+    pk: 15
+    fields:
+        course: 2
+        hole_number: 6
+        par: 3
+-   model: courses.hole
+    pk: 16
+    fields:
+        course: 2
+        hole_number: 7
+        par: 4
+-   model: courses.hole
+    pk: 17
+    fields:
+        course: 2
+        hole_number: 8
+        par: 3
+-   model: courses.hole
+    pk: 18
+    fields:
+        course: 2
+        hole_number: 9
+        par: 5
+-   model: courses.hole
+    pk: 19
+    fields:
+        course: 3
+        hole_number: 1
+        par: 4
+-   model: courses.hole
+    pk: 20
+    fields:
+        course: 3
+        hole_number: 2
+        par: 5
+-   model: courses.hole
+    pk: 21
+    fields:
+        course: 3
+        hole_number: 3
+        par: 3
+-   model: courses.hole
+    pk: 22
+    fields:
+        course: 3
+        hole_number: 4
+        par: 4
+-   model: courses.hole
+    pk: 23
+    fields:
+        course: 3
+        hole_number: 5
+        par: 5
+-   model: courses.hole
+    pk: 24
+    fields:
+        course: 3
+        hole_number: 6
+        par: 4
+-   model: courses.hole
+    pk: 25
+    fields:
+        course: 3
+        hole_number: 7
+        par: 4
+-   model: courses.hole
+    pk: 26
+    fields:
+        course: 3
+        hole_number: 8
+        par: 3
+-   model: courses.hole
+    pk: 27
+    fields:
+        course: 3
+        hole_number: 9
+        par: 4
+-   model: courses.hole
+    pk: 28
+    fields:
+        course: 4
+        hole_number: 1
+        par: 4
+-   model: courses.hole
+    pk: 29
+    fields:
+        course: 4
+        hole_number: 2
+        par: 4
+-   model: courses.hole
+    pk: 30
+    fields:
+        course: 4
+        hole_number: 3
+        par: 3
+-   model: courses.hole
+    pk: 31
+    fields:
+        course: 4
+        hole_number: 4
+        par: 5
+-   model: courses.hole
+    pk: 32
+    fields:
+        course: 4
+        hole_number: 5
+        par: 4
+-   model: courses.hole
+    pk: 33
+    fields:
+        course: 4
+        hole_number: 6
+        par: 5
+-   model: courses.hole
+    pk: 34
+    fields:
+        course: 4
+        hole_number: 7
+        par: 3
+-   model: courses.hole
+    pk: 35
+    fields:
+        course: 4
+        hole_number: 8
+        par: 4
+-   model: courses.hole
+    pk: 36
+    fields:
+        course: 4
+        hole_number: 9
+        par: 4
+-   model: courses.hole
+    pk: 37
+    fields:
+        course: 4
+        hole_number: 10
+        par: 4
+-   model: courses.hole
+    pk: 38
+    fields:
+        course: 4
+        hole_number: 11
+        par: 5
+-   model: courses.hole
+    pk: 39
+    fields:
+        course: 4
+        hole_number: 12
+        par: 3
+-   model: courses.hole
+    pk: 40
+    fields:
+        course: 4
+        hole_number: 13
+        par: 4
+-   model: courses.hole
+    pk: 41
+    fields:
+        course: 4
+        hole_number: 14
+        par: 5
+-   model: courses.hole
+    pk: 42
+    fields:
+        course: 4
+        hole_number: 15
+        par: 4
+-   model: courses.hole
+    pk: 43
+    fields:
+        course: 4
+        hole_number: 16
+        par: 4
+-   model: courses.hole
+    pk: 44
+    fields:
+        course: 4
+        hole_number: 17
+        par: 3
+-   model: courses.hole
+    pk: 45
+    fields:
+        course: 4
+        hole_number: 18
+        par: 4

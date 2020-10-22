@@ -60,7 +60,6 @@ class Registration(models.Model):
     starting_hole = models.IntegerField(verbose_name="Starting hole", blank=True, default=1)
     starting_order = models.IntegerField(verbose_name="Starting order", default=0)
     notes = models.TextField(verbose_name="Registration notes", blank=True, null=True)
-    confirmation_code = models.CharField(verbose_name="Confirmation code", max_length=40, blank=True, null=True)
 
     objects = RegistrationManager()
     history = HistoricalRecords()
@@ -68,11 +67,6 @@ class Registration(models.Model):
     @property
     def players(self):
         return self.slots.values_list('player', flat=True)
-        # player_names = []
-        # for slot in self.slots.all():
-        #     if slot.player is not None:
-        #         player_names.append(slot.player.player_name())
-        # return ", ".join(player_names)
 
     def __str__(self):
         return "{} registration: {}".format(self.event.name, self.signed_up_by)

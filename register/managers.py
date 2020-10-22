@@ -14,7 +14,7 @@ logger = logging.getLogger('register-manager')
 class RegistrationManager(models.Manager):
 
     def clean_up_expired(self):
-        registrations = self.filter(expires__lt=tz.now()).filter(confirmation_code="")
+        registrations = self.filter(expires__lt=tz.now()).filter(slots__status="P")
         count = len(registrations)
 
         for reg in registrations:
@@ -62,10 +62,9 @@ class RegistrationManager(models.Manager):
             reg = self.filter(pk=registration_id).get()
 
             if reg.event.can_choose:
-                self.slots.filter(registration=reg) \
-                    .update(**{"status": "A", "registration": None, "player": None})
+                reg.slots.update(**{"status": "A", "registration": None, "player": None})
             else:
-                self.slots.filter(registration=reg).delete()
+                reg.slots.all().delete()
 
             reg.delete()
 

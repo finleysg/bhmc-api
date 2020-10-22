@@ -121,11 +121,10 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
 #     return Response(status=204)
 
 
-@api_view(['POST', ])
+@api_view(['PUT', ])
 @permission_classes((permissions.IsAuthenticated,))
-def cancel_reserved_slots(request):
+def cancel_reserved_slots(request, registration_id):
 
-    registration_id = request.data.get("registration_id", 0)
     if registration_id == 0:
         raise ValidationError("Missing registration_id")
 
@@ -177,7 +176,7 @@ def cancel_reserved_slots(request):
 @api_view(['GET', ])
 @permission_classes((permissions.IsAuthenticated,))
 def friends(request):
-    player = get_object_or_404(Player, pk=request.user.player.id)
+    player = Player.objects.get(email=request.user.email)
     serializer = PlayerSerializer(player.favorites, context={'request': request}, many=True)
     return Response(serializer.data)
 
@@ -185,7 +184,7 @@ def friends(request):
 @api_view(['POST', ])
 @permission_classes((permissions.IsAuthenticated,))
 def add_friend(request, player_id):
-    player = get_object_or_404(Player, pk=request.user.player.id)
+    player = Player.objects.get(email=request.user.email)
     friend = get_object_or_404(Player, pk=player_id)
     player.favorites.add(friend)
     player.save()
@@ -193,10 +192,10 @@ def add_friend(request, player_id):
     return Response(serializer.data)
 
 
-@api_view(['POST', ])
+@api_view(['DELETE', ])
 @permission_classes((permissions.IsAuthenticated,))
 def remove_friend(request, player_id):
-    player = get_object_or_404(Player, pk=request.user.player.id)
+    player = Player.objects.get(email=request.user.email)
     friend = get_object_or_404(Player, pk=player_id)
     player.favorites.remove(friend)
     player.save()

@@ -2,6 +2,7 @@ import json
 
 from datetime import date, timedelta
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, RequestFactory
 from django.utils import timezone as tz
 from http import HTTPStatus
@@ -9,7 +10,7 @@ from rest_framework.test import APIClient
 from unittest import mock
 
 from events.models import Event
-from register.models import RegistrationSlot
+from register.models import RegistrationSlot, Registration
 
 
 def update_event_to_registering(event_id):
@@ -117,6 +118,40 @@ class PlayerViewTests(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertTrue("player with this GHIN already exists" in response.data["ghin"][0])
+
+    def test_add_friends(self):
+        self.user = User.objects.get(email="finleysg@gmail.com")
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        response = client.post("/api/friends/add/2/")
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.data[0]["email"], "hogan@golf.com")
+
+    def test_get_friends(self):
+        self.user = User.objects.get(email="finleysg@gmail.com")
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        client.post("/api/friends/add/2/")
+        client.post("/api/friends/add/3/")
+        response = client.get("/api/friends/")
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_remove_friends(self):
+        self.user = User.objects.get(email="finleysg@gmail.com")
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        client.post("/api/friends/add/2/")
+        client.post("/api/friends/add/3/")
+        response = client.delete("/api/friends/remove/2/")
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(len(response.data), 1)
 
 
 class RegistrationTests(TestCase):
@@ -343,3 +378,89 @@ class RegistrationTests(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data["detail"], "The event field is full")
+
+    def test_cancel_registration(self):
+        update_event_to_registering(event_id=4)
+        data = json.dumps({
+            "event": 4,
+            "slots": []
+        })
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        response = client.post("/api/registration/", data=data, content_type="application/json")
+
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
+
+        new_id = response.data["id"]
+        update = response.data
+        update["slots"][0]["player"] = 1
+        response = client.put("/api/registration/{}/".format(new_id),
+                              data=json.dumps(update),
+                              content_type="application/json")
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        response = client.put("/api/registration/{}/cancel/".format(new_id))
+
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
+
+        try:
+            Registration.objects.get(pk=new_id)
+        except ObjectDoesNotExist:
+            is_none = True
+            self.assertTrue(is_none)
+
+        slots = RegistrationSlot.objects.filter(registration=new_id)
+        self.assertEqual(len(slots), 0)
+
+    def test_cancel_weeknight_registration(self):
+        update_event_to_registering(event_id=3)
+        data = json.dumps({
+            "event": 3,
+            "course": 1,
+            "slots": [
+                {
+                    "event": 3,
+                    "id": 1,
+                    "starting_order": 0,
+                    "slot": 0,
+                    "status": "A",
+                    "hole_id": 1
+                },
+                {
+                    "event": 3,
+                    "id": 2,
+                    "starting_order": 0,
+                    "slot": 1,
+                    "status": "A",
+                    "hole_id": 1
+                },
+                {
+                    "event": 3,
+                    "id": 3,
+                    "starting_order": 0,
+                    "slot": 2,
+                    "status": "A",
+                    "hole_id": 1
+                }
+            ]
+        })
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        response = client.post("/api/registration/", data=data, content_type="application/json")
+
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
+
+        new_id = response.data["id"]
+        response = client.put("/api/registration/{}/cancel/".format(new_id))
+
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
+
+        try:
+            Registration.objects.get(pk=new_id)
+        except ObjectDoesNotExist:
+            is_none = True
+            self.assertTrue(is_none)
+
+        slot = RegistrationSlot.objects.get(pk=1)
+        self.assertEqual(slot.status, "A")

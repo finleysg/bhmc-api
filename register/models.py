@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import DO_NOTHING, SET_NULL, CASCADE, UniqueConstraint
 from simple_history.models import HistoricalRecords
@@ -58,7 +59,8 @@ class Player(models.Model):
 class Registration(models.Model):
     event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE)
     course = models.ForeignKey(verbose_name="Course", to=Course, null=True, on_delete=DO_NOTHING)
-    signed_up_by = models.CharField(verbose_name="Signed up by", max_length=40, blank=True)
+    user = models.ForeignKey(verbose_name="User", to=User, null=True, blank=True, on_delete=DO_NOTHING)
+    signed_up_by = models.CharField(verbose_name="Signed up by", max_length=40, null=True, blank=True)
     expires = models.DateTimeField(verbose_name="Expiration", null=True, blank=True)
     starting_hole = models.IntegerField(verbose_name="Starting hole", blank=True, default=1)
     starting_order = models.IntegerField(verbose_name="Starting order", default=0)

@@ -55,6 +55,7 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
         if player_id is not None:
+            # TODO: limit by previous season only as well
             queryset = queryset.filter(player=player_id)
         if is_open:
             queryset = queryset.filter(player__isnull=True)

@@ -38,6 +38,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
         context = super(PaymentViewSet, self).get_serializer_context()
         return context
 
+    def destroy(self, request, *args, **kwargs):
+        queryset = Payment.objects.all()
+        payment = queryset.get(pk=kwargs.get("pk"))
+        stripe.PaymentIntent.cancel(payment.payment_code)
+        return super(PaymentViewSet, self).destroy(request, *args, **kwargs)
+
 
 # This is a webhook registered with Stripe
 @csrf_exempt

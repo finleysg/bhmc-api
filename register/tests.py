@@ -178,7 +178,7 @@ class RegistrationTests(TestCase):
         self.assertEqual(response.data["signed_up_by"], "Stuart Finley")
         self.assertEqual(len(response.data["slots"]), 1)
         self.assertEqual(response.data["slots"][0]["status"], "P")
-        self.assertIsNone(response.data["slots"][0]["player"])
+        self.assertEqual(response.data["slots"][0]["player"], 1)  # default to current player on first slot
 
     def test_season_registration_update(self):
         update_event_to_registering(event_id=1)
@@ -291,7 +291,7 @@ class RegistrationTests(TestCase):
         self.assertEqual(response.data["signed_up_by"], "Stuart Finley")
         self.assertEqual(len(response.data["slots"]), 3)
         self.assertEqual(response.data["slots"][0]["status"], "P")
-        self.assertIsNone(response.data["slots"][0]["player"])
+        self.assertEqual(response.data["slots"][0]["player"], 1)
 
     def test_weeknight_registration_update(self):
         update_event_to_registering(event_id=3)

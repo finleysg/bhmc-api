@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import DO_NOTHING, SET_NULL, CASCADE, UniqueConstraint
 from simple_history.models import HistoricalRecords
 
+from documents.models import Photo
 from events.models import Event, EventFee
 from courses.models import Course, Hole
 from payments.models import Payment
@@ -25,8 +26,10 @@ class Player(models.Model):
     ghin = models.CharField(verbose_name="GHIN", max_length=8, unique=True, blank=True, null=True)
     tee = models.CharField(verbose_name="Tee", max_length=8, default="Club")
     birth_date = models.DateField(verbose_name="Birth date", blank=True, null=True)
-    # save_last_card = models.BooleanField(verbose_name="Save Last Card Used", default=False)
-    # stripe_customer_id = models.CharField(verbose_name="Stripe ID", max_length=40, blank=True, null=True)
+    save_last_card = models.BooleanField(verbose_name="Save Last Card Used", default=False)
+    stripe_customer_id = models.CharField(verbose_name="Stripe ID", max_length=40, blank=True, null=True)
+    profile_picture = models.ForeignKey(verbose_name="Profile picture", to=Photo, null=True, blank=True,
+                                        on_delete=CASCADE)
     favorites = models.ManyToManyField("self", blank=True)
 
     history = HistoricalRecords()

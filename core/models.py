@@ -26,4 +26,8 @@ class SeasonSettings(models.Model):
     def stripe_pk(self):
         return settings.STRIPE_PUBLIC_KEY
 
+    @property
+    def website_url(self):
+        return settings.WEBSITE_URL
+
     objects = SettingsManager()

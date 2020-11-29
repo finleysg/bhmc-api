@@ -11,7 +11,13 @@ from .serializers import RegistrationSlotSerializer, RegistrationSerializer, Pla
 
 class PlayerViewSet(viewsets.ModelViewSet):
     serializer_class = PlayerSerializer
-    queryset = Player.objects.all()
+
+    def get_queryset(self):
+        queryset = Player.objects.all()
+        email = self.request.query_params.get("email", None)
+        if email is not None:
+            queryset = queryset.filter(email=email)
+        return queryset
 
     def get_serializer_context(self):
         context = super(PlayerViewSet, self).get_serializer_context()
@@ -25,8 +31,11 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Registration.objects.all()
         event_id = self.request.query_params.get('event_id', None)
+        is_self = self.request.query_params.get('player', None)
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
+        if is_self == "me":
+            queryset = queryset.filter(signed_up_by=self.request.user.get_full_name())
         return queryset
 
     def perform_create(self, serializer):

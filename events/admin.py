@@ -19,8 +19,8 @@ class EventFeesInline(admin.TabularInline):
 
 
 class FeeTypeAdmin(admin.ModelAdmin):
-    fields = ["name", ]
-    list_display = ["name", ]
+    fields = ["name", "code", ]
+    list_display = ["name", "code", ]
     list_display_links = ("name",)
     ordering = ["name", ]
 

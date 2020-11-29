@@ -29,7 +29,7 @@ class RegistrationManager(models.Manager):
         return count
 
     @transaction.atomic()
-    def create_and_reserve(self, event, course, registration_slots, **registration_data):
+    def create_and_reserve(self, player, event, course, registration_slots, **registration_data):
         reg = self.create(event=event, course=course, **registration_data)
         reg.expires = tz.now() + timedelta(minutes=10)
         reg.save()
@@ -46,12 +46,16 @@ class RegistrationManager(models.Manager):
                     raise SlotConflictError()
 
             for i, slot in enumerate(slots):
+                if i == 0:
+                    slot.player = player
                 slot.status = "P"
                 slot.registration = reg
                 slot.save()
         else:
             for s in range(0, event.maximum_signup_group_size):
                 slot = event.registrations.create(event=event, registration=reg, status="P", starting_order=0, slot=s)
+                if slot.slot == 0:
+                    slot.player = player
                 slot.save()
 
         return reg
@@ -64,7 +68,7 @@ class RegistrationManager(models.Manager):
             if reg.event.can_choose:
                 reg.slots.update(**{"status": "A", "registration": None, "player": None})
             else:
-                reg.slots.all().delete()
+                reg.slots.all().delete()  # fee records(s) should cascade
 
             reg.delete()
 
@@ -152,10 +156,3 @@ class RegistrationSlotManager(models.Manager):
             slots.append(slot)
 
         return slots
-
-    def update_slots_for_payment(self, payment, fee_ids):
-        registration_fees = list(self.fees.filter(pk_in=fee_ids))
-        for fee in registration_fees:
-            fee.status = "R"
-            fee.payment = payment
-            fee.save()

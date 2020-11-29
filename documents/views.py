@@ -1,7 +1,5 @@
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import permission_classes, api_view
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
+from rest_framework.decorators import permission_classes
 
 from .serializers import *
 
@@ -50,22 +48,16 @@ class DocumentViewSet(viewsets.ModelViewSet):
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
 class PhotoViewSet(viewsets.ModelViewSet):
     serializer_class = PhotoSerializer
-    # parser_classes = (MultiPartParser, FormParser, )
 
     def get_queryset(self):
-        """ Optionally filter by code
-        """
         queryset = Photo.objects.all()
         year = self.request.query_params.get('year', None)
-        tournament = self.request.query_params.get('tournament', None)
-        pic_type = self.request.query_params.get('type', None)
+        player_id = self.request.query_params.get('player', None)
 
         if year is not None:
             queryset = queryset.filter(year=year)
-        if tournament is not None:
-            queryset = queryset.filter(tournament=tournament)
-        if pic_type is not None:
-            queryset = queryset.filter(photo_type=pic_type)
+        if player_id is not None:
+            queryset = queryset.filter(player_id=player_id)
 
         return queryset
 

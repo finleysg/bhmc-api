@@ -1,3 +1,4 @@
+from register.models import Player
 from .models import *
 from rest_framework import serializers
 
@@ -92,17 +93,18 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Photo
-        fields = ("id", "year", "caption", "thumbnail_url", "image_url", "raw_image",
+        fields = ("id", "year", "caption", "thumbnail_url", "image_url", "raw_image", "player_id",
                   "created_by", "last_update", "tags", )
 
     def create(self, validated_data):
         tags = self.context["request"].data.get("tags", None)
         year = validated_data.pop("year")
+        player_id = validated_data.get("player_id", None)
         caption = validated_data.get("caption", None)
         raw_image = validated_data.pop("raw_image")
         created_by = self.context["request"].user
 
-        pic = Photo(year=year, caption=caption, raw_image=raw_image, created_by=created_by)
+        pic = Photo(year=year, player_id=player_id, caption=caption, raw_image=raw_image, created_by=created_by)
         pic.save()
 
         if tags is not None:
@@ -110,6 +112,11 @@ class PhotoSerializer(serializers.ModelSerializer):
                 t, created = Tag.objects.get_or_create(name=tag)
                 pt = PhotoTag(document=pic, tag=t)
                 pt.save()
+
+        if player_id is not None:
+            player = Player.objects.get(pk=player_id)
+            player.profile_picture = pic
+            player.save()
 
         return pic
 

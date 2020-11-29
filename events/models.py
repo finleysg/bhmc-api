@@ -155,6 +155,7 @@ class Event(models.Model):
 
 class FeeType(models.Model):
     name = models.CharField(verbose_name="Fee Name", max_length=30, unique=True)
+    code = models.CharField(verbose_name="Fee Code", max_length=3, default="X")
 
     def __str__(self):
         return self.name

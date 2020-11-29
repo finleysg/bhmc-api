@@ -7,8 +7,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from .models import Event
-from .serializers import EventSerializer, EventDetailSerializer
+from .models import Event, FeeType
+from .serializers import EventSerializer, EventDetailSerializer, FeeTypeSerializer
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -41,6 +41,11 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset.prefetch_related('registrations', 'documents', 'fees', 'courses')
 
         return queryset.order_by('start_date')
+
+
+class FeeTypeViewSet(viewsets.ModelViewSet):
+    queryset = FeeType.objects.all()
+    serializer_class = FeeTypeSerializer
 
 
 # TODO: move to patch or put

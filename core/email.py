@@ -1,12 +1,15 @@
 import os
 from decimal import Decimal
 from django.conf import settings
+from django.contrib.auth.models import User
 from templated_email import send_templated_mail
 from templated_email import InlineImage
 
+from core.models import SeasonSettings
 from events.models import Event
-from register.models import RegistrationSlot
+from register.models import RegistrationSlot, Player, Registration
 
+config = SeasonSettings.objects.current_settings()
 sender_email = "BHMC<postmaster@bhmc.org>"
 secretary_email = "secretary@bhmc.org"
 treasurer_email = "treasurer@bhmc.org"
@@ -19,11 +22,22 @@ with open(logo_file, 'rb') as logo:
 
 
 def send_notification(payment, event_id):
-    # TODO: probably just use SQL
-    event = Event.objects.select_related('registrations').select_related('fees').get(pk=event_id)
+    user = User.objects.get(pk=payment.user_id)
+    registration = Registration.objects.get(event_id=event_id, user=user)
+
+    if payment.notification_type == "R":
+        send_returning_member_welcome(user)
+    elif payment.notification_type == "N":
+        player = Player.objects.get(email=user.email)
+        send_new_member_welcome(user)
+        send_new_member_notification(user, player, registration.notes)
+
+    if payment.notification_type is not None:
+        # TODO: confirmation
+        pass
 
 
-def send_new_member_welcome(user, config):
+def send_new_member_welcome(user):
     send_templated_mail(
         template_name='welcome.html',
         from_email=sender_email,
@@ -31,9 +45,9 @@ def send_new_member_welcome(user, config):
         context={
             'first_name': user.first_name,
             'year': config.year,
-            'login_url': '{}/member/login'.format(config.website_url),
-            'account_url': '{}/member/account'.format(config.website_url),
-            'matchplay_url': '{}/events/{}/matchplay'.format(config.website_url, config.match_play_event.id),
+            'login_url': '{}/session/login'.format(config.website_url),
+            'account_url': '{}/my-account'.format(config.website_url),
+            'matchplay_url': '{}/match-play'.format(config.website_url),
             'logo_image': inline_image
         },
         template_suffix='html',
@@ -41,7 +55,7 @@ def send_new_member_welcome(user, config):
     )
 
 
-def send_returning_member_welcome(user, config):
+def send_returning_member_welcome(user):
     send_templated_mail(
         template_name='welcome_back.html',
         from_email=sender_email,
@@ -49,8 +63,8 @@ def send_returning_member_welcome(user, config):
         context={
             'first_name': user.first_name,
             'year': config.year,
-            'account_url': '{}/member/account'.format(config.website_url),
-            'matchplay_url': '{}/events/{}/matchplay'.format(config.website_url, config.match_play_event.id),
+            'account_url': '{}/my-account'.format(config.website_url),
+            'matchplay_url': '{}/match-play'.format(config.website_url),
             'logo_image': inline_image
         },
         template_suffix='html',
@@ -58,21 +72,16 @@ def send_returning_member_welcome(user, config):
     )
 
 
-def send_new_member_notification(user, group, config):
+def send_new_member_notification(user, player, notes):
     send_templated_mail(
         template_name='new_member_notification',
         from_email=sender_email,
-        recipient_list=[treasurer_email, secretary_email, admin_email],
+        recipient_list=[treasurer_email, secretary_email],
         context={
             'name': '{} {}'.format(user.first_name, user.last_name),
             'email': user.email,
-            'phone': user.member.phone_number,
-            'address': user.member.address1,
-            'city': user.member.city,
-            'state': user.member.state,
-            'zip': user.member.zip,
-            'ghin': user.member.ghin,
-            'club': group.notes.replace('NEW MEMBER REGISTRATION', ''),
+            'ghin': player.ghin,
+            'notes': notes,
             'admin_url': '{}/admin/auth/user/?q={}'.format(config.admin_url, user.username),
             'logo_image': inline_image
         },
@@ -81,8 +90,8 @@ def send_new_member_notification(user, group, config):
     )
 
 
-def send_has_notes_notification(user, group, event):
-    if group.notes is not None and group.notes != '':
+def send_has_notes_notification(user, event, notes):
+    if notes is not None and notes != '':
         send_templated_mail(
             template_name='has_notes_notification',
             from_email=sender_email,
@@ -91,7 +100,7 @@ def send_has_notes_notification(user, group, event):
                 'name': '{} {}'.format(user.first_name, user.last_name),
                 'email': user.email,
                 'event': event.name,
-                'notes': group.notes,
+                'notes': notes,
                 'logo_image': inline_image
             },
             template_suffix='html',
@@ -99,6 +108,7 @@ def send_has_notes_notification(user, group, event):
         )
 
 
+# TODO: needs rework based on scheema changes
 def send_event_confirmation(user, group, event, config):
 
     registrations = list(RegistrationSlot.objects.filter(registration_group=group))

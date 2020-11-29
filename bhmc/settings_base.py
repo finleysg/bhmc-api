@@ -72,8 +72,8 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    "PASSWORD_RESET_CONFIRM_URL": "account/reset-password/{uid}/{token}",
-    "ACTIVATION_URL": "account/activate/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "session/reset-password/{uid}/{token}",
+    "ACTIVATION_URL": "session/account/activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,

@@ -22,13 +22,13 @@ def photo_directory_path(instance, filename):
 class ThumbnailSpec(ImageSpec):
     format = 'JPEG'
     options = {'quality': 80}
-    processors = [ResizeToFit(192, 192)]
+    processors = [ResizeToFit(288, 288)]
 
 
 class WebSpec(ImageSpec):
     format = 'JPEG'
     options = {'quality': 80}
-    processors = [ResizeToFit(900, 900)]
+    processors = [ResizeToFit(1200, 1200)]
 
 
 register.generator("documents:photo:thumbnail_image", ThumbnailSpec)
@@ -69,7 +69,8 @@ class DocumentTag(models.Model):
 
 class Photo(models.Model):
     year = models.IntegerField(verbose_name="Golf Season", default=0)
-    caption = models.CharField(verbose_name="Caption", max_length=240, blank=True)
+    player_id = models.IntegerField(verbose_name="Player Id", null=True, blank=True)
+    caption = models.CharField(verbose_name="Caption", max_length=240, null=True, blank=True)
     raw_image = models.ImageField(verbose_name="Image", upload_to=photo_directory_path)
     thumbnail_image = ImageSpecField(source="raw_image", id="documents:photo:thumbnail_image")
     web_image = ImageSpecField(source="raw_image", id="documents:photo:web_image")

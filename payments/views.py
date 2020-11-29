@@ -12,7 +12,6 @@ from rest_framework.response import Response
 from core.email import send_notification
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
-from register.models import RegistrationSlot
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -20,7 +19,17 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
-    queryset = Payment.objects.all()
+
+    def get_queryset(self):
+        queryset = Payment.objects.all()
+        event_id = self.request.query_params.get('event_id', None)
+        is_self = self.request.query_params.get('player', None)
+        if event_id is not None:
+            queryset = queryset.filter(event=event_id)
+        if is_self == "me":
+            queryset = queryset.filter(user=self.request.user)
+            queryset = queryset.order_by('-id')  # make it easy to grab the most recent
+        return queryset
 
     def get_serializer_context(self):
         """
@@ -64,13 +73,9 @@ def payment_complete(request):
 def handle_payment_complete(payment_intent):
     payment = Payment.objects.get(payment_code=payment_intent.stripe_id)
     event_id = payment_intent.metadata.get("event_id")
-    fee_ids = payment_intent.metadata.get("fee_ids")
-    fee_id_list = [int(fee_id) for fee_id in fee_ids.split(',')]
 
     payment.confirmed = True
     payment.save()
-
-    RegistrationSlot.objects.update_slots_for_payment(payment, fee_id_list)
 
     send_notification(payment, event_id)
 

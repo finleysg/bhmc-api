@@ -65,7 +65,7 @@ class EventModelTests(TestCase):
         event = Event.objects.get(pk=3)
         new_dt = date.fromisoformat('2020-12-04')
         copy = Event.objects.clone(event, new_dt)
-        self.assertGreater(len(copy.registrations.all()), 0)
+        self.assertEqual(len(copy.registrations.all()), 0)
 
     def test_clone_includes_fees(self):
         event = Event.objects.get(pk=4)

@@ -1,0 +1,14 @@
+-   model: register.registrationfee
+    pk: 57
+    fields:
+        event_fee: 1
+        registration_slot: 1704
+        is_paid: false
+        payment: 35
+-   model: register.registrationfee
+    pk: 58
+    fields:
+        event_fee: 3
+        registration_slot: 1704
+        is_paid: false
+        payment: 35

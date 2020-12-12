@@ -2,7 +2,7 @@ import stripe
 from decimal import Decimal
 from rest_framework import serializers
 
-from register.models import RegistrationFee
+from register.models import RegistrationFee, Player
 from register.serializers import RegistrationFeeSerializer
 from .models import Payment
 

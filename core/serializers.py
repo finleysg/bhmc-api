@@ -1,5 +1,6 @@
 import random
 import string
+from abc import ABC
 
 from django.contrib.auth.models import User, Group
 from rest_framework.exceptions import ValidationError
@@ -48,27 +49,36 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
+    ghin = serializers.CharField(max_length=8, required=False, allow_blank=True)
+    password = serializers.CharField(max_length=128)
+
     class Meta:
-        model = User
-        fields = ("email", "password", "first_name", "last_name", )
+        fields = ("email", "password", "first_name", "last_name", "ghin", )
 
     def create(self, validated_data):
         email = validated_data["email"]
+        ghin = validated_data["ghin"]
         exists = User.objects.filter(email=email).exists()
         if exists:
             raise ValidationError("user already exists")
+        elif ghin is not None:
+            exists = Player.objects.filter(ghin=ghin).exists()
+            if exists:
+                raise ValidationError("ghin is already associated with a player")
 
-        uname = "".join([random.choice(string.ascii_lowercase) for n in range(24)])
         user = User.objects.create_user(
-            username=uname,
-            email=validated_data["email"],
+            username=email,
+            email=email,
             password=validated_data["password"],
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             is_active=False,
         )
 
-        Player.objects.create(first_name=user.first_name, last_name=user.last_name, email=user.email)
+        Player.objects.create(first_name=user.first_name, last_name=user.last_name, email=user.email, ghin=ghin)
 
         return user

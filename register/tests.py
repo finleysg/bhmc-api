@@ -1,6 +1,8 @@
 import json
 
 from datetime import date, timedelta
+
+import stripe
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, RequestFactory
@@ -10,6 +12,9 @@ from rest_framework.test import APIClient
 from unittest import mock
 
 from events.models import Event
+from payments.email import send_notification
+from payments.models import Payment
+from payments.views import handle_payment_complete
 from register.models import RegistrationSlot, Registration
 
 
@@ -464,3 +469,29 @@ class RegistrationTests(TestCase):
 
         slot = RegistrationSlot.objects.get(pk=1)
         self.assertEqual(slot.status, "A")
+
+
+class PaymentTests(TestCase):
+    fixtures = ["fee_type", "event2", "event_fee", "registration_slot2", "course", "hole", "user2", "player2",
+                "payment", "registration_fee", "registration2", "season-settings", ]
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.get(email="finleysg@gmail.com")
+
+    # @mock.patch("templated_email.get_connection")
+    def test_payment_complete_returning_member(self):
+        payment = Payment.objects.get(payment_code="pi_1Hu67RG3m1mtgUwuNrrtBUNw")
+        self.assertEqual(payment.confirmed, False)
+
+        # mocked_connection = mock_get_connection.return_value
+        handle_payment_complete(FakeSPaymentIntent("pi_1Hu67RG3m1mtgUwuNrrtBUNw"))
+
+        payment = Payment.objects.get(payment_code="pi_1Hu67RG3m1mtgUwuNrrtBUNw")
+        self.assertEqual(payment.confirmed, True)
+        # self.assertTrue(mocked_connection.send.called)
+
+
+class FakeSPaymentIntent(object):
+    def __init__(self, payment_code):
+        self.stripe_id = payment_code

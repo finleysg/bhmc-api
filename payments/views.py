@@ -9,7 +9,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from core.email import send_notification
+from payments.email import send_notification
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
 
@@ -78,12 +78,17 @@ def payment_complete(request):
 
 def handle_payment_complete(payment_intent):
     payment = Payment.objects.get(payment_code=payment_intent.stripe_id)
-    event_id = payment_intent.metadata.get("event_id")
 
     payment.confirmed = True
     payment.save()
 
-    send_notification(payment, event_id)
+    fees = list(payment.payment_details.all())
+    slots = [fee.registration_slot for fee in fees]
+    for slot in slots:
+        slot.status = "R"
+        slot.save()
+
+    send_notification(payment, fees, slots)
 
 
 def unpack_stripe_event(payload):

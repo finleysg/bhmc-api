@@ -1,0 +1,105 @@
+{% load i18n %}
+
+{% block subject %}
+{% blocktrans %}BHMC Account Activation{% endblocktrans %}
+{% endblock subject %}
+
+{% block text_body %}
+{% blocktrans %}You are receiving this email because you need to confirm your email to
+activate your account at bhmc.org.{% endblocktrans %}
+
+{% trans "Please paste this url into your browser to activate your account:" %}
+{{ protocol }}://{{ domain }}/{{ url|safe }}
+
+{% trans "Thank you for your interest in our club!" %}
+{% endblock text_body %}
+
+{% block html_body %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--[if !mso]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--<![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+        body {
+            margin: 0 !important;
+            padding: 0;
+            background-color: #ffffff;
+            font-family: sans-serif;
+            font-size: 14px;
+            color: #333333;
+        }
+        h1 {
+            color: #007DC3;
+            font-size: 1.8em;
+        }
+        p {
+            margin: 0;
+        }
+        a {
+            color: #ee6a56;
+            text-decoration: underline;
+        }
+
+        /* One column layout */
+        .one-column .contents {
+            text-align: left;
+        }
+        .one-column p {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .inner-columns td {
+            font-size: 14px;
+            padding: 6px;
+        }
+    </style>
+    <!--[if (gte mso 9)|(IE)]>
+    <style type="text/css">
+        table {border-collapse: collapse;}
+    </style>
+    <![endif]-->
+</head>
+<body style="padding: 20;background-color: #ffffff;margin: 0 !important;">
+    <div style="max-width: 1200px;">
+        <!--[if (gte mso 9)|(IE)]>
+        <table>
+            <tr>
+                <td>
+        <![endif]-->
+        <table style="border-spacing: 0;font-family: sans-serif;color: #333333;width: 100%;">
+            <tr>
+                <td style="padding: 0;">
+                    <h1 class="heading" style="color: #007DC3;font-size: 1.8em;">Bunker Hills Men's Club</h1>
+                </td>
+            </tr>
+            <tr>
+                <td class="one-column" style="padding: 0;">
+                    <table width="100%" style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+                        <tr>
+                            <td class="inner contents" style="text-align: left;">
+
+<p>{% trans "To confirm your email and activate your account at bhmc.org, please click on the following link:" %}</p>
+<p><a href="{{ protocol }}://{{ domain }}/{{ url|safe }}">{{ protocol }}://{{ domain }}/{{ url|safe }}</a></p>
+
+<p>{% trans "Thank you for your interest in our club!" %}</p>
+
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
+    </div>
+</body>
+</html>
+{% endblock html_body %}

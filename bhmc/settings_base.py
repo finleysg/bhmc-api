@@ -49,7 +49,7 @@ AUTHENTICATION_BACKENDS = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [os.path.join(BASE_DIR, "templates"), ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -83,10 +83,9 @@ DJOSER = {
         "current_user": "core.serializers.UserDetailSerializer",
         "user_create": "core.serializers.UserCreateSerializer",
     },
-    # "EMAIL": {
-    #     "activation": "communication.email.ActivationEmail",
-    #     "password_reset": "djoser.email.PasswordResetEmail",
-    # }
+    "EMAIL": {
+        "activation": "core.email.ActivationEmail",
+    }
 }
 
 ROOT_URLCONF = "bhmc.urls"

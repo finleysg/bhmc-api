@@ -1,14 +1,145 @@
-{% extends "templated_email/email_base.html" %}
-{% block subject %}Welcome to BHMC{% endblock %}
+{% block html %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--[if !mso]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--<![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+        body {
+            margin: 0 !important;
+            padding: 0;
+            background-color: #ffffff;
+            font-size: 14px;
+        }
+        table {
+            border-spacing: 0;
+            font-family: sans-serif;
+            color: #333333;
+        }
+        td {
+            padding: 0;
+        }
+        img {
+            border: 0;
+        }
+        div[style*="margin: 16px 0"] {
+            margin:0 !important;
+        }
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        .webkit {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .outer {
+            margin: 10px auto;
+            width: 100%;
+            max-width: 600px;
+        }
+        .full-width-image img {
+            width: 80%;
+            /* max-width: 600px; */
+            height: auto;
+        }
+        h1 {
+            color: #007DC3;
+            font-size: 1.8em;
+        }
+        h3 {
+            font-size: 1.2em;
+        }
+        .inner {
+            padding: 10px;
+        }
+        p {
+            margin: 0;
+        }
+        a {
+            color: #ee6a56;
+            text-decoration: underline;
+        }
+        .h1 {
+            font-size: 21px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+        .h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        /* One column layout */
+        .one-column .contents {
+            text-align: left;
+        }
+        .one-column p {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .inner-columns td {
+            font-size: 14px;
+            padding: 6px;
+        }
+        .payment-column {
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+    <!--[if (gte mso 9)|(IE)]>
+    <style type="text/css">
+        table {border-collapse: collapse;}
+    </style>
+    <![endif]-->
+</head>
+<body style="padding: 0;background-color: #ffffff;margin: 0 !important;">
+<center class="wrapper" style="width: 100%;table-layout: fixed;-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;">
+    <div class="webkit" style="max-width: 600px;margin: 0 auto;">
+        <!--[if (gte mso 9)|(IE)]>
+        <table width="600" align="center">
+            <tr>
+                <td>
+        <![endif]-->
+        <table class="outer" align="center" style="border-spacing: 0;font-family: sans-serif;color: #333333;margin: 10px auto;width: 100%;max-width: 600px;">
+            <tr>
+                <td style="padding: 0;">
+                    <table class="outer" align="center" style="border-spacing: 0;font-family: sans-serif;color: #333333;margin: 10px auto;width: 100%;max-width: 600px;">
+                        <tr>
+                            <td class="full-width-image" style="padding: 0;">
+                                <a href="https://bhmc.org/home" style="color: #ee6a56;text-decoration: underline;">
+                                    <img src="{{ logo_image }}" alt="Bunker Hills Logo" style="border: 0;width: 80%;height: auto;">
+                                </a>
+                            </td>
+                            <td style="padding: 0;">
+                                <h1 class="heading" style="color: #007DC3;font-size: 1.8em;">Bunker Hills Men's Club</h1>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="one-column" style="padding: 0;">
+                    <table width="100%" style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+                        <tr>
+                            <td class="inner contents" style="padding: 10px;text-align: left;">
+<!--                                {% block subject %}Welcome to BHMC{% endblock %}-->
 {% block content %}
-    <h3 style="font-size: 1.2em;">Welcome to the Bunker Hills Men's Golf Club</h3>
+    <h3 style="font-size: 1.2em;">Welcome to the Club!</h3>
     <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Hello, {{first_name}}, you are receiving this email because you just registered for the {{year}} golf season.</p>
-    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">If you haven't already, <a href="{{login_url}}" style="color: #ee6a56;text-decoration: underline;">log in</a> to the website. You cannot
-        register for our events without being logged in. The first event you should consider is our
-        <a href="{{matchplay_url}}" style="color: #ee6a56;text-decoration: underline;">season long match play.</a>
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">If you do not yet have a ghin, we will register you with the MGA to get one for you. You cannot register for our events without a ghin, and you must have an active handicap
+        (<a href="https://www.usga.org/content/usga/home-page/handicapping/world-handicap-system/world-handicap-system-usga-golf-faqs/faqs---how-many-scores-to-get-a-handicap-index.html" style="color: #ee6a56;text-decoration: underline;">minimum 54 holes posted</a>)
+        to receive strokes in any event. The first event you should consider is our <a href="{{matchplay_url}}" style="color: #ee6a56;text-decoration: underline;">season long match play.</a>
     </p>
     <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">You can also go to your <a href="{{account_url}}" style="color: #ee6a56;text-decoration: underline;">account</a> page to update your contact information or
-        log-in information as needed.
+        log-in information as needed. Please consider uploading a profile picture for our member directory.
     </p>
     <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Thank you again for joining our club. If you have any questions, please contact a board
         member or send us a note at <a href="mailto:contact@bhmc.org" style="color: #ee6a56;text-decoration: underline;">contact@bhmc.org</a>.
@@ -16,4 +147,20 @@
     </p>
     <p>&nbsp;</p>
     <p style="margin: 0;font-size: 14px;margin-bottom: 10px;"><strong><i>The BHMC Board</i></strong></p>
+{% endblock %}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
+    </div>
+</center>
+</body>
+</html>
 {% endblock %}

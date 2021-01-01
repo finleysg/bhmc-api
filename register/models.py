@@ -27,7 +27,7 @@ class Player(models.Model):
     ghin = models.CharField(verbose_name="GHIN", max_length=8, unique=True, blank=True, null=True)
     tee = models.CharField(verbose_name="Tee", max_length=8, default="Club")
     birth_date = models.DateField(verbose_name="Birth date", blank=True, null=True)
-    save_last_card = models.BooleanField(verbose_name="Save Last Card Used", default=False)
+    save_last_card = models.BooleanField(verbose_name="Save Last Card Used", default=True)
     stripe_customer_id = models.CharField(verbose_name="Stripe ID", max_length=40, blank=True, null=True)
     profile_picture = models.ForeignKey(verbose_name="Profile picture", to=Photo, null=True, blank=True,
                                         on_delete=CASCADE)
@@ -65,6 +65,7 @@ class Registration(models.Model):
     starting_hole = models.IntegerField(verbose_name="Starting hole", blank=True, default=1)
     starting_order = models.IntegerField(verbose_name="Starting order", default=0)
     notes = models.TextField(verbose_name="Registration notes", blank=True, null=True)
+    created_date = models.DateTimeField(verbose_name="Created date", auto_now_add=True)
 
     objects = RegistrationManager()
     history = HistoricalRecords()

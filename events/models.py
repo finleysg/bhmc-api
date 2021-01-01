@@ -72,6 +72,7 @@ class Event(models.Model):
     courses = models.ManyToManyField(verbose_name="Course(s)", to=Course, blank=True)
     external_url = models.CharField(verbose_name="External url", max_length=255, blank=True, null=True)
     status = models.CharField(verbose_name="Status", max_length=1, choices=EVENT_STATUS_CHOICES, default="S")
+    season = models.IntegerField(verbose_name="Season", default=0)
 
     class Meta:
         constraints = [
@@ -90,15 +91,15 @@ class Event(models.Model):
         if self.registration_type != "N":
             state = "past"
             right_now = timezone.now()
-            aware_start = pytz.utc.localize(datetime.combine(self.start_date, time=datetime.min.time()))
-            signup_start = pytz.utc.normalize(self.signup_start)
-            signup_end = pytz.utc.normalize(self.signup_end)
+            # aware_start = pytz.utc.localize(datetime.combine(self.start_date, time=datetime.min.time()))
+            # signup_start = pytz.utc.normalize(self.signup_start)
+            # signup_end = pytz.utc.normalize(self.signup_end)
 
-            if signup_start < right_now < signup_end:
+            if self.signup_start < right_now < self.signup_end:
                 state = "registration"
-            elif signup_start > right_now:
+            elif self.signup_start > right_now:
                 state = "future"
-            elif state == "past" and aware_start > right_now:
+            elif state == "past" and self.signup_start > right_now:
                 state = "pending"
 
         return state

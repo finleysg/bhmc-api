@@ -5,8 +5,10 @@ from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Max
+from rest_framework.exceptions import APIException
+
 from courses.models import Hole
-from register.exceptions import SlotConflictError, MissingSlotsError
+from register.exceptions import SlotConflictError, MissingSlotsError, RegistrationConfirmedError
 
 logger = logging.getLogger('register-manager')
 
@@ -29,8 +31,8 @@ class RegistrationManager(models.Manager):
         return count
 
     @transaction.atomic()
-    def create_and_reserve(self, player, event, course, registration_slots, **registration_data):
-        reg = self.create(event=event, course=course, **registration_data)
+    def create_and_reserve(self, user, player, event, course, registration_slots, **registration_data):
+        reg = self.create(event=event, course=course, user=user, **registration_data)
         reg.expires = tz.now() + timedelta(minutes=10)
         reg.save()
 
@@ -66,8 +68,11 @@ class RegistrationManager(models.Manager):
             reg = self.filter(pk=registration_id).get()
 
             if reg.event.can_choose:
+                # TODO: update only pending slots
                 reg.slots.update(**{"status": "A", "registration": None, "player": None})
             else:
+                if len(list(reg.slots.filter(status="R"))) > 0:
+                    raise RegistrationConfirmedError()
                 reg.slots.all().delete()  # fee records(s) should cascade
 
             reg.delete()

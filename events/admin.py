@@ -28,7 +28,7 @@ class FeeTypeAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Event Details", {
-            "fields": ("name", ("event_type", "start_type", "status"),
+            "fields": ("season", "name", ("event_type", "start_type", "status"),
                        ("rounds", "season_points", "skins_type", ))
         }),
         ("Event Date", {
@@ -56,9 +56,9 @@ class EventAdmin(admin.ModelAdmin):
 
     event_type_display.short_description = "Event Type"
     date_hierarchy = "start_date"
-    list_display = ["name", "start_date", "event_type_display", ]
+    list_display = ["season", "name", "start_date", "event_type_display", ]
     list_display_links = ("name",)
-    list_filter = ("event_type",)
+    list_filter = ("season", "event_type",)
     ordering = ["start_date", ]
     search_fields = ["name", "notes", ]
     save_on_top = True

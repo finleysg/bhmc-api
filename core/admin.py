@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.models import SeasonSettings
+from core.models import SeasonSettings, BoardMember
 
 
 class SettingsAdmin(admin.ModelAdmin):
@@ -9,4 +9,10 @@ class SettingsAdmin(admin.ModelAdmin):
     can_delete = False
 
 
+class BoardMemberAdmin(admin.ModelAdmin):
+    fields = ["player", "role", "term_expires", ]
+    list_display = ["player", "role", "term_expires", ]
+
+
 admin.site.register(SeasonSettings, SettingsAdmin)
+admin.site.register(BoardMember, BoardMemberAdmin)

@@ -20,7 +20,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-# TODO: change to viewset and move send mail to backend
 @api_view(['POST', ])
 @permission_classes((permissions.AllowAny,))
 def contact_message(request):
@@ -37,5 +36,5 @@ def contact_message(request):
         ["contact@bhmc.org"]
     )
 
-    return Response(status=201)
+    return Response(data="message sent", status=201)
 

@@ -85,15 +85,16 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 class PhotoSerializer(serializers.ModelSerializer):
 
-    thumbnail_url = serializers.ReadOnlyField(source="thumbnail_image.url")
-    image_url = serializers.ReadOnlyField(source="web_image.url")
+    mobile_url = serializers.ReadOnlyField(source="mobile_image.url")
+    web_url = serializers.ReadOnlyField(source="web_image.url")
+    image_url = serializers.ReadOnlyField(source="raw_image.url")
     tags = PhotoTagSerializer(many=True, required=False)
     created_by = serializers.CharField(read_only=True)
     last_update = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Photo
-        fields = ("id", "year", "caption", "thumbnail_url", "image_url", "raw_image", "player_id",
+        fields = ("id", "year", "caption", "mobile_url", "web_url", "image_url", "raw_image", "player_id",
                   "created_by", "last_update", "tags", )
 
     def create(self, validated_data):

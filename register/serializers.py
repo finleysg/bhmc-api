@@ -9,6 +9,12 @@ from .exceptions import EventFullError, EventRegistrationNotOpenError, CourseReq
 from .models import Player, Registration, RegistrationSlot, RegistrationFee
 
 
+class SimplePlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = ("id", "first_name", "last_name", "email", )
+
+
 class PlayerSerializer(serializers.ModelSerializer):
 
     profile_picture = PhotoSerializer(read_only=True)
@@ -76,7 +82,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Registration
         fields = ("id", "event", "course", "signed_up_by", "starting_hole", "starting_order", "notes",
-                  "slots", "expires")
+                  "slots", "expires", "created_date", )
 
     def create(self, validated_data):
         user = None
@@ -96,7 +102,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         validate_event_is_not_full(event)
         course = validate_course_for_event(event, validated_data.pop("course", None))
 
-        return Registration.objects.create_and_reserve(player, event, course, slots, **validated_data)
+        return Registration.objects.create_and_reserve(user, player, event, course, slots, **validated_data)
 
     def update(self, instance, validated_data):
         slots = validated_data.pop("slots")
@@ -121,7 +127,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 def validate_event_is_not_full(event):
     if event.registration_maximum is not None and event.registration_maximum != 0:
-        registrations = RegistrationSlot.objects.filter(status="R").count()
+        registrations = RegistrationSlot.objects.filter(event=event).filter(status="R").count()
         if registrations >= event.registration_maximum:
             raise EventFullError()
 

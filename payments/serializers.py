@@ -35,6 +35,12 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment_details = calculate_payment_amount(amount_due)
         stripe_amount_due = int(payment_details[0] * 100)  # total (with fees) in cents
 
+        player = Player.objects.get(email=user.email)
+        if player.stripe_customer_id is None:
+            customer = stripe.Customer.create()
+            player.stripe_customer_id = customer.stripe_id
+            player.save()
+
         intent = stripe.PaymentIntent.create(
             amount=stripe_amount_due,
             currency='usd',
@@ -50,6 +56,8 @@ class PaymentSerializer(serializers.ModelSerializer):
                 'event_name': event.name,
                 'event_date': event.start_date.strftime('%Y-%m-%d'),
             },
+            customer=player.stripe_customer_id,
+            # setup_future_usage="on_session" if player.save_last_card else None,
         )
         payment = Payment.objects.create(event=event, user=user,
                                          payment_code=intent.stripe_id,
@@ -76,7 +84,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment_details = calculate_payment_amount(amount_due)
         stripe_amount_due = int(payment_details[0] * 100)  # total (with fees) in cents
 
-        stripe.PaymentIntent.modify(instance.payment_code, amount_due=stripe_amount_due)
+        stripe.PaymentIntent.modify(instance.payment_code, amount=stripe_amount_due)
 
         instance.payment_amount = payment_details[0]
         instance.transaction_fee = payment_details[-1]

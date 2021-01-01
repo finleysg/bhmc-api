@@ -17,7 +17,7 @@ with open(logo_file, 'rb') as logo:
     inline_image = InlineImage(filename=logo_file, content=image)
 
 
-def send_notification(payment, fees, slots):
+def send_notification(payment, fees, slots, player):
     user = payment.user
     event = payment.event
     registration = slots[0].registration
@@ -26,7 +26,6 @@ def send_notification(payment, fees, slots):
         send_member_welcome(user)
     elif payment.notification_type == "N":
         send_member_welcome(user)
-        player = slots[0].player
         send_new_member_notification(user, player, registration.notes)
     elif payment.notification_type == "C":
         # TODO: confirmation

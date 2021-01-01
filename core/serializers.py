@@ -1,12 +1,9 @@
-import random
-import string
-from abc import ABC
-
 from django.contrib.auth.models import User, Group
 from rest_framework.exceptions import ValidationError
 
 from register.models import Player
-from .models import SeasonSettings
+from register.serializers import SimplePlayerSerializer
+from .models import SeasonSettings, BoardMember
 from rest_framework import serializers
 
 
@@ -61,14 +58,17 @@ class UserCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         email = validated_data["email"]
-        ghin = validated_data["ghin"]
+        ghin = validated_data["ghin"].strip()
         exists = User.objects.filter(email=email).exists()
         if exists:
             raise ValidationError("user already exists")
         elif ghin is not None:
-            exists = Player.objects.filter(ghin=ghin).exists()
-            if exists:
-                raise ValidationError("ghin is already associated with a player")
+            if ghin == "":
+                ghin = None
+            else:
+                exists = Player.objects.filter(ghin=ghin).exists()
+                if exists:
+                    raise ValidationError("ghin is already associated with a player")
 
         user = User.objects.create_user(
             username=email,
@@ -82,3 +82,12 @@ class UserCreateSerializer(serializers.Serializer):
         Player.objects.create(first_name=user.first_name, last_name=user.last_name, email=user.email, ghin=ghin)
 
         return user
+
+
+class BoardMemberSerializer(serializers.ModelSerializer):
+
+    player = SimplePlayerSerializer()
+
+    class Meta:
+        model = BoardMember
+        fields = ("player", "role", "term_expires", )

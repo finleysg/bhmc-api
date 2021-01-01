@@ -8,6 +8,8 @@ NOTIFICATION_CHOICES = (
     ("N", "New Member"),
     ("R", "Returning Member"),
     ("C", "Signup Confirmation"),
+    ("M", "Match Play"),
+    ("O", "General Online Payment"),
 )
 
 

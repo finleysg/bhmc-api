@@ -17,11 +17,13 @@ from messaging import views as messaging_views
 from policies import views as policy_views
 from register import views as register_views
 from payments import views as payment_views
+from content import views as content_views
 
 admin.site.site_header = "Bunker Hills Men's Club Administration"
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
+router.register(r"board", core_views.BoardMemberViewSet, "board")
 router.register(r"courses", course_views.CourseViewSet, "courses")
 router.register(r"documents", document_views.DocumentViewSet, "documents")
 router.register(r"photos", document_views.PhotoViewSet, "photos")
@@ -29,6 +31,7 @@ router.register(r"events", event_views.EventViewSet, "events")
 router.register(r"fee-types", event_views.FeeTypeViewSet, "fee-types")
 router.register(r"news", messaging_views.AnnouncementViewSet, "news")
 router.register(r"policies", policy_views.PolicyViewSet, "policies")
+router.register(r"page-content", content_views.PageContentViewSet, "page-content")
 router.register(r"payments", payment_views.PaymentViewSet, "payments")
 router.register(r"players", register_views.PlayerViewSet, "players")
 router.register(r"registration", register_views.RegistrationViewSet, "registration")
@@ -37,10 +40,14 @@ router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, 
 urlpatterns = [
       url(r"^admin/", admin.site.urls),
       url(r"^api/", include(router.urls)),
+      url(r"^api/contact/$", messaging_views.contact_message),
       url(r"^api/friends/$", register_views.friends),
       url(r"^api/friends/add/(?P<player_id>[0-9]+)/$", register_views.add_friend),
       url(r"^api/friends/remove/(?P<player_id>[0-9]+)/$", register_views.remove_friend),
       url(r"^api/hooks/stripe/$", payment_views.payment_complete),  # stripe hook
+      url(r"^api/remove-card/(?P<payment_method>[-\w]+)/$", payment_views.remove_card),
+      url(r"^api/save-card/$", payment_views.player_card),
+      url(r"^api/saved-cards/$", payment_views.player_cards),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/cancel/$", register_views.cancel_reserved_slots),
       url(r"^api/settings/", core_views.current_settings),
       url(r'^auth/', include('djoser.urls')),

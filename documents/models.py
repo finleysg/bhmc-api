@@ -3,10 +3,20 @@ from django.db.models import DO_NOTHING, CASCADE
 from imagekit import ImageSpec, register
 from imagekit.models import ImageSpecField
 from pilkit.processors import ResizeToFit
-from simple_history.models import HistoricalRecords
 
 from documents.managers import PhotoManager, DocumentManager
 from events.models import Event
+
+DOCUMENT_TYPE_CHOICES = (
+    ("R", "Event Results"),
+    ("T", "Event Tee Times"),
+    ("P", "Season Long Points"),
+    ("D", "Dam Cup"),
+    ("M", "Match Play"),
+    ("F", "Financial Statements"),
+    ("S", "Sign Up"),
+    ("O", "Other")
+)
 
 
 def document_directory_path(instance, filename):
@@ -19,19 +29,19 @@ def photo_directory_path(instance, filename):
     return "photos/{0}/{1}".format(instance.year, filename)
 
 
-class ThumbnailSpec(ImageSpec):
+class MobileSpec(ImageSpec):
     format = 'JPEG'
     options = {'quality': 80}
-    processors = [ResizeToFit(288, 288)]
+    processors = [ResizeToFit(600, 600)]
 
 
 class WebSpec(ImageSpec):
     format = 'JPEG'
-    options = {'quality': 80}
-    processors = [ResizeToFit(1200, 1200)]
+    options = {'quality': 90}
+    processors = [ResizeToFit(1200, 1200, upscale=False)]
 
 
-register.generator("documents:photo:thumbnail_image", ThumbnailSpec)
+register.generator("documents:photo:mobile_image", MobileSpec)
 register.generator("documents:photo:web_image", WebSpec)
 
 
@@ -47,6 +57,7 @@ class Tag(models.Model):
 
 
 class Document(models.Model):
+    document_type = models.CharField(verbose_name="Type", choices=DOCUMENT_TYPE_CHOICES, max_length=1, default="R")
     year = models.IntegerField(verbose_name="Golf Season", blank=True, null=True)
     title = models.CharField(verbose_name="Title", max_length=120)
     event = models.ForeignKey(verbose_name="Event", to=Event, null=True, blank=True, on_delete=DO_NOTHING,
@@ -55,7 +66,6 @@ class Document(models.Model):
     created_by = models.CharField(verbose_name="Created By", max_length=100)
     last_update = models.DateTimeField(auto_now=True)
 
-    history = HistoricalRecords()
     objects = DocumentManager()
 
     def __str__(self):
@@ -72,12 +82,11 @@ class Photo(models.Model):
     player_id = models.IntegerField(verbose_name="Player Id", null=True, blank=True)
     caption = models.CharField(verbose_name="Caption", max_length=240, null=True, blank=True)
     raw_image = models.ImageField(verbose_name="Image", upload_to=photo_directory_path)
-    thumbnail_image = ImageSpecField(source="raw_image", id="documents:photo:thumbnail_image")
+    mobile_image = ImageSpecField(source="raw_image", id="documents:photo:mobile_image")
     web_image = ImageSpecField(source="raw_image", id="documents:photo:web_image")
     created_by = models.CharField(verbose_name="Created By", max_length=100)
     last_update = models.DateTimeField(auto_now=True)
 
-    history = HistoricalRecords()
     objects = PhotoManager()
 
     def __str__(self):

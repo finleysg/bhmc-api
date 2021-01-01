@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     "corsheaders",
     "storages",
     "anymail",
+    "content",
     "core",
     "courses",
     "documents",
@@ -98,9 +99,9 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "America/Chicago"
 
-USE_I18N = True
+USE_I18N = False
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 

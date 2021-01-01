@@ -29,6 +29,13 @@ class EventRegistrationNotOpenError(APIException):
         self.detail = "The event is not currently open for registration"
 
 
+class RegistrationConfirmedError(APIException):
+
+    def __init__(self):
+        self.status_code = 400
+        self.detail = "This registration has already been confirmed and paid"
+
+
 class CourseRequiredError(APIException):
 
     def __init__(self):

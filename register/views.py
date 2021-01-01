@@ -6,17 +6,27 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from .models import Registration, RegistrationSlot, Player
-from .serializers import RegistrationSlotSerializer, RegistrationSerializer, PlayerSerializer
+from .serializers import RegistrationSlotSerializer, RegistrationSerializer, PlayerSerializer, SimplePlayerSerializer
 
 
 class PlayerViewSet(viewsets.ModelViewSet):
-    serializer_class = PlayerSerializer
+    # serializer_class = PlayerSerializer
+    def get_serializer_class(self):
+        email = self.request.query_params.get("email", None)
+        if email is None and self.action == "list":
+            return SimplePlayerSerializer
+        return PlayerSerializer
 
     def get_queryset(self):
         queryset = Player.objects.all()
         email = self.request.query_params.get("email", None)
+        event_id = self.request.query_params.get("event_id", None)
+
         if email is not None:
             queryset = queryset.filter(email=email)
+        if event_id is not None:
+            ids = RegistrationSlot.objects.filter(event=event_id).values("player")
+            queryset = queryset.filter(pk__in=ids)
         return queryset
 
     def get_serializer_context(self):
@@ -31,11 +41,18 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Registration.objects.all()
         event_id = self.request.query_params.get('event_id', None)
+        player_id = self.request.query_params.get('player_id', None)
+        seasons = self.request.query_params.getlist('seasons', None)
         is_self = self.request.query_params.get('player', None)
+
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
+        if player_id is not None:
+            queryset = queryset.filter(slots__player_id=player_id)
+        if seasons:
+            queryset = queryset.filter(event__season__in=seasons)
         if is_self == "me":
-            queryset = queryset.filter(signed_up_by=self.request.user.get_full_name())
+            queryset = queryset.filter(user=self.request.user)
         return queryset
 
     def perform_create(self, serializer):
@@ -52,11 +69,14 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         event_id = self.request.query_params.get('event_id', None)
         player_id = self.request.query_params.get('player_id', None)
         is_open = self.request.query_params.get('is_open', False)
+        seasons = self.request.query_params.getlist('seasons', None)
+
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
         if player_id is not None:
-            # TODO: limit by previous season only as well
             queryset = queryset.filter(player=player_id)
+        if seasons:
+            queryset = queryset.filter(event__season__in=seasons)
         if is_open:
             queryset = queryset.filter(player__isnull=True)
         return queryset

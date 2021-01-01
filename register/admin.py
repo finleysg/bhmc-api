@@ -93,18 +93,18 @@ class RegistrationAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            "fields": (("event", "signed_up_by", ), )
+            "fields": (("event", "signed_up_by", "user", ), )
         }),
         ("Notes", {
             "fields": ("notes", )
         })
     )
-    inlines = [RegistrationSlotInline, ]
-    readonly_fields = ["expires", ]
+    # inlines = [RegistrationSlotInline, ]
+    readonly_fields = ["created_date", ]
 
-    list_display = ["id", "signed_up_by", "players", "event", "notes", ]
+    list_display = ["id", "signed_up_by", "created_date", "event", "notes", ]
     list_display_links = ("id", )
-    list_select_related = ("signed_up_by", "event", )
+    list_select_related = ("event", )
     date_hierarchy = "event__start_date"
     ordering = ["signed_up_by"]
     # search_fields = ["user__email"]
@@ -119,13 +119,13 @@ class RegistrationAdmin(admin.ModelAdmin):
     #         kwargs["queryset"] = Event.objects.filter(start_date__year=config.year).filter(requires_registration=True).exclude(event_type="L")
     #     return super(RegistrationAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-    def get_changeform_initial_data(self, request):
-        initial = super().get_changeform_initial_data(request)
-        initial["signed_up_by"] = request.user.member.id
-        if "_changelist_filters" in request.GET:
-            filters = request.GET["_changelist_filters"]
-            initial["event"] = filters.split("=")[1]
-        return initial
+    # def get_changeform_initial_data(self, request):
+    #     initial = super().get_changeform_initial_data(request)
+    #     initial["signed_up_by"] = request.user.member.id
+    #     if "_changelist_filters" in request.GET:
+    #         filters = request.GET["_changelist_filters"]
+    #         initial["event"] = filters.split("=")[1]
+    #     return initial
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)

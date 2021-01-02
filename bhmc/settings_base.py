@@ -76,7 +76,6 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "session/reset-password/{uid}/{token}",
     "ACTIVATION_URL": "session/account/activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
-    "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
     "LOGIN_FIELD": "email",
     "DEFAULT_FROM_EMAIL": "postmaster@bhmc.org",
@@ -86,6 +85,7 @@ DJOSER = {
     },
     "EMAIL": {
         "activation": "core.email.ActivationEmail",
+        "password_reset": "core.email.PasswordResetEmail",
     }
 }
 

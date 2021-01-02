@@ -1,25 +1,112 @@
 {% load i18n %}
 
 {% block subject %}
-{% blocktrans %}{{ site_name }} - Your account has been successfully created and activated!{% endblocktrans %}
+{% blocktrans %}BHMC Account Confirmation{% endblocktrans %}
 {% endblock %}
 
 {% block text_body %}
-{% trans "Your account has been created and is ready to use!" %}
+{% trans "Your account has been created and validated." %}
 
-{% trans "Thanks for using our site!" %}
+{% trans "If you do not have a GHIN, we will get back to you soon with a new GHIN. To get your initial handicap,
+    you will need to post at least 54 holes in any combination of 9 or 18 holes." %}
 
-{% blocktrans %}The {{ site_name }} team{% endblocktrans %}
+{% trans "To sign up for the season and become a full member, visit our membership page:
+    {{ protocol }}://{{ domain }}/membership" %}
+
+{% blocktrans %}Good luck - we hope to see you in our events!{% endblocktrans %}
 {% endblock text_body %}
 
 {% block html_body %}
-<p>{% trans "Your account has been created. Let's tee it up!" %}</p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--[if !mso]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--<![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+        body {
+            margin: 0 !important;
+            padding: 0;
+            background-color: #ffffff;
+            font-family: sans-serif;
+            font-size: 14px;
+            color: #333333;
+        }
+        h1 {
+            color: #007DC3;
+            font-size: 1.8em;
+        }
+        p {
+            margin: 0;
+        }
+        a {
+            color: #ee6a56;
+            text-decoration: underline;
+        }
 
-<p>{% trans "If you do not have a GHIN, we will get back to you soon with a GHIN. To get your initial handicap,
+        /* One column layout */
+        .one-column .contents {
+            text-align: left;
+        }
+        .one-column p {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .inner-columns td {
+            font-size: 14px;
+            padding: 6px;
+        }
+    </style>
+    <!--[if (gte mso 9)|(IE)]>
+    <style type="text/css">
+        table {border-collapse: collapse;}
+    </style>
+    <![endif]-->
+</head>
+<body style="padding: 20;background-color: #ffffff;margin: 0 !important;">
+<div style="max-width: 1200px;">
+    <!--[if (gte mso 9)|(IE)]>
+    <table>
+        <tr>
+            <td>
+    <![endif]-->
+    <table style="border-spacing: 0;font-family: sans-serif;color: #333333;width: 100%;">
+        <tr>
+            <td style="padding: 0;">
+                <h1 class="heading" style="color: #007DC3;font-size: 1.8em;">Bunker Hills Men's Club</h1>
+            </td>
+        </tr>
+        <tr>
+            <td class="one-column" style="padding: 0;">
+                <table width="100%" style="border-spacing: 0;font-family: sans-serif;color: #333333;">
+                    <tr>
+                        <td class="inner contents" style="text-align: left;">
+
+<p>{% trans "Your account has been created and validated." %}</p>
+
+<p>{% trans "If you do not have a GHIN, we will get back to you soon with a new GHIN. To get your initial handicap,
     you will need to post at least 54 holes in any combination of 9 or 18 holes." %}</p>
 
-<p>{% trans "We recommend that you read through our policies and FAQs on our policy page here:
-    <a href="{{ protocol }}://{{ domain }}/policies/policies-and-procedures">{{ protocol }}://{{ domain }}/policies/policies-and-procedures</a>." %}</p>
+<p>{% trans "To sign up for the season and become a full member, visit our membership page:
+    <a href="{{ protocol }}://{{ domain }}/membership">{{ protocol }}://{{ domain }}/membership</a>." %}</p>
 
-<p>{% blocktrans %}The {{ site_name }} team{% endblocktrans %}</p>
+<p>{% blocktrans %}Good luck - we hope to see you in our events!{% endblocktrans %}</p>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <!--[if (gte mso 9)|(IE)]>
+    </td>
+    </tr>
+    </table>
+    <![endif]-->
+</div>
+</body>
+</html>
 {% endblock html_body %}

@@ -23,24 +23,17 @@ class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
 
     def get_queryset(self):
-        """ Optionally filter by code
-        """
         queryset = Document.objects.all()
         year = self.request.query_params.get('year', None)
-        tournament = self.request.query_params.get('tournament', None)
-        doc_types = self.request.query_params.get('type', None)
-        tags = self.request.query_params.get('tags', None)
+        event_id = self.request.query_params.get('event_id', None)
+        doc_type = self.request.query_params.get('type', None)
 
         if year is not None:
             queryset = queryset.filter(year=year)
-        if tournament is not None:
-            queryset = queryset.filter(tournament=tournament)
-        if doc_types is not None:
-            queryset = queryset.filter(document_type__icontains=doc_types)
-        if tags is not None and tags != "":
-            tag_set = tags.split(",")
-            for tag in tag_set:
-                queryset = queryset.filter(tags__tag__name__icontains=tag)
+        if event_id is not None:
+            queryset = queryset.filter(event=event_id)
+        if doc_type is not None:
+            queryset = queryset.filter(document_type=doc_type)
 
         return queryset
 

@@ -1,6 +1,11 @@
+import botocore.session
 import os
-from abc import ABC
 
+from abc import ABC
+from boto3 import setup_default_session
+from boto3.session import Session
+from botocore import parsers
+from botocore.utils import parse_timestamp
 from storages.backends.s3boto3 import S3Boto3Storage, SpooledTemporaryFile
 
 
@@ -34,3 +39,24 @@ class CustomS3Boto3Storage(S3Boto3Storage, ABC):
             # Upload the object which will auto close the
             # content_autoclose instance
             return super(CustomS3Boto3Storage, self)._save(name, content_autoclose)
+
+
+def _parse_timestamp(value):
+    try:
+        return parse_timestamp(value)
+    except ValueError:
+        return None
+
+
+def get_session(**kwargs):
+    response_parser_factory = parsers.ResponseParserFactory()
+    response_parser_factory.set_parser_defaults(
+        timestamp_parser=_parse_timestamp
+    )
+    botocore_session = botocore.session.get_session()
+    botocore_session.register_component('response_parser_factory', response_parser_factory)
+    setup_default_session(botocore_session=botocore_session)
+
+    parsers.DEFAULT_TIMESTAMP_PARSER = _parse_timestamp
+
+    return Session(botocore_session=botocore_session, **kwargs)

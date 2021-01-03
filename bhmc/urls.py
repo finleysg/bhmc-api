@@ -49,7 +49,6 @@ urlpatterns = [
       url(r"^api/save-card/$", payment_views.player_card),
       url(r"^api/saved-cards/$", payment_views.player_cards),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/cancel/$", register_views.cancel_reserved_slots),
-      url(r"^api/settings/", core_views.current_settings),
       url(r'^auth/', include('djoser.urls')),
       url(r'^auth/', include('djoser.urls.authtoken')),
   ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

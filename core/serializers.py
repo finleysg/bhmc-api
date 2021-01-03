@@ -3,15 +3,8 @@ from rest_framework.exceptions import ValidationError
 
 from register.models import Player
 from register.serializers import SimplePlayerSerializer
-from .models import SeasonSettings, BoardMember
+from .models import BoardMember
 from rest_framework import serializers
-
-
-class SettingsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = SeasonSettings
-        fields = ('year', 'reg_event', 'match_play_event', 'accept_new_members', 'raven_dsn', 'stripe_pk', )
 
 
 class GroupSerializer(serializers.ModelSerializer):

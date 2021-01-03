@@ -3,9 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from templated_email import send_templated_mail, InlineImage
 
-from core.models import SeasonSettings
 
-config = SeasonSettings.objects.current_settings()
 sender_email = "BHMC<postmaster@bhmc.org>"
 secretary_email = "secretary@bhmc.org"
 treasurer_email = "treasurer@bhmc.org"
@@ -42,9 +40,9 @@ def send_member_welcome(user):
         recipient_list=[user.email],
         context={
             'first_name': user.first_name,
-            'year': config.year,
-            'account_url': '{}/my-account'.format(config.website_url),
-            'matchplay_url': '{}/match-play'.format(config.website_url),
+            'year': settings.CURRENT_SEASON,
+            'account_url': '{}/my-account'.format(settings.WEBSITE_URL),
+            'matchplay_url': '{}/match-play'.format(settings.WEBSITE_URL),
             'logo_image': inline_image
         },
         template_suffix='html',
@@ -62,7 +60,7 @@ def send_new_member_notification(user, player, notes):
             'email': user.email,
             'ghin': player.ghin,
             'notes': notes,
-            'admin_url': '{}/admin/auth/user/?q={}'.format(config.admin_url, user.username),
+            'admin_url': '{}/admin/auth/user/?q={}'.format(settings.ADMIN_URL, user.username),
             'logo_image': inline_image
         },
         template_suffix='html',
@@ -107,7 +105,7 @@ def send_event_confirmation(user, event, registration, slots, payment, fees):
         'payment_confirmation_code': payment.payment_code,
         'show_confirmation_code': True,
         'players': get_players(event, slots, fees),
-        'event_url': '{}/events/{}/detail'.format(config.website_url, event.id),
+        'event_url': '{}/events/{}/detail'.format(settings.WEBSITE_URL, event.id),
         'logo_image': inline_image
     }
 

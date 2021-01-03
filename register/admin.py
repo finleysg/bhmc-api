@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.forms import Form
 
-from core.models import SeasonSettings
+from django.conf import settings
 from events.models import Event
 from register.decorators import action_form
 # from register.payments import refund_payment

@@ -3,15 +3,9 @@ import pytz
 
 from datetime import timedelta
 from django.utils import timezone as tz
-from rest_framework.serializers import ValidationError
+from django.conf import settings
 
-from core.models import SeasonSettings
-from courses.models import Hole
 from .email import *
-from .exceptions import EventFullError, SlotConflictError
-from .models import RegistrationSlot, Registration
-
-config = SeasonSettings.objects.current_settings()
 
 
 # def create_event(event):

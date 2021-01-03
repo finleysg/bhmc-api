@@ -9,6 +9,7 @@ from .models import Registration, RegistrationSlot, Player
 from .serializers import RegistrationSlotSerializer, RegistrationSerializer, PlayerSerializer, SimplePlayerSerializer
 
 
+@permission_classes((permissions.IsAuthenticated,))
 class PlayerViewSet(viewsets.ModelViewSet):
     # serializer_class = PlayerSerializer
     def get_serializer_class(self):

@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+@permission_classes((permissions.IsAuthenticated,))
 class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
 

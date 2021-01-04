@@ -10,13 +10,11 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ("id", "name", )
 
 
-class DocumentTagSerializer(serializers.ModelSerializer):
-
-    tag = serializers.CharField(source="tag.name")
+class DocumentEventSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = DocumentTag
-        fields = ("id", "tag", )
+        model = Event
+        fields = ("id", "name", "event_type", )
 
 
 class PhotoTagSerializer(serializers.ModelSerializer):
@@ -30,16 +28,15 @@ class PhotoTagSerializer(serializers.ModelSerializer):
 
 class DocumentSerializer(serializers.ModelSerializer):
 
-    tags = DocumentTagSerializer(many=True, required=False)
+    event = DocumentEventSerializer(required=False)
     created_by = serializers.CharField(read_only=True)
     last_update = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Document
-        fields = ("id", "year", "title", "file", "event", "created_by", "last_update", "tags", )
+        fields = ("id", "year", "title", "document_type", "file", "event", "created_by", "last_update", )
 
     def create(self, validated_data):
-        tags = self.context["request"].data.get("tags", None)
         event = validated_data.get("event", None)
         year = validated_data.pop("year")
         title = validated_data.pop("title")
@@ -51,17 +48,9 @@ class DocumentSerializer(serializers.ModelSerializer):
                        created_by=created_by)
         doc.save()
 
-        if tags is not None:
-            for tag in tags.split("|"):
-                t, created = Tag.objects.get_or_create(name=tag)
-                dt = DocumentTag(document=doc, tag=t)
-                dt.save()
-
         return doc
 
     def update(self, instance, validated_data):
-        tags = self.context["request"].data.get("tags", None)
-
         instance.event = validated_data.get("event", instance.event)
         instance.year = validated_data.get("year", instance.year)
         instance.title = validated_data.get("title", instance.title)
@@ -71,14 +60,6 @@ class DocumentSerializer(serializers.ModelSerializer):
             instance.file = new_file
 
         instance.save()
-
-        # Delete and recreate tags.
-        DocumentTag.objects.filter(document=instance).delete()
-        if tags is not None:
-            for tag in tags.split("|"):
-                t, created = Tag.objects.get_or_create(name=tag)
-                dt = DocumentTag(document=instance, tag=t)
-                dt.save()
 
         return instance
 

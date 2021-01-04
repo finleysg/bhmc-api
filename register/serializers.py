@@ -12,7 +12,7 @@ from .models import Player, Registration, RegistrationSlot, RegistrationFee
 class SimplePlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
-        fields = ("id", "first_name", "last_name", "email", )
+        fields = ("id", "first_name", "last_name", )
 
 
 class PlayerSerializer(serializers.ModelSerializer):

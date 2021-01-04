@@ -23,7 +23,10 @@ admin.site.site_header = "Bunker Hills Men's Club Administration"
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
+router.register(r"aces", core_views.AceViewSet, "aces")
 router.register(r"board", core_views.BoardMemberViewSet, "board")
+router.register(r"champions", core_views.MajorChampionViewSet, "champions")
+router.register(r"low-scores", core_views.LowScoreViewSet, "low-scores")
 router.register(r"courses", course_views.CourseViewSet, "courses")
 router.register(r"documents", document_views.DocumentViewSet, "documents")
 router.register(r"photos", document_views.PhotoViewSet, "photos")

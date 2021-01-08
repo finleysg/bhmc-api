@@ -15,9 +15,12 @@ class MajorChampionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = MajorChampion.objects.all()
         season = self.request.query_params.get("season", None)
+        player_id = self.request.query_params.get("player_id", None)
 
         if season is not None:
             queryset = queryset.filter(season=season)
+        if player_id is not None:
+            queryset = queryset.filter(player=player_id)
 
         return queryset
 

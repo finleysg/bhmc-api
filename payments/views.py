@@ -1,4 +1,3 @@
-import json
 import logging
 import stripe
 
@@ -8,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from sentry_sdk import capture_message, capture_exception
 
 from payments.email import send_notification
 from payments.models import Payment
@@ -16,6 +16,7 @@ from register.models import Player
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
+webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
 
 @permission_classes((permissions.IsAuthenticated,))
@@ -86,27 +87,22 @@ def remove_card(request, payment_method):
 @permission_classes((permissions.AllowAny,))
 def payment_complete(request):
     payload = request.body
-    event = unpack_stripe_event(payload)
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = stripe.Webhook.construct_event(
+        payload, sig_header, webhook_secret
+    )
 
     # Handle the event
     if event is None:
         return Response(status=400)
-    elif event.type == 'payment_intent.created':
-        logger.info("Payment created: " + event.stripe_id)
-    elif event.type == 'payment_intent.canceled':
-        logger.warning("Payment canceled: " + event.stripe_id)
     elif event.type == 'payment_intent.payment_failed':
-        logger.error("Payment failure: " + event.stripe_id)
+        capture_message("Payment failure: " + event.stripe_id, level="error")
+        capture_message(event.data.object.last_payment_error.message, level="error")
     elif event.type == 'payment_intent.succeeded':
         payment_intent = event.data.object
         handle_payment_complete(payment_intent)
-    elif event.type == 'payment_method.attached':
-        logger.info("Payment attached: " + event.stripe_id)
-    elif event.type == 'charge.succeeded':
-        logger.info("Charge succeeded: " + event.stripe_id)
     else:
-        logger.warning("Unexpected Stripe callback: " + event.type)
-        # return Response(status=400)
+        logger.info("Stripe callback: " + event.type)
 
     return Response(status=204)
 
@@ -131,18 +127,5 @@ def handle_payment_complete(payment_intent):
 
     try:
         send_notification(payment, fees, slots, player)
-    except:
-        pass
-
-
-def unpack_stripe_event(payload):
-    try:
-        event = stripe.Event.construct_from(
-            json.loads(payload), stripe.api_key
-        )
-    except ValueError as e:
-        logger.error("Failed to unpack the json response from Stripe.")
-        logger.error(e)
-        return None
-
-    return event
+    except Exception as e:
+        capture_exception(e)

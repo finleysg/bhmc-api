@@ -22,15 +22,18 @@ def send_notification(payment, fees, slots, player):
 
     if payment.notification_type == "R":
         send_member_welcome(user)
+        if registration.notes is not None:
+            send_has_notes_notification(user, event, registration.notes)
     elif payment.notification_type == "N":
         send_member_welcome(user)
         send_new_member_notification(user, player, registration.notes)
+    elif payment.notification_type == "M":
+        send_match_play_confirmation(user)
+        if registration.notes is not None:
+            send_has_notes_notification(user, event, registration.notes)
     elif payment.notification_type == "C":
-        # TODO: confirmation
+        # TODO: confirmation and notes
         pass
-
-    if registration.notes is not None:
-        send_has_notes_notification(user, event, registration.notes)
 
 
 def send_member_welcome(user):
@@ -60,7 +63,7 @@ def send_new_member_notification(user, player, notes):
             'email': user.email,
             'ghin': player.ghin,
             'notes': notes,
-            'admin_url': '{}/admin/auth/user/?q={}'.format(settings.ADMIN_URL, user.username),
+            'admin_url': '{}/admin/register/player/?q={}'.format(settings.ADMIN_URL, user.email),
             'logo_image': inline_image
         },
         template_suffix='html',
@@ -84,6 +87,22 @@ def send_has_notes_notification(user, event, notes):
             template_suffix='html',
             headers={"Reply-To": "no-reply@bhmc.org"}
         )
+
+
+def send_match_play_confirmation(user):
+    send_templated_mail(
+        template_name='match-play.html',
+        from_email=sender_email,
+        recipient_list=[user.email],
+        context={
+            'first_name': user.first_name,
+            'year': settings.CURRENT_SEASON,
+            'matchplay_url': '{}/match-play'.format(settings.WEBSITE_URL),
+            'logo_image': inline_image
+        },
+        template_suffix='html',
+        headers={"Reply-To": "no-reply@bhmc.org"}
+    )
 
 
 # TODO: needs rework based on scheema changes

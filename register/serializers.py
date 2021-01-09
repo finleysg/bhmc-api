@@ -26,12 +26,20 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = User.objects.get(email=instance.email)
+        ghin = validated_data["ghin"].strip()
+        if ghin is not None:
+            if ghin == "":
+                ghin = None
+            else:
+                exists = Player.objects.filter(ghin=ghin).exclude(email=user.email).exists()
+                if exists:
+                    raise ValidationError("ghin is already associated with a player")
 
         instance.first_name = validated_data.get("first_name", instance.first_name)
         instance.last_name = validated_data.get("last_name", instance.last_name)
         instance.email = validated_data.get("email", instance.email)
         instance.phone_number = validated_data.get("phone_number", instance.phone_number)
-        instance.ghin = validated_data.get("ghin", instance.ghin)
+        instance.ghin = ghin
         instance.tee = validated_data.get("tee", instance.tee)
         instance.birth_date = validated_data.get("birth_date", instance.birth_date)
         instance.save_last_card = validated_data.get("save_last_card", instance.save_last_card)

@@ -1,4 +1,5 @@
 {% block html %}
+<!--{% block subject %}BHMC Membership Confirmation{% endblock %}-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -130,16 +131,15 @@
                     <table width="100%" style="border-spacing: 0;font-family: sans-serif;color: #333333;">
                         <tr>
                             <td class="inner contents" style="padding: 10px;text-align: left;">
-<!--                                {% block subject %}Welcome to BHMC{% endblock %}-->
 {% block content %}
     <h3 style="font-size: 1.2em;">Welcome to the Club!</h3>
     <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Hello, {{first_name}}, you are receiving this email because you just registered for the {{year}} golf season.</p>
-    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">If you do not yet have a ghin, we will register you with the MGA to get one for you. You cannot register for our events without a ghin, and you must have an active handicap
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">If you are joining us for the first time and do not yet have a ghin, we will register you with the MGA to get one for you. You cannot register for our events without a ghin, and you must have an active handicap
         (<a href="https://www.usga.org/content/usga/home-page/handicapping/world-handicap-system/world-handicap-system-usga-golf-faqs/faqs---how-many-scores-to-get-a-handicap-index.html" style="color: #ee6a56;text-decoration: underline;">minimum 54 holes posted</a>)
         to receive strokes in any event. The first event you should consider is our <a href="{{matchplay_url}}" style="color: #ee6a56;text-decoration: underline;">season long match play.</a>
     </p>
-    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">You can also go to your <a href="{{account_url}}" style="color: #ee6a56;text-decoration: underline;">account</a> page to update your contact information or
-        log-in information as needed. Please consider uploading a profile picture for our member directory.
+    <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Please visit your <a href="{{account_url}}" style="color: #ee6a56;text-decoration: underline;">account page</a> to check your contact information and make sure it is complete and accurate.
+        New in 2021, you can also upload a profile picture for our member directory.
     </p>
     <p style="margin: 0;font-size: 14px;margin-bottom: 10px;">Thank you again for joining our club. If you have any questions, please contact a board
         member or send us a note at <a href="mailto:contact@bhmc.org" style="color: #ee6a56;text-decoration: underline;">contact@bhmc.org</a>.

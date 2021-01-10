@@ -3,77 +3,59 @@ import logging
 
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.contrib.admin.options import IncorrectLookupParameters
+from django.core.exceptions import ValidationError
+from django.db.models.query import QuerySet
 from django.forms import Form
 
 from django.conf import settings
+
+from core.util import linkify
 from events.models import Event
 from register.decorators import action_form
 # from register.payments import refund_payment
-from .models import Registration, RegistrationSlot, Player
+from .models import Registration, RegistrationSlot, Player, RegistrationFee
 
-# config = SeasonSettings.objects.current_settings()
 logger = logging.getLogger("register")
 
 
-# class NoLeagueFilter(SimpleListFilter):
-#     title = "events" if config is None else "{} events".format(config.year)
-#     parameter_name = "event"
-#
-#     def lookups(self, request, model_admin):
-#         year = datetime.today().year if config is None else config.year
-#         events = set([c for c in Event.objects.filter(start_date__year=year).filter(requires_registration=True).exclude(event_type="L")])
-#         return [(e.id, e.name) for e in events]
-#
-#     def queryset(self, request, queryset):
-#         if self.value():
-#             return queryset.filter(event__id__exact=self.value())
-#         else:
-#             return queryset
+class CurrentSeasonFilter(SimpleListFilter):
+    title = "{} events".format(settings.CURRENT_SEASON)
+    parameter_name = "event"
+
+    def lookups(self, request, model_admin):
+        year = settings.CURRENT_SEASON
+        events = set([event for event in Event.objects.filter(season=year).exclude(registration_type="N")])
+        return [(e.id, e.name) for e in events]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(event__id__exact=self.value())
+        else:
+            return queryset
 
 
-# class LeagueFilter(SimpleListFilter):
-#     title = "events" if config is None else "{} events".format(config.year)
-#     parameter_name = "event"
-#
-#     def lookups(self, request, model_admin):
-#         year = datetime.today().year if config is None else config.year
-#         events = set([c for c in Event.objects.filter(start_date__year=year).filter(event_type="L")])
-#         return [(e.id, "{} ({})".format(e.name, e.start_date)) for e in events]
-#
-#     def queryset(self, request, queryset):
-#         if self.value():
-#             return queryset.filter(event__id__exact=self.value())
-#         else:
-#             return queryset
+class RegistrationFeeInline(admin.TabularInline):
 
+    model = RegistrationFee
+    can_delete = False
+    extra = 0
+    show_change_link = False
+    verbose_name_plural = "Registration fees"
+    fields = ["event_fee", ]
+    readonly_fields = ["event_fee", ]
 
-# class RequiresRegistrationFilter(SimpleListFilter):
-#     title = "events" if config is None else "{} events".format(config.year)
-#     parameter_name = "event_id"
-#
-#     def lookups(self, request, model_admin):
-#         year = datetime.today().year if config is None else config.year
-#         events = set([c for c in Event.objects.filter(start_date__year=year).filter(requires_registration=True)])
-#         return [(e.id, "{} ({})".format(e.name, e.start_date)) for e in sorted(events, key=lambda event: event.start_date)]
-#
-#     def queryset(self, request, queryset):
-#         if self.value():
-#             return queryset.filter(event_id=self.value())
-#         else:
-#             return queryset
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class RegistrationSlotInline(admin.TabularInline):
     model = RegistrationSlot
     can_delete = True
     extra = 0
-    verbose_name_plural = "Signed up"
-    fields = ["member", "is_event_fee_paid", "is_gross_skins_paid", "is_net_skins_paid", "is_greens_fee_paid",
-              "is_cart_fee_paid", ]
-    # raw_id_fields = ("member", )
-    # autocomplete_lookup_fields = {
-    #     "fk": ["member", ]
-    # }
+    show_change_link = True
+    verbose_name_plural = "Registration details (slots)"
+    fields = ["player", "hole", "starting_order", "slot", "status", ]
 
 
 class PlayerAdmin(admin.ModelAdmin):
@@ -89,49 +71,55 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class RegistrationAdmin(admin.ModelAdmin):
     model = Registration
-    can_delete = True
     save_on_top = True
 
     fieldsets = (
         (None, {
-            "fields": (("event", "signed_up_by", "user", ), )
+            "fields": (("event", "course", "starting_hole", "starting_order", ), )
+        }),
+        (None, {
+            "fields": (("user", "signed_up_by", "created_date", "expires", ), )
         }),
         ("Notes", {
             "fields": ("notes", )
         })
     )
-    # inlines = [RegistrationSlotInline, ]
-    readonly_fields = ["created_date", ]
 
-    list_display = ["id", "signed_up_by", "created_date", "event", "notes", ]
+    inlines = [RegistrationSlotInline, ]
+    readonly_fields = ["created_date", "expires", ]
+
+    list_display = ["id", "event", "created_date", "user", "signed_up_by", "notes", ]
     list_display_links = ("id", )
     list_select_related = ("event", )
     date_hierarchy = "event__start_date"
-    ordering = ["signed_up_by"]
-    # search_fields = ["user__email"]
-    # list_filter = (NoLeagueFilter, )
-    # raw_id_fields = ("event", )
-    # autocomplete_lookup_fields = {
-    #     "fk": ["event", ]
-    # }
+    ordering = ["event", "created_date", ]
+    search_fields = ("signed_up_by", "user__email", "user__first_name", "user__last_name", )
+    list_filter = (CurrentSeasonFilter, )
 
-    # def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-    #     if db_field.name == "event":
-    #         kwargs["queryset"] = Event.objects.filter(start_date__year=config.year).filter(requires_registration=True).exclude(event_type="L")
-    #     return super(RegistrationAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    def has_delete_permission(self, request, obj=None):
+        if request.user.id == 1:
+            return True
+        return False
 
-    # def get_changeform_initial_data(self, request):
-    #     initial = super().get_changeform_initial_data(request)
-    #     initial["signed_up_by"] = request.user.member.id
-    #     if "_changelist_filters" in request.GET:
-    #         filters = request.GET["_changelist_filters"]
-    #         initial["event"] = filters.split("=")[1]
-    #     return initial
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == "event":
+            kwargs["queryset"] = Event.objects.filter(start_date__year=settings.CURRENT_SEASON)\
+                .exclude(registration_type="N")\
+                .exclude(event_type="N")
+        return super(RegistrationAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        initial["signed_up_by"] = request.user.get_full_name()
+        if "_changelist_filters" in request.GET:
+            filters = request.GET["_changelist_filters"]
+            initial["event"] = filters.split("=")[1]
+        return initial
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for instance in instances:
-            instance.event_id = instance.registration_group.event_id
+            instance.event_id = instance.registration.event_id
             instance.status = "R"
             instance.save()
         formset.save_m2m()
@@ -147,15 +135,16 @@ class RegistrationSlotAdmin(admin.ModelAdmin):
             "fields": ("event", "registration", "hole", "starting_order", )
         }),
         ("Player", {
-            "fields": ("Player", "status", )
+            "fields": ("player", "status", )
         }),
     )
     list_display = ["id", "registration", "player", "hole", "starting_order", "status", ]
     list_display_links = ("id", )
-    # list_filter = (LeagueFilter, )
+    list_filter = (CurrentSeasonFilter, )
     list_select_related = ("player", "hole", )
     date_hierarchy = "event__start_date"
-    search_fields = ("player_first_name", "player__last_name")
+    search_fields = ("player__first_name", "player__last_name", "player__email")
+    inlines = [RegistrationFeeInline, ]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(RegistrationSlotAdmin, self).get_form(request, obj, **kwargs)

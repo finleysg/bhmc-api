@@ -175,4 +175,4 @@ class EventFee(models.Model):
         ]
 
     def __str__(self):
-        return "{} {}".format(self.fee_type, self.amount)
+        return "{} (${})".format(self.fee_type, self.amount)

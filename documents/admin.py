@@ -21,7 +21,7 @@ class DocumentAdmin(admin.ModelAdmin):
     inlines = [TagInline, ]
     exclude = ("tags",)
     list_display = ["year", "title", "event", "document_type", "last_update", ]
-    list_filter = ("year", "event", "document_type", )
+    list_filter = ("year", "document_type", )
     save_on_top = True
 
     def save_model(self, request, obj, form, change):

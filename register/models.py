@@ -18,6 +18,8 @@ STATUS_CHOICES = (
     ("U", "Unavailable")
 )
 
+User.__str__ = lambda user: user.get_full_name()
+
 
 class Player(models.Model):
     first_name = models.CharField(verbose_name="First name", max_length=30)
@@ -58,7 +60,7 @@ class Player(models.Model):
 
 class Registration(models.Model):
     event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE)
-    course = models.ForeignKey(verbose_name="Course", to=Course, null=True, on_delete=DO_NOTHING)
+    course = models.ForeignKey(verbose_name="Course", to=Course, null=True, blank=True, on_delete=DO_NOTHING)
     user = models.ForeignKey(verbose_name="User", to=User, null=True, blank=True, on_delete=DO_NOTHING)
     signed_up_by = models.CharField(verbose_name="Signed up by", max_length=40, null=True, blank=True)
     expires = models.DateTimeField(verbose_name="Expiration", null=True, blank=True)
@@ -97,7 +99,7 @@ class RegistrationSlot(models.Model):
     history = HistoricalRecords()
 
     def __str__(self):
-        return self.status
+        return "{} - {} ({})".format(self.player, self.status, self.registration)
 
 
 class RegistrationFee(models.Model):

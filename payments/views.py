@@ -110,6 +110,11 @@ def payment_complete(request):
 def handle_payment_complete(payment_intent):
     payment = Payment.objects.get(payment_code=payment_intent.stripe_id)
 
+    # make this idempotent
+    if payment.confirmed:
+        logger.info("Already confirmed payment " + payment.payment_code)
+        return
+
     payment.confirmed = True
     payment.save()
 

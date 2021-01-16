@@ -35,6 +35,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if doc_type is not None:
             queryset = queryset.filter(document_type=doc_type)
 
+        if year is None:
+            queryset = queryset.order_by("-year")
+
         return queryset
 
 
@@ -46,11 +49,16 @@ class PhotoViewSet(viewsets.ModelViewSet):
         queryset = Photo.objects.all()
         year = self.request.query_params.get('year', None)
         player_id = self.request.query_params.get('player', None)
+        tags = self.request.query_params.get('tags', None)
 
         if year is not None:
             queryset = queryset.filter(year=year)
         if player_id is not None:
             queryset = queryset.filter(player_id=player_id)
+        if tags is not None and tags != "":
+            tag_set = tags.split(",")
+            for tag in tag_set:
+                queryset = queryset.filter(tags__tag__name__icontains=tag)
 
         return queryset
 

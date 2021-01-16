@@ -22,11 +22,13 @@ INSTALLED_APPS = (
     "content",
     "core",
     "courses",
+    "damcup",
     "documents",
     "events",
     "messaging",
     "payments",
     "policies",
+    "points",
     "register",
 )
 

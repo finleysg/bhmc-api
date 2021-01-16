@@ -36,7 +36,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         stripe_amount_due = int(payment_details[0] * 100)  # total (with fees) in cents
 
         player = Player.objects.get(email=user.email)
-        if player.stripe_customer_id is None or player.stripe_customer_id == "":
+        if player.stripe_customer_id is None or player.stripe_customer_id.strip() == "":
             customer = stripe.Customer.create()
             player.stripe_customer_id = customer.stripe_id
             player.save()

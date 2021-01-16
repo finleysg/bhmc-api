@@ -11,6 +11,7 @@ from rest_framework.routers import DefaultRouter
 
 from core import views as core_views
 from courses import views as course_views
+from damcup import views as damcup_views
 from documents import views as document_views
 from events import views as event_views
 from messaging import views as messaging_views
@@ -26,6 +27,7 @@ router = DefaultRouter()
 router.register(r"aces", core_views.AceViewSet, "aces")
 router.register(r"board", core_views.BoardMemberViewSet, "board")
 router.register(r"champions", core_views.MajorChampionViewSet, "champions")
+router.register(r"dam-cup", damcup_views.DamCupViewSet, "dam-cup")
 router.register(r"low-scores", core_views.LowScoreViewSet, "low-scores")
 router.register(r"courses", course_views.CourseViewSet, "courses")
 router.register(r"documents", document_views.DocumentViewSet, "documents")

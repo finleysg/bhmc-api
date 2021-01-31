@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from .models import Registration, RegistrationSlot, Player
-from .serializers import RegistrationSlotSerializer, RegistrationSerializer, PlayerSerializer, SimplePlayerSerializer
+from .serializers import RegistrationSlotSerializer, RegistrationSerializer, PlayerSerializer, SimplePlayerSerializer, \
+    UpdatableRegistrationSlotSerializer
 
 
 # @permission_classes((permissions.IsAuthenticated,))
@@ -22,12 +23,16 @@ class PlayerViewSet(viewsets.ModelViewSet):
         queryset = Player.objects.all()
         email = self.request.query_params.get("email", None)
         event_id = self.request.query_params.get("event_id", None)
+        pattern = self.request.query_params.get("pattern", None)
 
         if email is not None:
             queryset = queryset.filter(email=email)
         if event_id is not None:
             ids = RegistrationSlot.objects.filter(event=event_id).values("player")
             queryset = queryset.filter(pk__in=ids)
+        if pattern is not None:
+            # TODO: the combo of event id and pattern should return only players who have not registered
+            queryset = queryset.filter(last_name__icontains=pattern) | queryset.filter(first_name__icontains=pattern)
         return queryset
 
     def get_serializer_context(self):
@@ -63,7 +68,11 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):
 
-    serializer_class = RegistrationSlotSerializer
+    def get_serializer_class(self):
+        if self.action == "partial_update":
+            return UpdatableRegistrationSlotSerializer
+        else:
+            return RegistrationSlotSerializer
 
     def get_queryset(self):
         queryset = RegistrationSlot.objects.all()
@@ -81,7 +90,6 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         if is_open:
             queryset = queryset.filter(player__isnull=True)
         return queryset
-
 
 # @api_view(['POST', ])
 # @permission_classes((permissions.IsAuthenticated,))

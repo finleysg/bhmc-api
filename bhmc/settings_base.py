@@ -30,6 +30,7 @@ INSTALLED_APPS = (
     "policies",
     "points",
     "register",
+    "reporting",
 )
 
 MIDDLEWARE = (

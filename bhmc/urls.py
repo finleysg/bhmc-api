@@ -19,6 +19,7 @@ from policies import views as policy_views
 from register import views as register_views
 from payments import views as payment_views
 from content import views as content_views
+from reporting import views as reporting_views
 
 admin.site.site_header = "Bunker Hills Men's Club Administration"
 
@@ -54,6 +55,8 @@ urlpatterns = [
       url(r"^api/save-card/$", payment_views.player_card),
       url(r"^api/saved-cards/$", payment_views.player_cards),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/cancel/$", register_views.cancel_reserved_slots),
+      url(r"^api/reports/event-report/(?P<event_id>[0-9]+)/$", reporting_views.event_report),
+      url(r"^api/reports/payment-report/(?P<event_id>[0-9]+)/$", reporting_views.payment_report),
       url(r'^auth/', include('djoser.urls')),
       url(r'^auth/', include('djoser.urls.authtoken')),
   ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

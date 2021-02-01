@@ -1,19 +1,18 @@
 from django.contrib import admin
+from django.db import models
+from pagedown.widgets import AdminPagedownWidget
+
 from .models import Announcement, ContactMessage
 
 
 class AnnouncementAdmin(admin.ModelAdmin):
-    fieldsets = (
-        (None, {
-            "fields": ("title", "text", "starts", "expires", "visibility", )
-        }),
-        ("Link to an event or document (optional)", {
-            "fields": ("event", "documents", )
-        }),
-    )
+    fields = ["title", "text", "starts", "expires", "visibility", "event", "documents", ]
     list_display = ["starts", "expires", "title", ]
     list_filter = ("starts", )
     save_on_top = True
+    formfield_overrides = {
+        models.TextField: {'widget': AdminPagedownWidget},
+    }
 
 
 admin.site.register(Announcement, AnnouncementAdmin)

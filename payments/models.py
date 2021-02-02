@@ -23,6 +23,7 @@ class Payment(models.Model):
     notification_type = models.CharField(verbose_name="Notification type", max_length=1, choices=NOTIFICATION_CHOICES,
                                          blank=True, null=True)
     confirmed = models.BooleanField(verbose_name="Confirmed", default=False)
+    payment_date = models.DateTimeField(verbose_name="Payment date", auto_now_add=True, null=True)
 
     def __str__(self):
         return "Payment id {} ({})".format(self.payment_code, "Confirmed" if self.confirmed else "Not Confirmed")

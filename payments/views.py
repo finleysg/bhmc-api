@@ -119,6 +119,10 @@ def handle_payment_complete(payment_intent):
     payment.save()
 
     fees = list(payment.payment_details.all())
+    for fee in fees:
+        fee.is_paid = True
+        fee.save()
+
     slots = [fee.registration_slot for fee in fees]
     for slot in slots:
         slot.status = "R"

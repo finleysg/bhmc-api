@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     "corsheaders",
     "storages",
     "anymail",
+    "pagedown.apps.PagedownConfig",
     "content",
     "core",
     "courses",
@@ -30,6 +31,7 @@ INSTALLED_APPS = (
     "policies",
     "points",
     "register",
+    "reporting",
 )
 
 MIDDLEWARE = (

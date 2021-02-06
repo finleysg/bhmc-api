@@ -129,6 +129,25 @@ class RegistrationSlotSerializer(serializers.ModelSerializer):
         )
 
 
+class UpdatableRegistrationSlotSerializer(serializers.ModelSerializer):
+    # We need to identify elements in the list using their primary key,
+    # so use a writable field here, rather than the default which would be read-only.
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = RegistrationSlot
+        fields = (
+            "id",
+            "event",
+            "hole",
+            "registration",
+            "starting_order",
+            "slot",
+            "status",
+            "player",
+        )
+
+
 class RegistrationSerializer(serializers.ModelSerializer):
 
     # course = CourseSerializer()
@@ -172,18 +191,22 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        slots = validated_data.pop("slots")
-        for slot in slots:
-            player = slot.pop("player")
-            player_id = player.get("id", None)
-            if player_id is not None:
-                RegistrationSlot.objects.select_for_update().filter(
-                    pk=slot["id"]
-                ).update(**{"player": player_id})
-            else:
-                RegistrationSlot.objects.select_for_update().filter(
-                    pk=slot["id"]
-                ).update(**{"status": "A", "player": None})
+        # slots = validated_data.pop("slots")
+        # for slot in slots:
+        #     player = slot.pop("player")
+        #     # if player is None:
+        #     #     player_id = None
+        #     # else:
+        #     #     player_id = player.get("id", None)
+        #
+        #     if player is not None:
+        #         RegistrationSlot.objects.select_for_update().filter(
+        #             pk=slot["id"]
+        #         ).update(**{"player": player})
+        #     else:
+        #         RegistrationSlot.objects.select_for_update().filter(
+        #             pk=slot["id"]
+        #         ).update(**{"player": None})
 
         instance.notes = validated_data.get("notes", instance.notes)
         instance.save()
@@ -213,22 +236,3 @@ def validate_course_for_event(event, course_id):
         course = Course.objects.get(pk=course_id)
 
     return course
-
-
-class UpdatableRegistrationSlotSerializer(serializers.ModelSerializer):
-    # We need to identify elements in the list using their primary key,
-    # so use a writable field here, rather than the default which would be read-only.
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = RegistrationSlot
-        fields = (
-            "id",
-            "event",
-            "hole",
-            "registration",
-            "starting_order",
-            "slot",
-            "status",
-            "player",
-        )

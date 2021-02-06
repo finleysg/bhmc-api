@@ -20,8 +20,8 @@ class EventFeesInline(admin.TabularInline):
 
 
 class FeeTypeAdmin(admin.ModelAdmin):
-    fields = ["name", "code", ]
-    list_display = ["name", "code", ]
+    fields = ["name", "code", "restriction", ]
+    list_display = ["name", "code", "restriction", ]
     list_display_links = ("name",)
     ordering = ["name", ]
 

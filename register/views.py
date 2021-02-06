@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.db import connection
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import permissions
@@ -5,9 +7,15 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
+from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player
-from .serializers import RegistrationSlotSerializer, RegistrationSerializer, PlayerSerializer, SimplePlayerSerializer, \
-    UpdatableRegistrationSlotSerializer
+from .serializers import (
+    RegistrationSlotSerializer,
+    RegistrationSerializer,
+    PlayerSerializer,
+    SimplePlayerSerializer,
+    UpdatableRegistrationSlotSerializer,
+)
 
 
 # @permission_classes((permissions.IsAuthenticated,))
@@ -23,16 +31,13 @@ class PlayerViewSet(viewsets.ModelViewSet):
         queryset = Player.objects.all()
         email = self.request.query_params.get("email", None)
         event_id = self.request.query_params.get("event_id", None)
-        pattern = self.request.query_params.get("pattern", None)
 
         if email is not None:
             queryset = queryset.filter(email=email)
         if event_id is not None:
             ids = RegistrationSlot.objects.filter(event=event_id).values("player")
             queryset = queryset.filter(pk__in=ids)
-        if pattern is not None:
-            # TODO: the combo of event id and pattern should return only players who have not registered
-            queryset = queryset.filter(last_name__icontains=pattern) | queryset.filter(first_name__icontains=pattern)
+
         return queryset
 
     def get_serializer_context(self):
@@ -46,10 +51,10 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Registration.objects.all()
-        event_id = self.request.query_params.get('event_id', None)
-        player_id = self.request.query_params.get('player_id', None)
-        seasons = self.request.query_params.getlist('seasons', None)
-        is_self = self.request.query_params.get('player', None)
+        event_id = self.request.query_params.get("event_id", None)
+        player_id = self.request.query_params.get("player_id", None)
+        seasons = self.request.query_params.getlist("seasons", None)
+        is_self = self.request.query_params.get("player", None)
 
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
@@ -67,7 +72,6 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):
-
     def get_serializer_class(self):
         if self.action == "partial_update":
             return UpdatableRegistrationSlotSerializer
@@ -76,10 +80,10 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = RegistrationSlot.objects.all()
-        event_id = self.request.query_params.get('event_id', None)
-        player_id = self.request.query_params.get('player_id', None)
-        is_open = self.request.query_params.get('is_open', False)
-        seasons = self.request.query_params.getlist('seasons', None)
+        event_id = self.request.query_params.get("event_id", None)
+        player_id = self.request.query_params.get("player_id", None)
+        is_open = self.request.query_params.get("is_open", False)
+        seasons = self.request.query_params.getlist("seasons", None)
 
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
@@ -90,6 +94,28 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         if is_open:
             queryset = queryset.filter(player__isnull=True)
         return queryset
+
+
+@api_view(("GET",))
+@permission_classes((permissions.IsAuthenticated,))
+def player_search(request):
+    event_id = request.query_params.get("event_id", 0)
+    pattern = request.query_params.get("pattern", "")
+
+    with connection.cursor() as cursor:
+        cursor.callproc(
+            "SearchPlayers",
+            [
+                pattern,
+                event_id,
+                settings.REGISTRATION_EVENT_ID,
+                settings.PREVIOUS_REGISTRATION_EVENT_ID,
+            ],
+        )
+        players = fetch_all_as_dictionary(cursor)
+
+    return Response(players, status=200)
+
 
 # @api_view(['POST', ])
 # @permission_classes((permissions.IsAuthenticated,))
@@ -160,7 +186,11 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
 #     return Response(status=204)
 
 
-@api_view(['PUT', ])
+@api_view(
+    [
+        "PUT",
+    ]
+)
 @permission_classes((permissions.IsAuthenticated,))
 def cancel_reserved_slots(request, registration_id):
 
@@ -212,31 +242,49 @@ def cancel_reserved_slots(request, registration_id):
 #     return Response(status=204)
 
 
-@api_view(['GET', ])
+@api_view(
+    [
+        "GET",
+    ]
+)
 @permission_classes((permissions.IsAuthenticated,))
 def friends(request):
     player = Player.objects.get(email=request.user.email)
-    serializer = PlayerSerializer(player.favorites, context={'request': request}, many=True)
+    serializer = PlayerSerializer(
+        player.favorites, context={"request": request}, many=True
+    )
     return Response(serializer.data)
 
 
-@api_view(['POST', ])
+@api_view(
+    [
+        "POST",
+    ]
+)
 @permission_classes((permissions.IsAuthenticated,))
 def add_friend(request, player_id):
     player = Player.objects.get(email=request.user.email)
     friend = get_object_or_404(Player, pk=player_id)
     player.favorites.add(friend)
     player.save()
-    serializer = PlayerSerializer(player.favorites, context={'request': request}, many=True)
+    serializer = PlayerSerializer(
+        player.favorites, context={"request": request}, many=True
+    )
     return Response(serializer.data)
 
 
-@api_view(['DELETE', ])
+@api_view(
+    [
+        "DELETE",
+    ]
+)
 @permission_classes((permissions.IsAuthenticated,))
 def remove_friend(request, player_id):
     player = Player.objects.get(email=request.user.email)
     friend = get_object_or_404(Player, pk=player_id)
     player.favorites.remove(friend)
     player.save()
-    serializer = PlayerSerializer(player.favorites, context={'request': request}, many=True)
+    serializer = PlayerSerializer(
+        player.favorites, context={"request": request}, many=True
+    )
     return Response(serializer.data)

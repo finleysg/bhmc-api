@@ -50,6 +50,7 @@ urlpatterns = [
       url(r"^api/friends/$", register_views.friends),
       url(r"^api/friends/add/(?P<player_id>[0-9]+)/$", register_views.add_friend),
       url(r"^api/friends/remove/(?P<player_id>[0-9]+)/$", register_views.remove_friend),
+      url(r"^api/player-search/$", register_views.player_search),
       url(r"^api/hooks/stripe/$", payment_views.payment_complete),  # stripe hook
       url(r"^api/remove-card/(?P<payment_method>[-\w]+)/$", payment_views.remove_card),
       url(r"^api/save-card/$", payment_views.player_card),

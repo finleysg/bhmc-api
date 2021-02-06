@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 
 from django.utils import timezone
 from rest_framework import generics, permissions, viewsets
@@ -59,4 +59,16 @@ def update_portal(request, pk):
     event.save()
 
     serializer = EventSerializer(event, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['POST', ])
+@permission_classes((permissions.IsAuthenticated,))
+def copy_event(request, event_id):
+    start_dt = request.query_params.get("start_dt")
+    event = Event.objects.get(pk=event_id)
+    new_dt = date.fromisoformat(start_dt)
+    copy = Event.objects.clone(event, new_dt)
+
+    serializer = EventSerializer(copy, context={'request': request})
     return Response(serializer.data)

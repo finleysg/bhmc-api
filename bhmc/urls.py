@@ -47,6 +47,7 @@ urlpatterns = [
       url(r"^admin/", admin.site.urls),
       url(r"^api/", include(router.urls)),
       url(r"^api/contact/$", messaging_views.contact_message),
+      url(r"^api/copy-event/(?P<event_id>[0-9]+)/$", event_views.copy_event),
       url(r"^api/friends/$", register_views.friends),
       url(r"^api/friends/add/(?P<player_id>[0-9]+)/$", register_views.add_friend),
       url(r"^api/friends/remove/(?P<player_id>[0-9]+)/$", register_views.remove_friend),

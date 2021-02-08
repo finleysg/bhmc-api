@@ -110,7 +110,7 @@ def payment_complete(request):
 def handle_payment_complete(payment_intent):
     payment = Payment.objects.get(payment_code=payment_intent.stripe_id)
 
-    # make this idempotent
+    # exit early if we have already confirmed this payment
     if payment.confirmed:
         logger.info("Already confirmed payment " + payment.payment_code)
         return
@@ -128,13 +128,27 @@ def handle_payment_complete(payment_intent):
         slot.status = "R"
         slot.save()
 
+    # important, but don't cause the payment intent to fail
+    try:
+        clear_available_slots(slots[0].registration)
+        player = save_customer_id(payment_intent)
+        send_notification(payment, fees, slots, player)
+    except Exception as e:
+        capture_exception(e)
+
+
+def save_customer_id(payment_intent):
     email = payment_intent.metadata.get("user_email")
     player = Player.objects.get(email=email)
     if player.stripe_customer_id is None:
         player.stripe_customer_id = payment_intent.customer
         player.save()
 
-    try:
-        send_notification(payment, fees, slots, player)
-    except Exception as e:
-        capture_exception(e)
+    return player
+
+
+def clear_available_slots(registration):
+    for slot in registration.slots:
+        if slot.status == "P":
+            slot.status = "A"
+            slot.save()

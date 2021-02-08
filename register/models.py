@@ -91,6 +91,7 @@ class RegistrationSlot(models.Model):
     status = models.CharField(verbose_name="Status", choices=STATUS_CHOICES, max_length=1, default="A")
 
     class Meta:
+        ordering = ("hole", "slot")
         constraints = [
             UniqueConstraint(fields=["event", "player"], name="unique_player_registration")
         ]

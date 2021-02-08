@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -8,7 +9,7 @@ from events.models import Event
 from .exceptions import (
     EventFullError,
     EventRegistrationNotOpenError,
-    CourseRequiredError,
+    CourseRequiredError, PlayerConflictError,
 )
 from .models import Player, Registration, RegistrationSlot, RegistrationFee
 
@@ -146,6 +147,13 @@ class UpdatableRegistrationSlotSerializer(serializers.ModelSerializer):
             "status",
             "player",
         )
+
+    def update(self, instance, validated_data):
+        try:
+            return super().update(instance, validated_data)
+        except Exception as ex:
+            if isinstance(ex, IntegrityError):
+                raise PlayerConflictError()
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

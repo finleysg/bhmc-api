@@ -111,6 +111,7 @@ def cancel_reserved_slots(request, registration_id):
 @permission_classes((permissions.IsAuthenticated,))
 def player_search(request):
     event_id = request.query_params.get("event_id", 0)
+    player_id = request.query_params.get("player_id", 0)
     pattern = request.query_params.get("pattern", "")
 
     with connection.cursor() as cursor:
@@ -118,6 +119,7 @@ def player_search(request):
             "SearchPlayers",
             [
                 pattern,
+                player_id,
                 event_id,
                 settings.REGISTRATION_EVENT_ID,
                 settings.PREVIOUS_REGISTRATION_EVENT_ID,

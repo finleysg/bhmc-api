@@ -16,7 +16,7 @@ class EventFeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EventFee
-        fields = ("id", "fee_type", "amount", "is_required", "display_order", )
+        fields = ("id", "event", "fee_type", "amount", "is_required", "display_order", )
 
 
 class EventSerializer(serializers.ModelSerializer):

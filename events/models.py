@@ -10,6 +10,14 @@ from django.utils import timezone
 from courses.models import Course
 from events.managers import EventManager
 
+FEE_RESTRICTION_CHOICES = (
+    ("Members", "Members"),
+    ("Returning Members", "Returning Members"),
+    ("New Members", "New Members"),
+    ("Seniors", "Seniors"),
+    ("Non-Seniors", "Non-Seniors"),
+    ("None", "None"),
+)
 EVENT_TYPE_CHOICES = (
     ("N", "Weeknight Event"),
     ("W", "Weekend Major"),
@@ -37,7 +45,7 @@ EVENT_STATUS_CHOICES = (
     ("T", "Tentative"),
 )
 REGISTRATION_CHOICES = (
-    ("M", "Member Only"),
+    ("M", "Member"),
     ("G", "Member Guest"),
     ("O", "Open"),
     ("N", "None"),
@@ -112,10 +120,10 @@ class Event(models.Model):
             if self.signup_start > self.signup_end:
                 raise ValidationError('The signup start must be earlier than signup end')
 
-    def validate_courses(self):
-        if self.can_choose and not self.courses.exists():
-            raise ValidationError('At least one course is required if players are choosing their starting hole or '
-                                  'tee time')
+    # def validate_courses(self):
+    #     if self.can_choose and not self.courses.exists():
+    #         raise ValidationError('At least one course is required if players are choosing their starting hole or '
+    #                               'tee time')
 
     def validate_groups_size(self):
         if self.can_choose and (self.group_size is None or self.group_size == 0):
@@ -137,7 +145,7 @@ class Event(models.Model):
                                       'their own tee times')
 
     def clean(self):
-        self.validate_courses()
+        # self.validate_courses()
         self.validate_groups_size()
         self.validate_signup_size()
         self.validate_total_groups()
@@ -157,6 +165,8 @@ class Event(models.Model):
 class FeeType(models.Model):
     name = models.CharField(verbose_name="Fee Name", max_length=30, unique=True)
     code = models.CharField(verbose_name="Fee Code", max_length=3, default="X")
+    restriction = models.CharField(verbose_name="Restrict to", max_length=20, choices=FEE_RESTRICTION_CHOICES,
+                                   default="None")
 
     def __str__(self):
         return self.name

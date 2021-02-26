@@ -8,6 +8,13 @@ class SlotConflictError(APIException):
         self.detail = "One or more of the slots you requested have already been reserved"
 
 
+class PlayerConflictError(APIException):
+
+    def __init__(self):
+        self.status_code = 409
+        self.detail = "The player selected has already signed up or is in the process of signing up"
+
+
 class MissingSlotsError(APIException):
 
     def __init__(self):

@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from register.models import RegistrationFee, Player
 from register.serializers import RegistrationFeeSerializer
+# noinspection PyPackages
 from .models import Payment
 
 

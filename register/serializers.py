@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -8,7 +9,7 @@ from events.models import Event
 from .exceptions import (
     EventFullError,
     EventRegistrationNotOpenError,
-    CourseRequiredError,
+    CourseRequiredError, PlayerConflictError,
 )
 from .models import Player, Registration, RegistrationSlot, RegistrationFee
 
@@ -106,6 +107,10 @@ class RegistrationSlotSerializer(serializers.ModelSerializer):
     # We need to identify elements in the list using their primary key,
     # so use a writable field here, rather than the default which would be read-only.
     id = serializers.IntegerField()
+    player = SimplePlayerSerializer(
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = RegistrationSlot
@@ -123,6 +128,32 @@ class RegistrationSlotSerializer(serializers.ModelSerializer):
             "hole",
             "starting_order",
         )
+
+
+class UpdatableRegistrationSlotSerializer(serializers.ModelSerializer):
+    # We need to identify elements in the list using their primary key,
+    # so use a writable field here, rather than the default which would be read-only.
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = RegistrationSlot
+        fields = (
+            "id",
+            "event",
+            "hole",
+            "registration",
+            "starting_order",
+            "slot",
+            "status",
+            "player",
+        )
+
+    def update(self, instance, validated_data):
+        try:
+            return super().update(instance, validated_data)
+        except Exception as ex:
+            if isinstance(ex, IntegrityError):
+                raise PlayerConflictError()
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -168,17 +199,22 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        slots = validated_data.pop("slots")
-        for slot in slots:
-            player = slot.pop("player")
-            if player is not None:
-                RegistrationSlot.objects.select_for_update().filter(
-                    pk=slot["id"]
-                ).update(**{"player": player})
-            else:
-                RegistrationSlot.objects.select_for_update().filter(
-                    pk=slot["id"]
-                ).update(**{"status": "A", "player": None})
+        # slots = validated_data.pop("slots")
+        # for slot in slots:
+        #     player = slot.pop("player")
+        #     # if player is None:
+        #     #     player_id = None
+        #     # else:
+        #     #     player_id = player.get("id", None)
+        #
+        #     if player is not None:
+        #         RegistrationSlot.objects.select_for_update().filter(
+        #             pk=slot["id"]
+        #         ).update(**{"player": player})
+        #     else:
+        #         RegistrationSlot.objects.select_for_update().filter(
+        #             pk=slot["id"]
+        #         ).update(**{"player": None})
 
         instance.notes = validated_data.get("notes", instance.notes)
         instance.save()

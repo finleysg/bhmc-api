@@ -34,8 +34,6 @@ class EventViewSet(viewsets.ModelViewSet):
             end_dt = today + timedelta(days=float(active))
             queryset = queryset.exclude(registration_type='N')
             queryset = queryset.filter(signup_start__lte=today, signup_end__gt=end_dt)
-        if self.action != 'list':
-            queryset.prefetch_related('registrations', 'documents', 'fees', 'courses')
 
         return queryset.order_by('start_date')
 

@@ -5,6 +5,7 @@ from django.db.models import DO_NOTHING
 from events.models import Event
 
 NOTIFICATION_CHOICES = (
+    ("A", "Admin"),
     ("N", "New Member"),
     ("R", "Returning Member"),
     ("C", "Signup Confirmation"),

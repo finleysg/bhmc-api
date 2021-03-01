@@ -178,44 +178,31 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = None
+        signed_up_by = None
+
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
 
+        signed_up_by = validated_data.get("signed_up_by", None)
+        is_admin = signed_up_by == "admin"
+
+        course = validated_data.pop("course", None)
         slots = validated_data.pop("slots")
+        event = validated_data.pop("event")
+        # event = Event.objects.get(pk=event_id)
 
-        event_id = validated_data.pop("event")
-        event = Event.objects.get(pk=event_id)
-
-        player = Player.objects.get(email=user.email)
+        player = None if is_admin else Player.objects.get(email=user.email)
+        signed_up_by = user.get_full_name()
 
         # TODO: other validations?
         validate_registration_is_open(event)
         validate_event_is_not_full(event)
-        course = validate_course_for_event(event, validated_data.pop("course", None))
+        # course = validate_course_for_event(event, validated_data.pop("course", None))
 
-        return Registration.objects.create_and_reserve(
-            user, player, event, course, slots, **validated_data
-        )
+        return Registration.objects.create_and_reserve(user, player, event, course, slots, signed_up_by)
 
     def update(self, instance, validated_data):
-        # slots = validated_data.pop("slots")
-        # for slot in slots:
-        #     player = slot.pop("player")
-        #     # if player is None:
-        #     #     player_id = None
-        #     # else:
-        #     #     player_id = player.get("id", None)
-        #
-        #     if player is not None:
-        #         RegistrationSlot.objects.select_for_update().filter(
-        #             pk=slot["id"]
-        #         ).update(**{"player": player})
-        #     else:
-        #         RegistrationSlot.objects.select_for_update().filter(
-        #             pk=slot["id"]
-        #         ).update(**{"player": None})
-
         instance.notes = validated_data.get("notes", instance.notes)
         instance.save()
 

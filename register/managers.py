@@ -31,8 +31,8 @@ class RegistrationManager(models.Manager):
         return count
 
     @transaction.atomic()
-    def create_and_reserve(self, user, player, event, course, registration_slots, **registration_data):
-        reg = self.create(event=event, course=course, user=user, **registration_data)
+    def create_and_reserve(self, user, player, event, course, registration_slots, signed_up_by):
+        reg = self.create(event=event, course=course, user=user, signed_up_by=signed_up_by)
         reg.expires = tz.now() + timedelta(minutes=10)
         reg.save()
 

@@ -148,7 +148,6 @@ def save_customer_id(payment_intent):
 
 
 def clear_available_slots(registration):
-    for slot in registration.slots:
-        if slot.status == "P":
-            slot.status = "A"
-            slot.save()
+    for slot in registration.slots.filter(status="P"):
+        slot.status = "A"
+        slot.save()

@@ -61,9 +61,9 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(user=self.request.user)
         return queryset
 
-    def perform_create(self, serializer):
-        signed_up_by = self.request.user.get_full_name()
-        serializer.save(signed_up_by=signed_up_by, **self.request.data)
+    # def perform_create(self, serializer):
+    #     signed_up_by = self.request.user.get_full_name()
+    #     serializer.save(signed_up_by=signed_up_by, **self.request.data)
 
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):

@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from events.models import EventFee
+from payments.models import Payment
+from payments.serializers import PaymentReportSerializer
 
 
 def fetch_all_as_dictionary(cursor):
@@ -60,6 +62,6 @@ def event_report(request, event_id):
 @api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
 def payment_report(request, event_id):
-
-    payment_details = get_payment_details_by_event(event_id)
-    return Response(payment_details, status=200)
+    payments = Payment.objects.all().filter(event=event_id)
+    serializer = PaymentReportSerializer(payments, context={"request": request}, many=True)
+    return Response(serializer.data)

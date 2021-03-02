@@ -6,17 +6,21 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from register.models import RegistrationFee, Player, RegistrationSlot
-from register.serializers import RegistrationFeeSerializer
+from register.serializers import RegistrationFeeSerializer, PaymentDetailSerializer
 # noinspection PyPackages
 from .models import Payment
 
 
-def calculate_payment_amount(amount_due):
-    transaction_fixed_cost = Decimal(0.3)
-    transaction_percentage = Decimal(0.029)
-    total = (amount_due + transaction_fixed_cost) / (Decimal(1.0) - transaction_percentage)
-    transaction_fee = total - amount_due
-    return total, transaction_fee
+class PaymentReportSerializer(serializers.ModelSerializer):
+
+    user_first_name = serializers.CharField(source="user.first_name")
+    user_last_name = serializers.CharField(source="user.last_name")
+    payment_details = PaymentDetailSerializer(many=True)
+
+    class Meta:
+        model = Payment
+        fields = ("id", "event", "user_first_name", "user_last_name", "payment_code", "confirmed", "payment_date",
+                  "payment_amount", "transaction_fee", "payment_details")
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -112,6 +116,14 @@ class PaymentSerializer(serializers.ModelSerializer):
             registration_fee.save()
 
         return instance
+
+
+def calculate_payment_amount(amount_due):
+    transaction_fixed_cost = Decimal(0.3)
+    transaction_percentage = Decimal(0.029)
+    total = (amount_due + transaction_fixed_cost) / (Decimal(1.0) - transaction_percentage)
+    transaction_fee = total - amount_due
+    return total, transaction_fee
 
 
 def save_admin_payment(event, fees, player_email, validated_data):

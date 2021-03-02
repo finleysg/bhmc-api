@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from courses.models import Course
 from documents.serializers import PhotoSerializer
 from events.models import Event
+from events.serializers import EventFeeSerializer
 from .exceptions import (
     EventFullError,
     EventRegistrationNotOpenError,
@@ -154,6 +155,20 @@ class UpdatableRegistrationSlotSerializer(serializers.ModelSerializer):
         except Exception as ex:
             if isinstance(ex, IntegrityError):
                 raise PlayerConflictError()
+
+
+class PaymentDetailSerializer(serializers.ModelSerializer):
+
+    event_fee = EventFeeSerializer()
+    registration_slot = RegistrationSlotSerializer()
+
+    class Meta:
+        model = RegistrationFee
+        fields = (
+            "id",
+            "event_fee",
+            "registration_slot",
+        )
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

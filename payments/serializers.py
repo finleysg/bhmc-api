@@ -15,12 +15,12 @@ class PaymentReportSerializer(serializers.ModelSerializer):
 
     user_first_name = serializers.CharField(source="user.first_name")
     user_last_name = serializers.CharField(source="user.last_name")
-    payment_details = PaymentDetailSerializer(many=True)
+    # payment_details = PaymentDetailSerializer(many=True)
 
     class Meta:
         model = Payment
         fields = ("id", "event", "user_first_name", "user_last_name", "payment_code", "confirmed", "payment_date",
-                  "payment_amount", "transaction_fee", "payment_details")
+                  "payment_amount", "transaction_fee")
 
 
 class PaymentSerializer(serializers.ModelSerializer):

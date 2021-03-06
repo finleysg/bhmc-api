@@ -41,6 +41,7 @@ router.register(r"page-content", content_views.PageContentViewSet, "page-content
 router.register(r"payments", payment_views.PaymentViewSet, "payments")
 router.register(r"players", register_views.PlayerViewSet, "players")
 router.register(r"registration", register_views.RegistrationViewSet, "registration")
+router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "registration-fees")
 router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, "registration-slots")
 
 urlpatterns = [

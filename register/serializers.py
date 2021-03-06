@@ -101,6 +101,7 @@ class RegistrationFeeSerializer(serializers.ModelSerializer):
             "event_fee",
             "registration_slot",
             "payment",
+            "is_paid",
         )
 
 

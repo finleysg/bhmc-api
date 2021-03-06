@@ -8,13 +8,13 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from reporting.views import fetch_all_as_dictionary
-from .models import Registration, RegistrationSlot, Player
+from .models import Registration, RegistrationSlot, Player, RegistrationFee
 from .serializers import (
     RegistrationSlotSerializer,
     RegistrationSerializer,
     PlayerSerializer,
     SimplePlayerSerializer,
-    UpdatableRegistrationSlotSerializer,
+    UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer,
 )
 
 
@@ -88,6 +88,25 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
             queryset = queryset.filter(event__season__in=seasons)
         if is_open:
             queryset = queryset.filter(player__isnull=True)
+        return queryset
+
+
+class RegistrationFeeViewsSet(viewsets.ModelViewSet):
+
+    serializer_class = RegistrationFeeSerializer
+
+    def get_queryset(self):
+        queryset = RegistrationFee.objects.all()
+        registration_id = self.request.query_params.get("registration_id", None)
+        event_id = self.request.query_params.get("event_id", None)
+        confirmed = self.request.query_params.get("confirmed", "false")
+
+        if event_id is not None:
+            queryset = queryset.filter(event_fee__event=event_id)
+        if registration_id is not None:
+            queryset = queryset.filter(registration_slot__registration=registration_id)
+        if confirmed == "true":
+            queryset = queryset.filter(payment__confirmed=1)
         return queryset
 
 

@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from sentry_sdk import capture_message, capture_exception
 
-from payments.email import send_notification
+from payments.emails import send_notification
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
 from register.models import Player
@@ -102,7 +102,7 @@ def payment_complete(request):
         payment_intent = event.data.object
         handle_payment_complete(payment_intent)
     else:
-        logger.info("Stripe callback: " + event.type)
+        capture_message("Stripe callback: " + event.type, level="info")
 
     return Response(status=204)
 
@@ -112,18 +112,20 @@ def handle_payment_complete(payment_intent):
 
     # exit early if we have already confirmed this payment
     if payment.confirmed:
-        logger.info("Already confirmed payment " + payment.payment_code)
+        capture_message("Already confirmed payment " + payment.payment_code, level="info")
         return
 
     payment.confirmed = True
     payment.save()
 
-    fees = list(payment.payment_details.all())
-    for fee in fees:
-        fee.is_paid = True
-        fee.save()
+    payment_details = list(payment.payment_details.all())
+    for detail in payment_details:
+        detail.is_paid = True
+        detail.save()
 
-    slots = [fee.registration_slot for fee in fees]
+    # We are doing extra work here, since the slot record
+    # can be duplicated across payment details
+    slots = [detail.registration_slot for detail in payment_details]
     for slot in slots:
         slot.status = "R"
         slot.save()
@@ -131,9 +133,11 @@ def handle_payment_complete(payment_intent):
     # important, but don't cause the payment intent to fail
     try:
         clear_available_slots(slots[0].registration)
-        player = save_customer_id(payment_intent)
-        send_notification(payment, fees, slots, player)
+        email = payment_intent.metadata.get("user_email")
+        player = Player.objects.get(email=email)
+        send_notification(payment, slots, player)
     except Exception as e:
+        capture_message("Send notification failure: " + payment.payment_code, level="error")
         capture_exception(e)
 
 

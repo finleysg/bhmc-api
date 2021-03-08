@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from register.models import RegistrationFee, Player, RegistrationSlot
-from register.serializers import RegistrationFeeSerializer, PaymentDetailSerializer
+from register.serializers import RegistrationFeeSerializer
 # noinspection PyPackages
 from .models import Payment
 
@@ -36,19 +36,18 @@ class PaymentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         user = self.context.get("request").user
-        fees = validated_data.pop("payment_details")
+        payment_details = validated_data.pop("payment_details")
         event = validated_data.pop("event")
 
         # A = an admin is registering on behalf of a player
         notification_type = validated_data.get("notification_type", None)
         if notification_type == "A":
             player_email = self.context.get("request").query_params.get("player", None)
-            return save_admin_payment(event, fees, player_email, validated_data)
+            return save_admin_payment(event, payment_details, player_email, validated_data)
 
-        event_fee_ids = [fee["event_fee"].id for fee in fees]
-        amount_due = sum([f.amount for f in event.fees.all() if f.id in event_fee_ids])
-        payment_details = calculate_payment_amount(amount_due)
-        stripe_amount_due = int(payment_details[0] * 100)  # total (with fees) in cents
+        amount_due = get_amount_due(event, payment_details)
+        stripe_payment = calculate_payment_amount(amount_due)
+        stripe_amount_due = int(stripe_payment[0] * 100)  # total (with fees) in cents
 
         player = Player.objects.get(email=user.email)
         if player.stripe_customer_id is None or player.stripe_customer_id.strip() == "":
@@ -56,7 +55,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             player.stripe_customer_id = customer.stripe_id
             player.save()
 
-        notification_type = derive_notification_type(event, player)
+        notification_type = derive_notification_type(event, player, payment_details)
 
         intent = stripe.PaymentIntent.create(
             amount=stripe_amount_due,
@@ -79,39 +78,38 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment = Payment.objects.create(event=event, user=user,
                                          payment_code=intent.stripe_id,
                                          payment_key=intent.client_secret,
-                                         payment_amount=payment_details[0],
-                                         transaction_fee=payment_details[-1],
+                                         payment_amount=stripe_payment[0],
+                                         transaction_fee=stripe_payment[-1],
                                          notification_type=notification_type)
         payment.save()
 
-        for fee in fees:
-            registration_fee = RegistrationFee(event_fee=fee["event_fee"],
-                                               registration_slot=fee["registration_slot"],
+        for detail in payment_details:
+            registration_fee = RegistrationFee(event_fee=detail["event_fee"],
+                                               registration_slot=detail["registration_slot"],
                                                payment=payment)
             registration_fee.save()
 
         return payment
 
     def update(self, instance, validated_data):
-        fees = validated_data.pop("payment_details")
+        payment_details = validated_data.pop("payment_details")
         event = validated_data.pop("event")
 
-        event_fee_ids = [fee["event_fee"].id for fee in fees]
-        amount_due = sum([f.amount for f in event.fees.all() if f.id in event_fee_ids])
-        payment_details = calculate_payment_amount(amount_due)
-        stripe_amount_due = int(payment_details[0] * 100)  # total (with fees) in cents
+        amount_due = get_amount_due(event, payment_details)
+        stripe_payment = calculate_payment_amount(amount_due)
+        stripe_amount_due = int(stripe_payment[0] * 100)  # total (with fees) in cents
 
         stripe.PaymentIntent.modify(instance.payment_code, amount=stripe_amount_due)
 
-        instance.payment_amount = payment_details[0]
-        instance.transaction_fee = payment_details[-1]
+        instance.payment_amount = stripe_payment[0]
+        instance.transaction_fee = stripe_payment[-1]
         instance.save()
 
+        # recreate the payment details
         instance.payment_details.all().delete()
-
-        for fee in fees:
-            registration_fee = RegistrationFee(event_fee=fee["event_fee"],
-                                               registration_slot=fee["registration_slot"],
+        for detail in payment_details:
+            registration_fee = RegistrationFee(event_fee=detail["event_fee"],
+                                               registration_slot=detail["registration_slot"],
                                                payment=instance)
             registration_fee.save()
 
@@ -160,7 +158,7 @@ def save_admin_payment(event, fees, player_email, validated_data):
     return payment
 
 
-def derive_notification_type(event, player):
+def derive_notification_type(event, player, payment_details):
 
     if event.id == settings.REGISTRATION_EVENT_ID:
         previous_season = RegistrationSlot.objects\
@@ -174,4 +172,26 @@ def derive_notification_type(event, player):
     elif event.id == settings.MATCH_PLAY_EVENT_ID:
         return "M"
 
-    return "C"
+    # bit of a roundabout way to get this info, but if there are
+    # no required fees in the payment details, we know this is an
+    # "edit" (skins payment, or other fees, after the initial registration)
+    if has_required_fees(event, payment_details):
+        return "C"
+
+
+def get_amount_due(event, payment_details):
+    amount_due = Decimal(0.0)
+    event_fees = event.fees.all()
+    event_fee_ids = [detail["event_fee"].id for detail in payment_details]
+    for event_fee_id in event_fee_ids:
+        event_fee = next(iter([f.amount for f in event_fees if f.id == event_fee_id]))
+        amount_due += event_fee
+
+    return amount_due
+
+
+def has_required_fees(event, payment_details):
+    event_fees = event.fees.all()
+    event_fee_ids = [detail["event_fee"].id for detail in payment_details]
+    required = next(iter([f for f in event_fees if f.is_required and f.id in event_fee_ids]), None)
+    return required is not None

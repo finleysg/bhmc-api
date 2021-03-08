@@ -1,7 +1,0 @@
--   model: core.seasonsettings
-    pk: 1
-    fields:
-        year: 2021
-        reg_event: 1
-        match_play_event: null
-        accept_new_members: true

@@ -81,6 +81,7 @@ class Event(models.Model):
     external_url = models.CharField(verbose_name="External url", max_length=255, blank=True, null=True)
     status = models.CharField(verbose_name="Status", max_length=1, choices=EVENT_STATUS_CHOICES, default="S")
     season = models.IntegerField(verbose_name="Season", default=0)
+    tee_time_splits = models.CharField(verbose_name="Tee time splits", max_length=10, blank=True, null=True)
 
     class Meta:
         constraints = [

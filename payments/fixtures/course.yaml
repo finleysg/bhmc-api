@@ -1,0 +1,20 @@
+-   model: courses.course
+    pk: 1
+    fields:
+        name: East
+        number_of_holes: 9
+-   model: courses.course
+    pk: 2
+    fields:
+        name: North
+        number_of_holes: 9
+-   model: courses.course
+    pk: 3
+    fields:
+        name: West
+        number_of_holes: 9
+-   model: courses.course
+    pk: 4
+    fields:
+        name: East-West
+        number_of_holes: 18

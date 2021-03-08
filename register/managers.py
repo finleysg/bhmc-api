@@ -1,4 +1,6 @@
 import logging
+import stripe
+
 from datetime import timedelta
 
 from django.utils import timezone as tz
@@ -8,6 +10,7 @@ from django.db.models import Max
 from rest_framework.exceptions import APIException
 
 from courses.models import Hole
+from payments.models import Payment
 from register.exceptions import SlotConflictError, MissingSlotsError, RegistrationConfirmedError
 
 logger = logging.getLogger('register-manager')
@@ -15,20 +18,20 @@ logger = logging.getLogger('register-manager')
 
 class RegistrationManager(models.Manager):
 
-    def clean_up_expired(self):
-        registrations = self.filter(expires__lt=tz.now()).filter(slots__status="P")
-        count = len(registrations)
-
-        for reg in registrations:
-            # Make can_choose slots available
-            reg.slots.filter(event__can_choose=True).update(**{"status": "A", "registration": None, "player": None})
-
-            # Delete other slots
-            reg.slots.exclude(event__can_choose=True).delete()
-
-            reg.delete()
-
-        return count
+    # def clean_up_expired(self):
+    #     registrations = self.filter(expires__lt=tz.now()).filter(slots__status="P")
+    #     count = len(registrations)
+    #
+    #     for reg in registrations:
+    #         # Make can_choose slots available
+    #         reg.slots.filter(event__can_choose=True).update(**{"status": "A", "registration": None, "player": None})
+    #
+    #         # Delete other slots
+    #         reg.slots.exclude(event__can_choose=True).delete()
+    #
+    #         reg.delete()
+    #
+    #     return count
 
     @transaction.atomic()
     def create_and_reserve(self, user, player, event, course, registration_slots, signed_up_by):
@@ -63,22 +66,28 @@ class RegistrationManager(models.Manager):
         return reg
 
     @transaction.atomic()
-    def cancel_registration(self, registration_id):
+    def cancel_registration(self, registration_id, payment_id):
         try:
             reg = self.filter(pk=registration_id).get()
 
             if reg.event.can_choose:
-                # TODO: update only pending slots
-                reg.slots.update(**{"status": "A", "registration": None, "player": None})
+                reg.slots.filter(status="P").update(**{"status": "A", "player": None})
             else:
-                if len(list(reg.slots.filter(status="R"))) > 0:
-                    raise RegistrationConfirmedError()
-                reg.slots.all().delete()  # fee records(s) should cascade
+                reg.slots.filter(status="P").delete()
 
-            reg.delete()
+            # If there are no R slots, the registration and payment should be deleted
+            if len(list(reg.slots.filter(status="R"))) == 0:
+                reg.delete()
+
+                if payment_id is not None and payment_id > 0:
+                    payment = Payment.objects.get(pk=payment_id)
+                    payment.payment_details.all().delete()
+                    if payment.payment_code is not None and payment.payment_code.startswith("pi_"):
+                        stripe.PaymentIntent.cancel(payment.payment_code)
+                    payment.delete()
 
         except ObjectDoesNotExist:
-            logger.warning("Could not find and cancel a registration with id {}".format(registration_id),)
+            pass
 
 
 class RegistrationSlotManager(models.Manager):

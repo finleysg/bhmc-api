@@ -1,46 +1,4 @@
 -   model: events.event
-    pk: -1
-    fields:
-        event_type: R
-        name: 2020 Season Registration
-        rounds: null
-        registration_type: O
-        skins_type: null
-        minimum_signup_group_size: 1
-        maximum_signup_group_size: 1
-        group_size: null
-        total_groups: null
-        start_type: null
-        can_choose: false
-        ghin_required: false
-        season_points: null
-        notes: "Thank you for considering our club for the 2020 season!\r\n\r\n**All\
-            \ member information is private and its use is strictly limited to events\
-            \ or functions directly related to the Bunker Hills Men’s Golf Club (BHMGC).**\r\
-            \n\r\nNo membership refunds without Board approval.  (Membership refunds\
-            \ are subject to prorated refund based on a case by case basis).\r\n\r\
-            \nIf you qualify for the senior patron card rate (62 and over), you must\
-            \ pay for your patron card in the pro shop to receive that rate.\r\n\r\
-            \n**IMPORTANT** If you wish to play forward tees (Gold) for the ENTIRE\
-            \ season, please indicate that in the online registration or in your offline\
-            \ application form.\r\n\r\nEligibility to select gold/forward tees for\
-            \ all BHMGC league events must fall within the \"rule of 78.\" If your\
-            \ age plus handicap equals or is greater than 78, you are eligible to\
-            \ select those tees to play for the entire year. The determination is\
-            \ made one time at the beginning of the season. If the player falls below\
-            \ 78 during the season, he is still eligible to play the gold/forward\
-            \ tees."
-        start_date: 2020-01-05
-        start_time: Open registration period
-        signup_start: 2020-01-05 12:00:00+00:00
-        signup_end: 2020-06-30 05:00:00+00:00
-        payments_end: null
-        registration_maximum: null
-        portal_url: null
-        external_url: null
-        status: S
-        courses: []
--   model: events.event
     pk: 1
     fields:
         event_type: R
@@ -56,27 +14,11 @@
         can_choose: false
         ghin_required: false
         season_points: null
-        notes: "Thank you for considering our club for the 2021 season!\r\n\r\n**All\
-            \ member information is private and its use is strictly limited to events\
-            \ or functions directly related to the Bunker Hills Men’s Golf Club (BHMGC).**\r\
-            \n\r\nNo membership refunds without Board approval.  (Membership refunds\
-            \ are subject to prorated refund based on a case by case basis).\r\n\r\
-            \nIf you qualify for the senior patron card rate (62 and over), make sure\
-            \ your birth date is accurate so the website knows to charge you that\
-            \ rate. Otherwise you will have to pay for your patron card in the pro\
-            \ shop to receive the senior rate.\r\n\r\n**IMPORTANT** If you wish to\
-            \ play forward tees (Gold) for the ENTIRE season, please indicate that\
-            \ in the online registration or in your offline application form.\r\n\r\
-            \nEligibility to select gold/forward tees for all BHMGC league events\
-            \ must fall within the \"rule of 78.\" If your age plus handicap equals\
-            \ or is greater than 78, you are eligible to select those tees to play\
-            \ for the entire year. The determination is made one time at the beginning\
-            \ of the season. If the player falls below 78 during the season, he is\
-            \ still eligible to play the gold/forward tees."
-        start_date: 2020-11-30
+        notes: Season signup info text
+        start_date: 2020-10-12
         start_time: Open
-        signup_start: 2020-11-30 06:00:00+00:00
-        signup_end: 2021-02-28 06:00:00+00:00
+        signup_start: 2020-10-12 05:00:00+00:00
+        signup_end: 2020-11-30 06:00:00+00:00
         payments_end: null
         registration_maximum: null
         portal_url: null

@@ -1,3 +1,4 @@
+import sentry_sdk
 from django.conf import settings
 from django.db import connection
 from django.shortcuts import get_object_or_404
@@ -6,6 +7,7 @@ from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
+from sentry_sdk import capture_message
 
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee
@@ -110,18 +112,44 @@ class RegistrationFeeViewsSet(viewsets.ModelViewSet):
         return queryset
 
 
-@api_view(
-    [
-        "PUT",
-    ]
-)
+@api_view(["PUT", ])
 @permission_classes((permissions.IsAuthenticated,))
 def cancel_reserved_slots(request, registration_id):
 
     if registration_id == 0:
         raise ValidationError("Missing registration_id")
 
-    Registration.objects.cancel_registration(registration_id)
+    payment_id = int(request.query_params.get("payment_id", "0"))
+    Registration.objects.cancel_registration(registration_id, payment_id)
+
+    return Response(status=204)
+
+
+@api_view(["GET", ])
+@permission_classes((permissions.AllowAny,))
+def cancel_expired(request):
+
+    with connection.cursor() as cursor:
+        cursor.callproc(
+            "GetExpiredRegistrations",
+        )
+        expired = fetch_all_as_dictionary(cursor)
+
+    for record in expired:
+        try:
+            registration_id = record["registration_id"]
+            payment_id = record.get("payment_id", None)
+            Registration.objects.cancel_registration(registration_id, payment_id)
+
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("event", record["event_name"])
+                scope.set_tag("event_date", record["event_date"])
+                scope.set_tag("user", record["signed_up_by"])
+                scope.set_tag("payment_code", record.get("payment_code", "no payment"))
+
+                sentry_sdk.capture_message("Cleaning up expired registration", "info")
+        except Exception as exc:
+            sentry_sdk.capture_exception(exc)
 
     return Response(status=204)
 

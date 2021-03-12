@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Max
+from django.db.models import Max, Count
 from rest_framework.exceptions import APIException
 
 from courses.models import Hole
@@ -18,20 +18,21 @@ logger = logging.getLogger('register-manager')
 
 class RegistrationManager(models.Manager):
 
-    # def clean_up_expired(self):
-    #     registrations = self.filter(expires__lt=tz.now()).filter(slots__status="P")
-    #     count = len(registrations)
-    #
-    #     for reg in registrations:
-    #         # Make can_choose slots available
-    #         reg.slots.filter(event__can_choose=True).update(**{"status": "A", "registration": None, "player": None})
-    #
-    #         # Delete other slots
-    #         reg.slots.exclude(event__can_choose=True).delete()
-    #
-    #         reg.delete()
-    #
-    #     return count
+    def clean_up_expired(self):
+        registrations = self.filter(expires__lt=tz.now()).filter(slots__status="P")
+        count = len(registrations)
+
+        for reg in registrations:
+            # Make can_choose slots available
+            reg.slots.filter(event__can_choose=True).update(**{"status": "A", "registration": None, "player": None})
+
+            # Delete other slots
+            reg.slots.exclude(event__can_choose=True).delete()
+
+            if len(reg.slots.all()) == 0:
+                reg.delete()
+
+        return count
 
     @transaction.atomic()
     def create_and_reserve(self, user, player, event, course, registration_slots, signed_up_by):
@@ -66,7 +67,7 @@ class RegistrationManager(models.Manager):
         return reg
 
     @transaction.atomic()
-    def cancel_registration(self, registration_id, payment_id):
+    def cancel_registration(self, registration_id, payment_id, destroy):
         try:
             reg = self.filter(pk=registration_id).get()
 
@@ -75,8 +76,9 @@ class RegistrationManager(models.Manager):
             else:
                 reg.slots.filter(status="P").delete()
 
-            # If there are no R slots, the registration and payment should be deleted
-            if len(list(reg.slots.filter(status="R"))) == 0:
+            # destroy is True if cancel comes from a user, otherwise we're cleaning up
+            # expired registrations. In that case, we will be more conservative about the data.
+            if destroy and len(reg.slots.all()) == 0:
                 reg.delete()
 
                 if payment_id is not None and payment_id > 0:

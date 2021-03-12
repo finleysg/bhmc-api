@@ -132,7 +132,7 @@ def handle_payment_complete(payment_intent):
 
     # important, but don't cause the payment intent to fail
     try:
-        clear_available_slots(slots[0].registration)
+        clear_available_slots(payment.event, slots[0].registration)
         email = payment_intent.metadata.get("user_email")
         player = Player.objects.get(email=email)
         send_notification(payment, slots, player)
@@ -151,7 +151,8 @@ def save_customer_id(payment_intent):
     return player
 
 
-def clear_available_slots(registration):
-    for slot in registration.slots.filter(status="P"):
-        slot.status = "A"
-        slot.save()
+def clear_available_slots(event, registration):
+    if event.can_choose:
+        registration.slots.filter(status="P").update(**{"status": "A", "player": None})
+    else:
+        registration.slots.filter(status="P").delete()

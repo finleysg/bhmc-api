@@ -120,7 +120,7 @@ def cancel_reserved_slots(request, registration_id):
         raise ValidationError("Missing registration_id")
 
     payment_id = int(request.query_params.get("payment_id", "0"))
-    Registration.objects.cancel_registration(registration_id, payment_id)
+    Registration.objects.cancel_registration(registration_id, payment_id, True)
 
     return Response(status=204)
 
@@ -128,28 +128,7 @@ def cancel_reserved_slots(request, registration_id):
 @api_view(["GET", ])
 @permission_classes((permissions.AllowAny,))
 def cancel_expired(request):
-
-    with connection.cursor() as cursor:
-        cursor.callproc(
-            "GetExpiredRegistrations",
-        )
-        expired = fetch_all_as_dictionary(cursor)
-
-    for record in expired:
-        try:
-            registration_id = record["registration_id"]
-            payment_id = record.get("payment_id", None)
-            Registration.objects.cancel_registration(registration_id, payment_id)
-
-            with sentry_sdk.push_scope() as scope:
-                scope.set_tag("event", record["event_name"])
-                scope.set_tag("event_date", record["event_date"])
-                scope.set_tag("user", record["signed_up_by"])
-                scope.set_tag("payment_code", record.get("payment_code", "no payment"))
-
-                sentry_sdk.capture_message("Cleaning up expired registration", "info")
-        except Exception as exc:
-            sentry_sdk.capture_exception(exc)
+    Registration.objects.clean_up_expired()
 
     return Response(status=204)
 

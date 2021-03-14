@@ -6,12 +6,11 @@ from datetime import timedelta
 from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Max, Count
-from rest_framework.exceptions import APIException
+from django.db.models import Max
 
 from courses.models import Hole
 from payments.models import Payment
-from register.exceptions import SlotConflictError, MissingSlotsError, RegistrationConfirmedError
+from register.exceptions import SlotConflictError, MissingSlotsError
 
 logger = logging.getLogger('register-manager')
 

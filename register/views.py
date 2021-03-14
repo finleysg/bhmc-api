@@ -1,6 +1,6 @@
 import sentry_sdk
 from django.conf import settings
-from django.db import connection
+from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import permissions
@@ -18,6 +18,7 @@ from .serializers import (
     SimplePlayerSerializer,
     UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer,
 )
+from .utils import get_start
 
 
 @permission_classes((permissions.IsAuthenticated,))
@@ -211,3 +212,47 @@ def remove_friend(request, player_id):
         player.favorites, context={"request": request}, many=True
     )
     return Response(serializer.data)
+
+
+@api_view(["PUT", ])
+@transaction.atomic()
+@permission_classes((permissions.IsAuthenticated,))
+def move_players(request, registration_id):
+    # TODO: validate that len(source) == len(destination)
+    # TODO: validate that destination is open
+    source_slots = request.data.get("source_slots", [])
+    destination_slots = request.data.get("destination_slots", [])
+
+    registration = Registration.objects.filter(pk=registration_id).get()
+
+    for index, slot_id in enumerate(source_slots):
+        source = registration.slots.get(pk=slot_id)
+        destination = RegistrationSlot.objects.get(pk=destination_slots[index])
+
+        user_name = request.user.get_full_name()
+        player_name = "{} {}".format(source.player.first_name, source.player.last_name)
+        source_start = get_start(source)
+        destination_start = get_start(destination)
+        message = "\n{} moved from {} to {} by {}".format(player_name, source_start, destination_start, user_name)
+        if registration.notes is None:
+            registration.notes = message
+        else:
+            registration.notes = registration.notes + "\n" + message
+        registration.save()
+
+        for fee in source.fees.all():
+            fee.registration_slot = destination
+            fee.save()
+
+        player_ref = source.player
+        source.registration = None
+        source.player = None
+        source.status = "A"
+        source.save()
+
+        destination.registration = registration
+        destination.player = player_ref
+        destination.status = "R"
+        destination.save()
+
+    return Response(status=204)

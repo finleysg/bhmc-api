@@ -59,6 +59,7 @@ urlpatterns = [
       url(r"^api/saved-cards/$", payment_views.player_cards),
       url(r"^api/registration-expired/$", register_views.cancel_expired),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/cancel/$", register_views.cancel_reserved_slots),
+      url(r"^api/registration/(?P<registration_id>[0-9]+)/move/$", register_views.move_players),
       url(r"^api/reports/event-report/(?P<event_id>[0-9]+)/$", reporting_views.event_report),
       url(r"^api/reports/payment-report/(?P<event_id>[0-9]+)/$", reporting_views.payment_report),
       url(r'^auth/', include('djoser.urls')),

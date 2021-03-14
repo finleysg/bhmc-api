@@ -28,13 +28,14 @@ class PhotoTagSerializer(serializers.ModelSerializer):
 
 class DocumentSerializer(serializers.ModelSerializer):
 
-    event = DocumentEventSerializer(required=False)
+    # event = DocumentEventSerializer(required=False)
+    event_type = serializers.ReadOnlyField(source="event.event_type")
     created_by = serializers.CharField(read_only=True)
     last_update = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Document
-        fields = ("id", "year", "title", "document_type", "file", "event", "created_by", "last_update", )
+        fields = ("id", "year", "title", "document_type", "file", "event", "event_type", "created_by", "last_update", )
 
     def create(self, validated_data):
         event = validated_data.get("event", None)

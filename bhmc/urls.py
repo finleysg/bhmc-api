@@ -39,6 +39,7 @@ router.register(r"news", messaging_views.AnnouncementViewSet, "news")
 router.register(r"policies", policy_views.PolicyViewSet, "policies")
 router.register(r"page-content", content_views.PageContentViewSet, "page-content")
 router.register(r"payments", payment_views.PaymentViewSet, "payments")
+router.register(r"refunds", payment_views.RefundViewSet, "refunds")
 router.register(r"players", register_views.PlayerViewSet, "players")
 router.register(r"registration", register_views.RegistrationViewSet, "registration")
 router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "registration-fees")
@@ -59,6 +60,7 @@ urlpatterns = [
       url(r"^api/saved-cards/$", payment_views.player_cards),
       url(r"^api/registration-expired/$", register_views.cancel_expired),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/cancel/$", register_views.cancel_reserved_slots),
+      url(r"^api/registration/(?P<registration_id>[0-9]+)/drop/$", register_views.drop_players),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/move/$", register_views.move_players),
       url(r"^api/reports/event-report/(?P<event_id>[0-9]+)/$", reporting_views.event_report),
       url(r"^api/reports/payment-report/(?P<event_id>[0-9]+)/$", reporting_views.payment_report),

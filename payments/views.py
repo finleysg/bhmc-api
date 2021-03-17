@@ -10,8 +10,8 @@ from rest_framework.response import Response
 from sentry_sdk import capture_message, capture_exception
 
 from payments.emails import send_notification
-from payments.models import Payment
-from payments.serializers import PaymentSerializer
+from payments.models import Payment, Refund
+from payments.serializers import PaymentSerializer, RefundSerializer
 from register.models import Player
 
 logger = logging.getLogger(__name__)
@@ -25,13 +25,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Payment.objects.all()
-        event_id = self.request.query_params.get('event', None)
-        is_self = self.request.query_params.get('player', None)
+        event_id = self.request.query_params.get("event", None)
+        is_self = self.request.query_params.get("player", None)
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
         if is_self == "me":
             queryset = queryset.filter(user=self.request.user)
-            queryset = queryset.order_by('-id')  # make it easy to grab the most recent
+            queryset = queryset.order_by("-id")  # make it easy to grab the most recent
         return queryset
 
     def get_serializer_context(self):
@@ -46,6 +46,18 @@ class PaymentViewSet(viewsets.ModelViewSet):
         payment = queryset.get(pk=kwargs.get("pk"))
         stripe.PaymentIntent.cancel(payment.payment_code)
         return super(PaymentViewSet, self).destroy(request, *args, **kwargs)
+
+
+@permission_classes((permissions.IsAuthenticated,))
+class RefundViewSet(viewsets.ModelViewSet):
+    serializer_class = RefundSerializer
+
+    def get_queryset(self):
+        queryset = Payment.objects.all()
+        event_id = self.request.query_params.get("event", None)
+        if event_id is not None:
+            queryset = queryset.filter(event=event_id)
+        return queryset
 
 
 @api_view(("GET",))
@@ -87,7 +99,7 @@ def remove_card(request, payment_method):
 @permission_classes((permissions.AllowAny,))
 def payment_complete(request):
     payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     event = stripe.Webhook.construct_event(
         payload, sig_header, webhook_secret
     )
@@ -95,12 +107,15 @@ def payment_complete(request):
     # Handle the event
     if event is None:
         return Response(status=400)
-    elif event.type == 'payment_intent.payment_failed':
+    elif event.type == "payment_intent.payment_failed":
         capture_message("Payment failure: " + event.stripe_id, level="error")
         capture_message(event.data.object.last_payment_error.message, level="error")
-    elif event.type == 'payment_intent.succeeded':
+    elif event.type == "payment_intent.succeeded":
         payment_intent = event.data.object
         handle_payment_complete(payment_intent)
+    elif event.type == "charge.refunded":
+        charge = event.data.object
+        handle_refund_complete(charge)
     else:
         capture_message("Stripe callback: " + event.type, level="info")
 
@@ -130,7 +145,7 @@ def handle_payment_complete(payment_intent):
         slot.status = "R"
         slot.save()
 
-    # important, but don't cause the payment intent to fail
+    # important, but don"t cause the payment intent to fail
     try:
         clear_available_slots(payment.event, slots[0].registration)
         email = payment_intent.metadata.get("user_email")
@@ -139,6 +154,14 @@ def handle_payment_complete(payment_intent):
     except Exception as e:
         capture_message("Send notification failure: " + payment.payment_code, level="error")
         capture_exception(e)
+
+
+# TODO: send a notification (treasurer)
+def handle_refund_complete(charge):
+    for refund in charge.refunds.data:
+        local_refund = Refund.objects.get(refund_code=refund.stripe_id)
+        local_refund.confirmed = True
+        local_refund.save()
 
 
 def save_customer_id(payment_intent):

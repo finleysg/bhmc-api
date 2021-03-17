@@ -157,11 +157,7 @@ def player_search(request):
     return Response(players, status=200)
 
 
-@api_view(
-    [
-        "GET",
-    ]
-)
+@api_view(["GET", ])
 @permission_classes((permissions.IsAuthenticated,))
 def friends(request, player_id):
     event_id = request.query_params.get("event_id", 0)
@@ -180,11 +176,7 @@ def friends(request, player_id):
     return Response(players, status=200)
 
 
-@api_view(
-    [
-        "POST",
-    ]
-)
+@api_view(["POST", ])
 @permission_classes((permissions.IsAuthenticated,))
 def add_friend(request, player_id):
     player = Player.objects.get(email=request.user.email)
@@ -197,11 +189,7 @@ def add_friend(request, player_id):
     return Response(serializer.data)
 
 
-@api_view(
-    [
-        "DELETE",
-    ]
-)
+@api_view(["DELETE", ])
 @permission_classes((permissions.IsAuthenticated,))
 def remove_friend(request, player_id):
     player = Player.objects.get(email=request.user.email)
@@ -254,5 +242,39 @@ def move_players(request, registration_id):
         destination.player = player_ref
         destination.status = "R"
         destination.save()
+
+    return Response(status=204)
+
+
+@api_view(["DELETE", ])
+@transaction.atomic()
+@permission_classes((permissions.IsAuthenticated,))
+def drop_players(request, registration_id):
+    source_slots = request.data.get("source_slots", [])
+    registration = Registration.objects.filter(pk=registration_id).get()
+
+    for slot_id in source_slots:
+        source = registration.slots.get(pk=slot_id)
+
+        user_name = request.user.get_full_name()
+        player_name = "{} {}".format(source.player.first_name, source.player.last_name)
+        message = "\n{} dropped from the event by {}".format(player_name, user_name)
+        if registration.notes is None:
+            registration.notes = message
+        else:
+            registration.notes = registration.notes + "\n" + message
+        registration.save()
+
+        for fee in source.fees.all():
+            fee.registration_slot = None
+            fee.save()
+
+        if registration.event.can_choose:
+            source.registration = None
+            source.player = None
+            source.status = "A"
+            source.save()
+        else:
+            source.delete()
 
     return Response(status=204)

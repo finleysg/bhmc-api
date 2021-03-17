@@ -106,7 +106,6 @@ class RegistrationSlot(models.Model):
 class RegistrationFee(models.Model):
     event_fee = models.ForeignKey(verbose_name="Event Fee", to=EventFee, on_delete=CASCADE)
     registration_slot = models.ForeignKey(verbose_name="Registration Slot", to=RegistrationSlot, on_delete=CASCADE,
-                                          related_name="fees")
+                                          blank=True, null=True, related_name="fees")
     is_paid = models.BooleanField(verbose_name="Is Paid", default=False)
-    payment = models.ForeignKey(verbose_name="Payment", to=Payment, on_delete=CASCADE, related_name="payment_details",
-                                blank=True, null=True)
+    payment = models.ForeignKey(verbose_name="Payment", to=Payment, on_delete=CASCADE, related_name="payment_details")

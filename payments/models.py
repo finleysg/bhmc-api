@@ -27,14 +27,14 @@ class Payment(models.Model):
     payment_date = models.DateTimeField(verbose_name="Payment date", auto_now_add=True, null=True)
 
     def __str__(self):
-        return "Payment id {} ({})".format(self.payment_code, "Confirmed" if self.confirmed else "Not Confirmed")
+        return "Payment {} ({})".format(self.payment_code, self.user.last_name)
 
 
 class Refund(models.Model):
     payment = models.ForeignKey(verbose_name="Payment", to=Payment, related_name="refunds", on_delete=CASCADE)
-    refund_code = models.CharField(verbose_name="Payment code", max_length=40)
-    refund_amount = models.DecimalField(verbose_name="Payment amount", max_digits=5, decimal_places=2, default=0.0)
-    issuer = models.ForeignKey(verbose_name="User", to=User, on_delete=DO_NOTHING)
+    refund_code = models.CharField(verbose_name="Refund code", max_length=40)
+    refund_amount = models.DecimalField(verbose_name="Refund amount", max_digits=5, decimal_places=2, default=0.0)
+    issuer = models.ForeignKey(verbose_name="Issuer", to=User, on_delete=DO_NOTHING)
     notes = models.TextField(verbose_name="Notes", blank=True, null=True)
     confirmed = models.BooleanField(verbose_name="Confirmed", default=False)
     refund_date = models.DateTimeField(verbose_name="Refund date", auto_now_add=True, null=True)

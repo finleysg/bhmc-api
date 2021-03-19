@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 
 from courses.models import Course
 from documents.serializers import PhotoSerializer
-from events.models import Event
 from events.serializers import EventFeeSerializer
 from .exceptions import (
     EventFullError,
@@ -94,6 +93,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class RegistrationFeeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = RegistrationFee
         fields = (

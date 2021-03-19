@@ -32,12 +32,37 @@ class PaymentAdmin(admin.ModelAdmin):
             "fields": ("payment_code", "confirmed", )
         }),
     )
-    list_display = ["payment_code", "event", "user", "payment_amount", "transaction_fee", "confirmed", ]
+    list_display = ["payment_code", "event", "user", "payment_amount", "transaction_fee", "payment_date", "confirmed", ]
     list_display_links = ("payment_code", )
-    list_filter = (CurrentSeasonFilter, )
+    list_filter = (CurrentSeasonFilter, "confirmed", "payment_date", )
     date_hierarchy = "event__start_date"
     search_fields = ("payment_code", "player__last_name", "player__email")
     inlines = [PaymentDetailInline, ]
+    can_delete = False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.id == 1:
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.id == 1:
+            return True
+        return False
+
+
+@admin.register(models.Refund)
+class RefundAdmin(admin.ModelAdmin):
+
+    fields = ["issuer", "refund_amount", "refund_code", "confirmed", "notes", ]
+    readonly_fields = ["refund_date", ]
+    list_display = ["refund_code", "payment", "issuer", "refund_amount", "refund_date", "confirmed", ]
+    list_display_links = ("refund_code", )
+    list_filter = (CurrentSeasonFilter, )
+    search_fields = ("refund_code", )
     can_delete = False
 
     def has_add_permission(self, request):

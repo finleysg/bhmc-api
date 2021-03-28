@@ -1,10 +1,14 @@
 from django.db import models
 from django.db.models import CASCADE, UniqueConstraint
 
+from courses.managers import CourseManager
+
 
 class Course(models.Model):
     name = models.CharField(max_length=100, unique=True)
     number_of_holes = models.IntegerField(default=18)
+
+    objects = CourseManager()
 
     def __str__(self):
         return self.name

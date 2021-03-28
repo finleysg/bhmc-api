@@ -12,7 +12,7 @@ from courses.models import Hole
 from payments.models import Payment
 from register.exceptions import SlotConflictError, MissingSlotsError
 
-logger = logging.getLogger('register-manager')
+logger = logging.getLogger("register-manager")
 
 
 class RegistrationManager(models.Manager):
@@ -75,7 +75,7 @@ class RegistrationManager(models.Manager):
             else:
                 reg.slots.filter(status="P").delete()
 
-            # destroy is True if cancel comes from a user, otherwise we're cleaning up
+            # destroy is True if cancel comes from a user, otherwise we"re cleaning up
             # expired registrations. In that case, we will be more conservative about the data.
             if destroy and len(reg.slots.all()) == 0:
                 reg.delete()
@@ -94,17 +94,17 @@ class RegistrationManager(models.Manager):
 class RegistrationSlotManager(models.Manager):
 
     def get_queryset(self):
-        return super().get_queryset().select_related('player')
+        return super().get_queryset().select_related("player")
 
     def is_registered(self, event_id, player_id):
         try:
-            self.filter(event__id=event_id).filter(player__id=player_id).filter(status='R').get()
+            self.filter(event__id=event_id).filter(player__id=player_id).filter(status="R").get()
             return True
         except ObjectDoesNotExist:
             return False
 
     def players(self, event_id):
-        return self.filter(event__id=event_id).values_list('player', flat=True)
+        return self.filter(event__id=event_id).values_list("player", flat=True)
 
     def update_slots_for_hole(self, slots):
         for slot in slots:
@@ -137,13 +137,13 @@ class RegistrationSlotManager(models.Manager):
                 holes = Hole.objects.filter(course=course)
                 for hole in holes:
                     for s in range(0, event.group_size):
-                        slot = self.create(event=event, hole=hole, starting_order=0, slot=s)
-                        slots.append(slot)
+                        a_slot = self.create(event=event, hole=hole, starting_order=0, slot=s)
+                        slots.append(a_slot)
                     # Only add 2nd group on par 4s and 5s
-                    if hole.par != 3:
-                        for s in range(0, event.group_size):
-                            slot = self.create(event=event, hole=hole, starting_order=1, slot=s)
-                            slots.append(slot)
+                    # if hole.par != 3:
+                    # for s in range(0, event.group_size):
+                        b_slot = self.create(event=event, hole=hole, starting_order=1, slot=s)
+                        slots.append(b_slot)
         elif event.can_choose and event.start_type == "TT":
             for course in event.courses.all():
                 hole = Hole.objects.filter(course=course).filter(hole_number=1).get()
@@ -171,3 +171,9 @@ class RegistrationSlotManager(models.Manager):
             slots.append(slot)
 
         return slots
+
+
+class RegistrationFeeManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("event_fee").selected_related("registration_slot")

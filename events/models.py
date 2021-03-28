@@ -8,7 +8,7 @@ from simple_history.models import HistoricalRecords
 from django.utils import timezone
 
 from courses.models import Course
-from events.managers import EventManager
+from events.managers import EventManager, EventFeeManager
 
 FEE_RESTRICTION_CHOICES = (
     ("Members", "Members"),
@@ -184,6 +184,8 @@ class EventFee(models.Model):
         constraints = [
             UniqueConstraint(fields=["event", "fee_type"], name="unique_event_feetype")
         ]
+
+    objects = EventFeeManager()
 
     def __str__(self):
         return "{} (${})".format(self.fee_type, self.amount)

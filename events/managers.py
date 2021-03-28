@@ -3,6 +3,9 @@ from django.db import models
 
 class EventManager(models.Manager):
 
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("courses").prefetch_related("fees")
+
     def clone(self, original, start_date):
         copy = self.get(pk=original.id)
         copy.pk = None
@@ -38,3 +41,9 @@ class EventManager(models.Manager):
             copy.registrations.create_slots_for_event(copy)
 
         return copy
+
+
+class EventFeeManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("fee_type")

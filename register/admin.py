@@ -38,15 +38,15 @@ class CurrentSeasonFilter(SimpleListFilter):
 class RegistrationFeeInline(admin.TabularInline):
 
     model = RegistrationFee
-    can_delete = False
+    # can_delete = False
     extra = 0
-    show_change_link = False
+    # show_change_link = False
     verbose_name_plural = "Registration fees"
     fields = ["event_fee", ]
     readonly_fields = ["event_fee", ]
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
 
 class RegistrationSlotInline(admin.TabularInline):

@@ -1,4 +1,3 @@
-import sentry_sdk
 from django.conf import settings
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
@@ -7,7 +6,6 @@ from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
-from sentry_sdk import capture_message
 
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee
@@ -55,13 +53,14 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         is_self = self.request.query_params.get("player", None)
 
         if event_id is not None:
-            queryset = queryset.filter(event=event_id)
+            queryset = queryset.filter(event=event_id).prefetch_related("slots")
         if player_id is not None:
-            queryset = queryset.filter(slots__player_id=player_id)
+            queryset = queryset.filter(slots__player_id=player_id).prefetch_related("slots")
         if seasons:
             queryset = queryset.filter(event__season__in=seasons)
         if is_self == "me":
-            queryset = queryset.filter(user=self.request.user)
+            queryset = queryset.filter(user=self.request.user.id).prefetch_related("slots")
+
         return queryset
 
     # def perform_create(self, serializer):
@@ -90,7 +89,8 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         if seasons:
             queryset = queryset.filter(event__season__in=seasons)
         if is_open:
-            queryset = queryset.filter(player__isnull=True)
+            # queryset = queryset.filter(player__isnull=True)
+            queryset = queryset.filter(status="A")
         return queryset
 
 

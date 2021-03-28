@@ -3,33 +3,33 @@ from datetime import timedelta, datetime, date
 from decimal import Decimal
 
 
-def get_start(event, registration):
+def get_start(event, registration, slot):
     if event.start_type == "TT":
-        return get_starting_time(event, registration)
+        return get_starting_time(event, registration, slot)
     else:
-        return get_starting_hole(event, registration)
+        return get_starting_hole(event, registration, slot)
 
 
-def get_starting_time(event, registration):
+def get_starting_time(event, registration, slot):
     if event.can_choose:
         course_name = registration.course.name
         hours = parse_hours(event.start_time)
         minutes = parse_minutes(event.start_time)
         start_date = datetime.combine(event.start_date, datetime.min.time())
         first_time = start_date + timedelta(hours=hours, minutes=minutes)
-        start_time = first_time + timedelta(minutes=(8 * registration.starting_order))
+        start_time = first_time + timedelta(minutes=(8 * slot.starting_order))
         return "{} {}".format(course_name, start_time.strftime("%-I:%M %p"))
 
     return "Tee times"
 
 
-def get_starting_hole(event, registration):
+def get_starting_hole(event, registration, slot):
     if event.can_choose:
         course_name = registration.course.name
-        if registration.starting_order == 0:
-            return "{} {}A".format(course_name, registration.starting_hole)
+        if slot.starting_order == 0:
+            return "{} {}A".format(course_name, slot.hole.hole_number)
         else:
-            return "{} {}B".format(course_name, registration.starting_hole)
+            return "{} {}B".format(course_name, slot.hole.hole_number)
 
     return "Shotgun"
 

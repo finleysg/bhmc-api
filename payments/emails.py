@@ -114,7 +114,7 @@ def send_event_confirmation(user, event, registration, payment):
         "user_name": registration.signed_up_by,
         "event_name": event.name,
         "event_date": event.start_date,
-        "event_hole_or_start": get_start(event, registration),
+        "event_hole_or_start": get_start(event, registration, slots[0]),
         "required_fees": "${:,.2f}".format(required_fees),
         "optional_fees": "${:,.2f}".format(optional_fees),
         "transaction_fees": "${:,.2f}".format(payment.transaction_fee),

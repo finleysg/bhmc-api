@@ -23,10 +23,16 @@ class RegistrationManager(models.Manager):
 
         for reg in registrations:
             # Make can_choose slots available
-            reg.slots.filter(event__can_choose=True).update(**{"status": "A", "registration": None, "player": None})
+            reg.slots\
+                .filter(event__can_choose=True)\
+                .filter(status="P")\
+                .update(**{"status": "A", "registration": None, "player": None})
 
             # Delete other slots
-            reg.slots.exclude(event__can_choose=True).delete()
+            reg.slots\
+                .exclude(event__can_choose=True)\
+                .filter(status="P")\
+                .delete()
 
             if len(reg.slots.all()) == 0:
                 reg.delete()
@@ -71,7 +77,7 @@ class RegistrationManager(models.Manager):
             reg = self.filter(pk=registration_id).get()
 
             if reg.event.can_choose:
-                reg.slots.filter(status="P").update(**{"status": "A", "player": None})
+                reg.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
             else:
                 reg.slots.filter(status="P").delete()
 

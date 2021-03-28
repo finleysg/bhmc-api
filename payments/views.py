@@ -176,6 +176,6 @@ def save_customer_id(payment_intent):
 
 def clear_available_slots(event, registration):
     if event.can_choose:
-        registration.slots.filter(status="P").update(**{"status": "A", "player": None})
+        registration.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
     else:
         registration.slots.filter(status="P").delete()

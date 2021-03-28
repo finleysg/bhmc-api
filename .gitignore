@@ -27,5 +27,4 @@ bhmc/wsgi.py
 bhmc-api.iml
 
 db-backup.sh
-*.sql
 venv/

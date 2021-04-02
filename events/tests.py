@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from courses.models import Course
+from courses.models import Course, Hole
 from payments.models import Payment
 from payments.utils import get_event_url, get_start, get_required_fees, get_optional_fees, get_players, get_recipients
 from register.models import Registration, Player, RegistrationSlot, RegistrationFee
@@ -97,36 +97,46 @@ class EmailUtilsTests(TestCase):
     def test_get_start_shotgun_a_group(self):
         event = Event.objects.get(pk=6)
         course = Course.objects.get(pk=1)
-        registration = Registration(event=event, course=course, starting_hole=2, starting_order=0)
-        start = get_start(event, registration)
+        hole = Hole.objects.get(pk=2)
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=0)
+        start = get_start(event, registration, slot)
         self.assertEqual("East 2A", start)
 
     def test_get_start_shotgun_b_group(self):
         event = Event.objects.get(pk=6)
         course = Course.objects.get(pk=1)
-        registration = Registration(event=event, course=course, starting_hole=9, starting_order=1)
-        start = get_start(event, registration)
+        hole = Hole.objects.get(pk=9)
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=1)
+        start = get_start(event, registration, slot)
         self.assertEqual("East 9B", start)
 
     def test_get_start_teetimes_first_group(self):
         event = Event.objects.get(pk=3)
         course = Course.objects.get(pk=1)
-        registration = Registration(event=event, course=course, starting_hole=1, starting_order=0)
-        start = get_start(event, registration)
+        hole = Hole.objects.get(pk=1)
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=0)
+        start = get_start(event, registration, slot)
         self.assertEqual("East 3:00 PM", start)
 
     def test_get_start_teetimes_third_group(self):
         event = Event.objects.get(pk=3)
         course = Course.objects.get(pk=1)
-        registration = Registration(event=event, course=course, starting_hole=1, starting_order=2)
-        start = get_start(event, registration)
+        hole = Hole.objects.get(pk=1)
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=2)
+        start = get_start(event, registration, slot)
         self.assertEqual("East 3:16 PM", start)
 
     def test_get_start_teetimes_tenth_group(self):
         event = Event.objects.get(pk=3)
         course = Course.objects.get(pk=1)
-        registration = Registration(event=event, course=course, starting_hole=1, starting_order=9)
-        start = get_start(event, registration)
+        hole = Hole.objects.get(pk=1)
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=9)
+        start = get_start(event, registration, slot)
         self.assertEqual("East 4:12 PM", start)
 
     def test_get_fee_amounts(self):

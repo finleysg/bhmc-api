@@ -32,6 +32,12 @@ def get_payment_details_by_event(event_id):
         return fetch_all_as_dictionary(cursor)
 
 
+def get_skins_by_event(event_id):
+    with connection.cursor() as cursor:
+        cursor.callproc("GetSkinsByEvent", [event_id])
+        return fetch_all_as_dictionary(cursor)
+
+
 @api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
 def event_report(request, event_id):
@@ -65,3 +71,11 @@ def payment_report(request, event_id):
     payments = Payment.objects.all().filter(event=event_id)
     serializer = PaymentReportSerializer(payments, context={"request": request}, many=True)
     return Response(serializer.data)
+
+
+@api_view(("GET",))
+@permission_classes((permissions.IsAuthenticated,))
+def skins_report(request, event_id):
+
+    skins = get_skins_by_event(event_id)
+    return Response(skins, status=200)

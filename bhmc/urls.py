@@ -64,6 +64,7 @@ urlpatterns = [
       url(r"^api/registration/(?P<registration_id>[0-9]+)/move/$", register_views.move_players),
       url(r"^api/reports/event-report/(?P<event_id>[0-9]+)/$", reporting_views.event_report),
       url(r"^api/reports/payment-report/(?P<event_id>[0-9]+)/$", reporting_views.payment_report),
+      url(r"^api/reports/skins-report/(?P<event_id>[0-9]+)/$", reporting_views.skins_report),
       url(r'^auth/', include('djoser.urls')),
       url(r'^auth/', include('djoser.urls.authtoken')),
   ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

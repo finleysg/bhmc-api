@@ -1,5 +1,8 @@
 from django.db import models
-from django.db.models import UniqueConstraint
+from django.db.models import UniqueConstraint, CASCADE
+
+from events.models import Event
+from register.models import Player
 
 
 class DamCup(models.Model):
@@ -15,3 +18,18 @@ class DamCup(models.Model):
 
     def __str__(self):
         return "{} dam cup results".format(self.season)
+
+
+class SeasonLongPoints(models.Model):
+    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE)
+    player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=CASCADE)
+    gross_points = models.DecimalField(verbose_name="Gross Points", max_digits=4, decimal_places=2, default=0.0)
+    net_points = models.DecimalField(verbose_name="Net Points", max_digits=4, decimal_places=2, default=0.0)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["event", "player", ], name="unique_slp")
+        ]
+
+    def __str__(self):
+        return "{}: {} points".format(self.event, self.player)

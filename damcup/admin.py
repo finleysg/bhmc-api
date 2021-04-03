@@ -11,10 +11,10 @@ class DamCupAdmin(admin.ModelAdmin):
     save_on_top = True
 
 
-@admin.register(models.DamCup)
+@admin.register(models.SeasonLongPoints)
 class SeasonLongPointsAdmin(admin.ModelAdmin):
-    fields = ["event", "player", "gross_points", "net_points", ]
-    list_display = ["event", "player", "gross_points", "net_points", ]
+    fields = ["event", "source", "player", "gross_points", "net_points", ]
+    list_display = ["event", "source", "player", "gross_points", "net_points", ]
     date_hierarchy = "event__start_date"
     ordering = ["event", "gross_points", "net_points", ]
     search_fields = ("player__first_name", "player__last_name", )

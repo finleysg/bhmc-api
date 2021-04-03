@@ -15,7 +15,8 @@ DOCUMENT_TYPE_CHOICES = (
     ("M", "Match Play"),
     ("F", "Financial Statements"),
     ("S", "Sign Up"),
-    ("O", "Other")
+    ("O", "Other"),
+    ("Z", "Data"),
 )
 
 

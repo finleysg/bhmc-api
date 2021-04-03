@@ -44,6 +44,7 @@ router.register(r"players", register_views.PlayerViewSet, "players")
 router.register(r"registration", register_views.RegistrationViewSet, "registration")
 router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "registration-fees")
 router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, "registration-slots")
+router.register(r"season-long-points", damcup_views.SeasonLongPointsViewSet, "season-long-points")
 
 urlpatterns = [
       url(r"^admin/", admin.site.urls),
@@ -55,6 +56,7 @@ urlpatterns = [
       url(r"^api/friends/remove/(?P<player_id>[0-9]+)/$", register_views.remove_friend),
       url(r"^api/player-search/$", register_views.player_search),
       url(r"^api/hooks/stripe/$", payment_views.payment_complete),
+      url(r"^api/import-points/$", damcup_views.import_points),
       url(r"^api/remove-card/(?P<payment_method>[-\w]+)/$", payment_views.remove_card),
       url(r"^api/save-card/$", payment_views.player_card),
       url(r"^api/saved-cards/$", payment_views.player_cards),

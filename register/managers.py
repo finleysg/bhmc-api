@@ -47,7 +47,7 @@ class RegistrationManager(models.Manager):
 
         if event.can_choose:
             slot_ids = [slot["id"] for slot in registration_slots]
-            slots = list(event.registrations.select_for_update(nowait=True).filter(pk__in=slot_ids))
+            slots = list(event.registrations.select_for_update().filter(pk__in=slot_ids))
 
             if slots is None or len(slots) == 0:
                 raise MissingSlotsError()

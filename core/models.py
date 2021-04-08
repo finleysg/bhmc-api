@@ -38,6 +38,7 @@ class Ace(models.Model):
     season = models.IntegerField(verbose_name="Season")
     hole_name = models.CharField(verbose_name="Hole", max_length=30)
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=DO_NOTHING)
+    shot_date = models.DateField(verbose_name="Date", null=True)
 
     def __str__(self):
         return "{} {} - {}".format(self.season, self.hole_name, self.player.last_name)

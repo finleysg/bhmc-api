@@ -21,8 +21,8 @@ class LowScoreAdmin(admin.ModelAdmin):
 
 
 class AceAdmin(admin.ModelAdmin):
-    fields = ["season", "hole_name", "player", ]
-    list_display = ["season", "hole_name", "player", ]
+    fields = ["season", "hole_name", "player", "shot_date", ]
+    list_display = ["season", "hole_name", "player", "shot_date", ]
     list_filter = ("season", )
 
 

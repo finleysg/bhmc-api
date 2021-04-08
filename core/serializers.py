@@ -110,4 +110,4 @@ class AceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ace
-        fields = ("id", "season", "hole_name", "player", )
+        fields = ("id", "season", "hole_name", "player", "shot_date", )

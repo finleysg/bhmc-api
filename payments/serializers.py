@@ -73,6 +73,7 @@ class PaymentSerializer(serializers.ModelSerializer):
                 "event_date": event.start_date.strftime("%Y-%m-%d"),
             },
             customer=player.stripe_customer_id,
+            receipt_email=user.email,
             # setup_future_usage="on_session" if player.save_last_card else None,
         )
         payment = Payment.objects.create(event=event, user=user,

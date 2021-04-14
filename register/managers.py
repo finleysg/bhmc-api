@@ -7,6 +7,7 @@ from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Max
+from sentry_sdk import capture_message
 
 from courses.models import Hole
 from payments.models import Payment
@@ -22,6 +23,8 @@ class RegistrationManager(models.Manager):
         count = len(registrations)
 
         for reg in registrations:
+            capture_message("Cleaning up expired registration: " + str(reg), level="info")
+
             # Make can_choose slots available
             reg.slots\
                 .filter(event__can_choose=True)\

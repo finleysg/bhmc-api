@@ -63,9 +63,20 @@ class PhotoViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-# @api_view(("GET",))
-# @permission_classes((permissions.AllowAny,))
-# def random_photo(request, tournament):
-#     photo = Photo.objects.random(tournament)
-#     serializer = PhotoSerializer(photo, context={"request": request})
-#     return Response(serializer.data)
+@permission_classes((permissions.IsAuthenticatedOrReadOnly,))
+class StaticDocumentViewSet(viewsets.ModelViewSet):
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UpdatableStaticDocumentSerializer
+        else:
+            return StaticDocumentSerializer
+
+    def get_queryset(self):
+        queryset = StaticDocument.objects.all()
+        code = self.request.query_params.get('code', None)
+
+        if code is not None:
+            queryset = queryset.filter(code=code)
+
+        return queryset

@@ -1,7 +1,6 @@
 from django.db import models
-from django.db.models import UniqueConstraint, CASCADE, DO_NOTHING
+from django.db.models import UniqueConstraint, CASCADE
 
-from documents.models import Document
 from events.models import Event
 from register.models import Player
 
@@ -22,11 +21,11 @@ class DamCup(models.Model):
 
 
 class SeasonLongPoints(models.Model):
-    source = models.ForeignKey(verbose_name="Source", to=Document, on_delete=DO_NOTHING)
     event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE)
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=CASCADE)
-    gross_points = models.DecimalField(verbose_name="Gross Points", max_digits=4, decimal_places=2, default=0.0)
-    net_points = models.DecimalField(verbose_name="Net Points", max_digits=4, decimal_places=2, default=0.0)
+    gross_points = models.IntegerField(verbose_name="Gross Points", default=0)
+    net_points = models.IntegerField(verbose_name="Net Points", default=0)
+    additional_info = models.CharField(verbose_name="Additional Info", null=True, blank=True, max_length=30)
 
     class Meta:
         constraints = [

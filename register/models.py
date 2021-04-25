@@ -111,3 +111,6 @@ class RegistrationFee(models.Model):
     # blank=True so it's not required when creating a new payment
     payment = models.ForeignKey(verbose_name="Payment", to=Payment, blank=True,
                                 on_delete=CASCADE, related_name="payment_details")
+
+    def __str__(self):
+        return "{} - {}".format(self.registration_slot, self.event_fee)

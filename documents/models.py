@@ -97,3 +97,11 @@ class Photo(models.Model):
 class PhotoTag(models.Model):
     document = models.ForeignKey(verbose_name="Photo", to=Photo, on_delete=CASCADE, related_name="tags")
     tag = models.ForeignKey(verbose_name="Tag", to=Tag, on_delete=CASCADE)
+
+
+class StaticDocument(models.Model):
+    code = models.CharField(verbose_name="Code", max_length=6, unique=True)
+    document = models.ForeignKey(verbose_name="Document", to=Document, on_delete=CASCADE)
+
+    def __str__(self):
+        return "{}: {}".format(self.code, self.document)

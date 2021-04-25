@@ -13,10 +13,10 @@ class DamCupAdmin(admin.ModelAdmin):
 
 @admin.register(models.SeasonLongPoints)
 class SeasonLongPointsAdmin(admin.ModelAdmin):
-    fields = ["event", "source", "player", "gross_points", "net_points", ]
-    list_display = ["event", "source", "player", "gross_points", "net_points", ]
+    fields = ["event", "source", "player", "additional_info", "gross_points", "net_points", ]
+    list_display = ["event", "player", "additional_info", "gross_points", "net_points", ]
     date_hierarchy = "event__start_date"
-    ordering = ["event", "gross_points", "net_points", ]
+    ordering = ["event", "player", ]
     search_fields = ("player__first_name", "player__last_name", )
     list_filter = (CurrentSeasonFilter, )
 

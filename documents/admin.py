@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from .models import Document, Tag, DocumentTag, PhotoTag, Photo
+from .models import Document, Tag, DocumentTag, PhotoTag, Photo, StaticDocument
 
 
 class TagInline(admin.TabularInline):
@@ -52,6 +52,13 @@ class PhotoAdmin(admin.ModelAdmin):
         return mark_safe('<img src="{url}" width="200" />'.format(url=obj.raw_image.url))
 
 
+class StaticDocumentAdmin(admin.ModelAdmin):
+    fields = ["code", "document", ]
+    list_display = ["code", "document", ]
+    save_on_top = True
+
+
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Photo, PhotoAdmin)
+admin.site.register(StaticDocument, StaticDocumentAdmin)

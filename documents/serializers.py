@@ -119,3 +119,19 @@ class PhotoSerializer(serializers.ModelSerializer):
                 pt.save()
 
         return instance
+
+
+class StaticDocumentSerializer(serializers.ModelSerializer):
+
+    document = DocumentSerializer(read_only=True)
+
+    class Meta:
+        model = StaticDocument
+        fields = ("id", "code", "document", )
+
+
+class UpdatableStaticDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StaticDocument
+        fields = ("id", "code", "document", )

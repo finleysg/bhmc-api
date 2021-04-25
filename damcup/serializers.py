@@ -17,4 +17,4 @@ class SeasonLongPointsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SeasonLongPoints
-        fields = ("id", "source", "event", "player", "gross_points", "net_points", )
+        fields = ("id", "additional_info", "event", "player", "gross_points", "net_points", )

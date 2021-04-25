@@ -117,7 +117,8 @@ def payment_complete(request):
         charge = event.data.object
         handle_refund_complete(charge)
     else:
-        capture_message("Stripe callback: " + event.type, level="info")
+        pass
+        # capture_message("Stripe callback: " + event.type, level="info")
 
     return Response(status=204)
 

@@ -19,7 +19,10 @@ logger = logging.getLogger("register-manager")
 class RegistrationManager(models.Manager):
 
     def clean_up_expired(self):
-        registrations = self.filter(expires__lt=tz.now()).filter(slots__status="P")
+        registrations = self\
+            .filter(event__can_choose=True) \
+            .filter(expires__lt=tz.now())\
+            .filter(slots__status="P")
         count = len(registrations)
 
         for reg in registrations:
@@ -27,18 +30,17 @@ class RegistrationManager(models.Manager):
 
             # Make can_choose slots available
             reg.slots\
-                .filter(event__can_choose=True)\
                 .filter(status="P")\
                 .update(**{"status": "A", "registration": None, "player": None})
 
             # Delete other slots
-            reg.slots\
-                .exclude(event__can_choose=True)\
-                .filter(status="P")\
-                .delete()
-
-            if len(reg.slots.all()) == 0:
-                reg.delete()
+            # reg.slots\
+            #     .exclude(event__can_choose=True)\
+            #     .filter(status="P")\
+            #     .delete()
+            #
+            # if len(reg.slots.all()) == 0:
+            #     reg.delete()
 
         return count
 

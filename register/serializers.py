@@ -212,8 +212,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         signed_up_by = user.get_full_name()
 
         # TODO: other validations?
-        validate_registration_is_open(event)
-        validate_event_is_not_full(event)
+        if not is_admin:
+            validate_registration_is_open(event)
+            validate_event_is_not_full(event)
         # course = validate_course_for_event(event, validated_data.pop("course", None))
 
         return Registration.objects.create_and_reserve(user, player, event, course, slots, signed_up_by)

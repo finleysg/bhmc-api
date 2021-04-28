@@ -50,37 +50,45 @@ class PaymentSerializer(serializers.ModelSerializer):
         stripe_amount_due = int(stripe_payment[0] * 100)  # total (with fees) in cents
 
         player = Player.objects.get(email=user.email)
-        if player.stripe_customer_id is None or player.stripe_customer_id.strip() == "":
-            customer = stripe.Customer.create()
-            player.stripe_customer_id = customer.stripe_id
-            player.save()
+
+        if amount_due > 0:
+            if player.stripe_customer_id is None or player.stripe_customer_id.strip() == "":
+                customer = stripe.Customer.create()
+                player.stripe_customer_id = customer.stripe_id
+                player.save()
 
         notification_type = derive_notification_type(event, player, payment_details)
 
-        intent = stripe.PaymentIntent.create(
-            amount=stripe_amount_due,
-            currency="usd",
-            payment_method_types=["card"],
-            description="Online payment for {} ({}) by {}".format(
-                event.name,
-                event.start_date.strftime("%Y-%m-%d"),
-                user.get_full_name()),
-            metadata={
-                "user_name": user.get_full_name(),
-                "user_email": user.email,
-                "event_id": event.id,
-                "event_name": event.name,
-                "event_date": event.start_date.strftime("%Y-%m-%d"),
-            },
-            customer=player.stripe_customer_id,
-            receipt_email=user.email,
-            # setup_future_usage="on_session" if player.save_last_card else None,
-        )
+        if amount_due > 0:
+            intent = stripe.PaymentIntent.create(
+                amount=stripe_amount_due,
+                currency="usd",
+                payment_method_types=["card"],
+                description="Online payment for {} ({}) by {}".format(
+                    event.name,
+                    event.start_date.strftime("%Y-%m-%d"),
+                    user.get_full_name()),
+                metadata={
+                    "user_name": user.get_full_name(),
+                    "user_email": user.email,
+                    "event_id": event.id,
+                    "event_name": event.name,
+                    "event_date": event.start_date.strftime("%Y-%m-%d"),
+                },
+                customer=player.stripe_customer_id,
+                receipt_email=user.email,
+                # setup_future_usage="on_session" if player.save_last_card else None,
+            )
+        else:
+            RegistrationSlot.objects.all().filter(player__isnull=False).update(**{"status": "R"})
+            RegistrationSlot.objects.all().filter(player__isnull=True).delete()
+
         payment = Payment.objects.create(event=event, user=user,
-                                         payment_code=intent.stripe_id,
-                                         payment_key=intent.client_secret,
+                                         payment_code=intent.stripe_id if amount_due > 0 else "no charge",
+                                         payment_key=intent.client_secret if amount_due > 0 else "no charge",
                                          payment_amount=stripe_payment[0],
                                          transaction_fee=stripe_payment[-1],
+                                         confirmed=(amount_due == 0),
                                          notification_type=notification_type)
         payment.save()
 

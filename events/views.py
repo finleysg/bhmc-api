@@ -1,7 +1,7 @@
-from datetime import timedelta, datetime, date
+from datetime import timedelta, date
 
 from django.utils import timezone
-from rest_framework import generics, permissions, viewsets
+from rest_framework import permissions, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404

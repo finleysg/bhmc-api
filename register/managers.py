@@ -138,6 +138,7 @@ class RegistrationSlotManager(models.Manager):
 
     def remove_slots_for_event(self, event):
         self.filter(event=event).delete()
+        pass
 
     def create_slots_for_event(self, event):
         slots = []

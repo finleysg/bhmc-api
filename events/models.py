@@ -152,11 +152,11 @@ class Event(models.Model):
         self.validate_total_groups()
         self.validate_registration_window()
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.can_choose and self.registration_window == "future":
-            self.registrations.remove_slots_for_event(self)
-            self.registrations.create_slots_for_event(self)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     if self.can_choose and self.registration_window == "future":
+    #         self.registrations.remove_slots_for_event(self)
+    #         self.registrations.create_slots_for_event(self)
 
     @staticmethod
     def autocomplete_search_fields():

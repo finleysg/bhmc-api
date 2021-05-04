@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
+from events.models import Event
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee
 from .serializers import (
@@ -126,12 +127,24 @@ def cancel_reserved_slots(request, registration_id):
     return Response(status=204)
 
 
-@api_view(["GET", ])
-@permission_classes((permissions.AllowAny,))
-def cancel_expired(request):
-    Registration.objects.clean_up_expired()
+@api_view(['POST', ])
+@permission_classes((permissions.IsAuthenticated,))
+def create_event_slots(request, event_id):
+    event = Event.objects.get(pk=event_id)
 
-    return Response(status=204)
+    RegistrationSlot.objects.remove_slots_for_event(event)
+    slots = RegistrationSlot.objects.create_slots_for_event(event)
+
+    serializer = RegistrationSlotSerializer(slots, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+# @api_view(["GET", ])
+# @permission_classes((permissions.AllowAny,))
+# def cancel_expired(request):
+#     Registration.objects.clean_up_expired()
+#
+#     return Response(status=204)
 
 
 @api_view(("GET",))

@@ -62,7 +62,7 @@ urlpatterns = [
       url(r"^api/remove-card/(?P<payment_method>[-\w]+)/$", payment_views.remove_card),
       url(r"^api/save-card/$", payment_views.player_card),
       url(r"^api/saved-cards/$", payment_views.player_cards),
-      url(r"^api/registration-expired/$", register_views.cancel_expired),
+      url(r"^api/registration/(?P<event_id>[0-9]+)/create-slots/$", register_views.create_event_slots),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/cancel/$", register_views.cancel_reserved_slots),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/drop/$", register_views.drop_players),
       url(r"^api/registration/(?P<registration_id>[0-9]+)/move/$", register_views.move_players),

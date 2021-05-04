@@ -80,8 +80,14 @@ class PaymentSerializer(serializers.ModelSerializer):
                 # setup_future_usage="on_session" if player.save_last_card else None,
             )
         else:
-            RegistrationSlot.objects.all().filter(player__isnull=False).update(**{"status": "R"})
-            RegistrationSlot.objects.all().filter(player__isnull=True).delete()
+            # No charge events
+            for detail in payment_details:
+                slot = detail["registration_slot"]
+                if slot.player is not None:
+                    slot.status = "R"
+                    slot.save()
+                else:
+                    slot.delete()
 
         payment = Payment.objects.create(event=event, user=user,
                                          payment_code=intent.stripe_id if amount_due > 0 else "no charge",

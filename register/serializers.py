@@ -43,6 +43,17 @@ class PlayerSerializer(serializers.ModelSerializer):
             "profile_picture",
         )
 
+    def create(self, validated_data):
+        ghin = validated_data.pop("ghin", None)
+        if ghin is not None:
+            if ghin.strip() == "":
+                ghin = None
+
+        player = Player(ghin=ghin, **validated_data)
+        player.save()
+
+        return player
+
     def update(self, instance, validated_data):
         user = User.objects.get(email=instance.email)
         ghin = validated_data["ghin"].strip()

@@ -31,9 +31,12 @@ class PlayerViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Player.objects.all()
         email = self.request.query_params.get("email", None)
+        ghin = self.request.query_params.get("ghin", None)
 
         if email is not None:
             queryset = queryset.filter(email=email)
+        if ghin is not None:
+            queryset = queryset.filter(ghin=ghin)
 
         return queryset
 

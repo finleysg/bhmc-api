@@ -9,11 +9,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from sentry_sdk import capture_exception, capture_message
 
-from damcup.models import DamCup, SeasonLongPoints
+from courses.models import Course
+from damcup.models import DamCup, SeasonLongPoints, Scores
 from damcup.serializers import DamCupSerializer, SeasonLongPointsSerializer
 from documents.models import Document
 from events.models import Event
-from register.models import Player
+from register.models import Player, RegistrationSlot
 from reporting.views import fetch_all_as_dictionary
 
 
@@ -97,6 +98,52 @@ def import_points(request):
     return Response(status=204)
 
 
+@api_view(("POST",))
+@permission_classes((permissions.IsAuthenticated,))
+def import_scores(request):
+
+    event_id = request.data.get("event_id", 0)
+    document_id = request.data.get("document_id", 0)
+
+    event = Event.objects.get(pk=event_id)
+    document = Document.objects.get(pk=document_id)
+    courses = list(Course.objects.all())
+    players = Player.objects.all()
+    player_map = {player.player_name(): player for player in players}
+
+    with document.file.open("r") as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        next(reader)  # skip header
+
+        for row in reader:
+            course = [course for course in courses if course.name == row[0]][0]
+            player = player_map.get(row[1])
+
+            if player is None:
+                capture_message("player {} not found when importing scores".format(row[1]), level="error")
+                continue
+
+            save_score(1, row[2], event, course, player)
+            save_score(2, row[3], event, course, player)
+            save_score(3, row[4], event, course, player)
+            save_score(4, row[5], event, course, player)
+            save_score(5, row[6], event, course, player)
+            save_score(6, row[7], event, course, player)
+            save_score(7, row[8], event, course, player)
+            save_score(8, row[9], event, course, player)
+            save_score(9, row[10], event, course, player)
+
+    return Response(status=204)
+
+
 def round_half_up(n, decimals=0):
     multiplier = 10 ** decimals
     return math.floor(n*multiplier + Decimal(0.5)) / multiplier
+
+
+def save_score(hole_number, cell, event, course, player):
+    if cell.isnumeric():
+        hole = [hole for hole in course.holes.all() if hole.hole_number == hole_number][0]
+        score = int(cell)
+        hole_score = Scores(event=event, player=player, hole=hole, score=score)
+        hole_score.save()

@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import UniqueConstraint, CASCADE
 
+from courses.models import Hole
 from events.models import Event
 from register.models import Player
 
@@ -34,3 +35,18 @@ class SeasonLongPoints(models.Model):
 
     def __str__(self):
         return "{}: {} points".format(self.event, self.player)
+
+
+class Scores(models.Model):
+    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE)
+    player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=CASCADE)
+    hole = models.ForeignKey(verbose_name="Hole", to=Hole, on_delete=CASCADE)
+    score = models.IntegerField(verbose_name="Score")
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["event", "player", "hole", ], name="unique_score")
+        ]
+
+    def __str__(self):
+        return "{}: {} {} {}".format(self.event, self.player, self.hole, self.score)

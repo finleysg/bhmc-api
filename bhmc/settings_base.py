@@ -29,7 +29,6 @@ INSTALLED_APPS = (
     "messaging",
     "payments",
     "policies",
-    "points",
     "register",
     "reporting",
 )

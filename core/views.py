@@ -21,6 +21,7 @@ class MajorChampionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(season=season)
         if player_id is not None:
             queryset = queryset.filter(player=player_id)
+        queryset = queryset.order_by("season", "event_name", "flight")
 
         return queryset
 

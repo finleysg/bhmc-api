@@ -59,6 +59,7 @@ urlpatterns = [
       url(r"^api/player-search/$", register_views.player_search),
       url(r"^api/hooks/stripe/$", payment_views.payment_complete),
       url(r"^api/import-points/$", damcup_views.import_points),
+      url(r"^api/import-scores/$", damcup_views.import_scores),
       url(r"^api/remove-card/(?P<payment_method>[-\w]+)/$", payment_views.remove_card),
       url(r"^api/save-card/$", payment_views.player_card),
       url(r"^api/saved-cards/$", payment_views.player_cards),

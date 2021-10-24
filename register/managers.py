@@ -76,6 +76,13 @@ class RegistrationManager(models.Manager):
 
         return reg
 
+    def payment_processing(self, registration_id):
+        try:
+            reg = self.filter(pk=registration_id).get()
+            reg.slots.filter(status="P").update(**{"status": "PP"})
+        except ObjectDoesNotExist:
+            pass
+
     @transaction.atomic()
     def cancel_registration(self, registration_id, payment_id, destroy):
         try:

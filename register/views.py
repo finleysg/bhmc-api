@@ -119,6 +119,18 @@ class RegistrationFeeViewsSet(viewsets.ModelViewSet):
 
 @api_view(["PUT", ])
 @permission_classes((permissions.IsAuthenticated,))
+def payment_processing(request, registration_id):
+
+    if registration_id == 0:
+        raise ValidationError("Missing registration_id")
+
+    Registration.objects.payment_processing(registration_id)
+
+    return Response(status=204)
+
+
+@api_view(["PUT", ])
+@permission_classes((permissions.IsAuthenticated,))
 def cancel_reserved_slots(request, registration_id):
 
     if registration_id == 0:

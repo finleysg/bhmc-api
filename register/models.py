@@ -14,6 +14,7 @@ from .managers import RegistrationSlotManager, RegistrationManager
 STATUS_CHOICES = (
     ("A", "Available"),
     ("P", "Pending"),
+    ("PP", "Payment Processing"),
     ("R", "Reserved"),
     ("U", "Unavailable")
 )
@@ -88,7 +89,7 @@ class RegistrationSlot(models.Model):
     player = models.ForeignKey(verbose_name="Player", to=Player, blank=True, null=True, on_delete=DO_NOTHING)
     starting_order = models.IntegerField(verbose_name="Starting order", default=0)
     slot = models.IntegerField(verbose_name="Slot number", default=0)
-    status = models.CharField(verbose_name="Status", choices=STATUS_CHOICES, max_length=1, default="A")
+    status = models.CharField(verbose_name="Status", choices=STATUS_CHOICES, max_length=2, default="A")
 
     class Meta:
         ordering = ("hole", "slot")

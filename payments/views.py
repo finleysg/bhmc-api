@@ -157,12 +157,16 @@ def handle_payment_complete(payment_intent):
         capture_exception(e)
 
 
-# TODO: send a notification (treasurer)
 def handle_refund_complete(charge):
     for refund in charge.refunds.data:
-        local_refund = Refund.objects.get(refund_code=refund.stripe_id)
-        local_refund.confirmed = True
-        local_refund.save()
+        try:
+            local_refund = Refund.objects.get(refund_code=refund.stripe_id)
+            local_refund.confirmed = True
+            local_refund.save()
+        except Exception:
+            # We get this hook for refunds created in the Stripe UI
+            # so we will have not record to tie together
+            pass
 
 
 def save_customer_id(payment_intent):

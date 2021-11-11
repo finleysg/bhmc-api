@@ -58,6 +58,7 @@ urlpatterns = [
       url(r"^api/friends/remove/(?P<player_id>[0-9]+)/$", register_views.remove_friend),
       url(r"^api/player-search/$", register_views.player_search),
       url(r"^api/hooks/stripe/$", payment_views.payment_complete),
+      url(r"^api/import-handicaps/$", register_views.import_handicaps),
       url(r"^api/import-points/$", damcup_views.import_points),
       url(r"^api/import-scores/$", damcup_views.import_scores),
       url(r"^api/remove-card/(?P<payment_method>[-\w]+)/$", payment_views.remove_card),

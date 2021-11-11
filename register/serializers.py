@@ -11,7 +11,7 @@ from .exceptions import (
     EventRegistrationNotOpenError,
     CourseRequiredError, PlayerConflictError,
 )
-from .models import Player, Registration, RegistrationSlot, RegistrationFee
+from .models import Player, Registration, RegistrationSlot, RegistrationFee, PlayerHandicap
 
 
 class SimplePlayerSerializer(serializers.ModelSerializer):
@@ -235,6 +235,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class PlayerHandicapSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PlayerHandicap
+        fields = (
+            "season",
+            "player",
+            "handicap",
+        )
 
 
 def validate_event_is_not_full(event):

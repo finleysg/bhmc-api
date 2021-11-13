@@ -19,9 +19,8 @@ logger = logging.getLogger("register-manager")
 class RegistrationManager(models.Manager):
 
     def clean_up_expired(self):
-        registrations = self\
-            .filter(event__can_choose=True) \
-            .filter(expires__lt=tz.now())\
+        registrations = self \
+            .filter(expires__lt=tz.now()) \
             .filter(slots__status="P")
         count = len(registrations)
 
@@ -30,17 +29,18 @@ class RegistrationManager(models.Manager):
 
             # Make can_choose slots available
             reg.slots\
-                .filter(status="P")\
+                .filter(status="P") \
+                .filter(event__can_choose=True) \
                 .update(**{"status": "A", "registration": None, "player": None})
 
             # Delete other slots
-            # reg.slots\
-            #     .exclude(event__can_choose=True)\
-            #     .filter(status="P")\
-            #     .delete()
-            #
-            # if len(reg.slots.all()) == 0:
-            #     reg.delete()
+            reg.slots \
+                .filter(status="P") \
+                .exclude(event__can_choose=True) \
+                .delete()
+
+            if len(reg.slots.all()) == 0:
+                reg.delete()
 
         return count
 
@@ -79,7 +79,7 @@ class RegistrationManager(models.Manager):
     def payment_processing(self, registration_id):
         try:
             reg = self.filter(pk=registration_id).get()
-            reg.slots.filter(status="P").update(**{"status": "PP"})
+            reg.slots.filter(status="P").update(**{"status": "X"})
         except ObjectDoesNotExist:
             pass
 

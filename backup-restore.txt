@@ -1,0 +1,25 @@
+https://www.sqlshack.com/how-to-backup-and-restore-mysql-databases-using-the-mysqldump-command/
+
+Backup with mysqldump:
+mysqldump -u mpgagolf -h mpgagolf.mysql.pythonanywhere-services.com 'mpgagolf$bhmc' > ${FILE}
+
+Restore:
+Restoring a MySQL database using mysqldump is simple.
+To restore the database, you must create an empty database.
+First, let us drop and recreate the sakila database by executing the following command.
+
+mysql> drop database sakila;
+Query OK, 24 rows affected (0.35 sec)
+mysql> create database sakila;
+Query OK, 1 row affected (0.01 sec)
+MySQL>
+When you restore the database, instead of using mysqldump, you must use mysql;
+otherwise, the mysqldump will not generate the schema and the data.
+Execute the following command to restore the sakila database:
+
+mysql -u root -p sakila < C:\MySQLBackup\sakila_20200424.sql
+Once command executes successfully, execute the following command to verify that all objects have been created on the sakila database.
+
+mysql> use sakila;
+Database changed
+mysql> show tables;

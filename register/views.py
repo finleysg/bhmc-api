@@ -1,3 +1,6 @@
+import csv
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
@@ -6,16 +9,18 @@ from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
+from sentry_sdk import capture_message
 
+from documents.models import Document
 from events.models import Event
 from reporting.views import fetch_all_as_dictionary
-from .models import Registration, RegistrationSlot, Player, RegistrationFee
+from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 from .serializers import (
     RegistrationSlotSerializer,
     RegistrationSerializer,
     PlayerSerializer,
     SimplePlayerSerializer,
-    UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer,
+    UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer, PlayerHandicapSerializer,
 )
 from .utils import get_start
 
@@ -114,6 +119,19 @@ class RegistrationFeeViewsSet(viewsets.ModelViewSet):
             queryset = queryset.filter(registration_slot__registration=registration_id)
         if confirmed == "true":
             queryset = queryset.filter(payment__confirmed=1)
+        return queryset
+
+
+class PlayerHandicapViewsSet(viewsets.ModelViewSet):
+
+    serializer_class = PlayerHandicapSerializer
+
+    def get_queryset(self):
+        queryset = PlayerHandicap.objects.all()
+        season = self.request.query_params.get("season", None)
+
+        if season is not None:
+            queryset = queryset.filter(season=season)
         return queryset
 
 
@@ -306,3 +324,39 @@ def drop_players(request, registration_id):
             source.delete()
 
     return Response(status=204)
+
+
+@api_view(("POST",))
+@permission_classes((permissions.AllowAny,))
+def import_handicaps(request):
+
+    season = request.data.get("season", 0)
+    document_id = request.data.get("document_id", 0)
+
+    document = Document.objects.get(pk=document_id)
+    players = Player.objects.all()
+    player_map = {player.ghin: player for player in players}
+
+    with document.file.open("r") as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        next(reader)  # skip header
+
+        for row in reader:
+            player = player_map.get(row[2])
+
+            if player is None:
+                # capture_message("player {} not found when importing scores".format(row[2]), level="error")
+                continue
+
+            player_hcp = PlayerHandicap(season=season, player=player, handicap=get_index(row[1]))
+            player_hcp.save()
+
+    return Response(status=204)
+
+
+def get_index(cell):
+    idx = str(cell)
+    if idx.startswith("+"):
+        return Decimal(idx[1:]) * -1
+    else:
+        return Decimal(idx)

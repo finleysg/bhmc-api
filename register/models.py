@@ -104,6 +104,23 @@ class RegistrationSlot(models.Model):
         return "{} - {} ({})".format(self.player, self.status, self.registration)
 
 
+class PlayerHandicap(models.Model):
+    player = models.ForeignKey(verbose_name="Player", to=Player, blank=True, null=True, on_delete=CASCADE)
+    season = models.IntegerField(verbose_name="Season")
+    handicap = models.DecimalField(verbose_name="Year End Index", max_digits=4, decimal_places=1)
+
+    class Meta:
+        ordering = ("season", "handicap")
+        constraints = [
+            UniqueConstraint(fields=["player", "season"], name="unique_player_season_index")
+        ]
+
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return "{} - {} ({})".format(self.season, self.player, self.handicap)
+
+
 class RegistrationFee(models.Model):
     event_fee = models.ForeignKey(verbose_name="Event Fee", to=EventFee, on_delete=CASCADE)
     registration_slot = models.ForeignKey(verbose_name="Registration Slot", to=RegistrationSlot, on_delete=CASCADE,

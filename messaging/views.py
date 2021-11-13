@@ -33,7 +33,7 @@ def contact_message(request):
         "BHMC: Contact Us Message from " + sender,
         message_text,
         sender_email,
-        ["contact@bhmc.org"]
+        ["president@bhmc.org", "vice-president@bhmc.org", "secretary@bhmc.org", "treasurer@bhmc.org", ]
     )
 
     return Response(data="message sent", status=201)

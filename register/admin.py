@@ -6,7 +6,7 @@ from django.contrib.admin import SimpleListFilter
 from django.conf import settings
 
 from events.models import Event
-from .models import Registration, RegistrationSlot, Player, RegistrationFee
+from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 
 logger = logging.getLogger("register")
 
@@ -48,11 +48,21 @@ class RegistrationSlotInline(admin.TabularInline):
     fields = ["player", "hole", "starting_order", "slot", "status", ]
 
 
+class PlayerHandicapInline(admin.TabularInline):
+    model = PlayerHandicap
+    can_delete = True
+    extra = 0
+    show_change_link = True
+    verbose_name_plural = "Year End Handicap Index"
+    fields = ["season", "handicap", ]
+
+
 class PlayerAdmin(admin.ModelAdmin):
     model = Player
     can_delete = True
     save_on_top = True
     fields = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", "profile_picture", "stripe_customer_id", ]
+    inlines = [PlayerHandicapInline, ]
     list_display = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", ]
     list_display_links = ("email", )
     ordering = ["last_name", "first_name", ]

@@ -79,7 +79,26 @@ class RegistrationManager(models.Manager):
     def payment_processing(self, registration_id):
         try:
             reg = self.filter(pk=registration_id).get()
-            reg.slots.filter(status="P").update(**{"status": "X"})
+            reg.slots.filter(status="P").filter(player__isnull=False).update(**{"status": "X"})
+            # free up or remove slots without players
+            if reg.event.can_choose:
+                reg.slots\
+                    .filter(status="P")\
+                    .filter(player__isnull=True)\
+                    .update(**{"status": "A", "player": None, "registration": None})
+            else:
+                reg.slots\
+                    .filter(status="P")\
+                    .filter(player__isnull=True)\
+                    .delete()
+        except ObjectDoesNotExist:
+            pass
+
+    # Something went wrong on the client side, so we revert the status to Pending
+    def undo_payment_processing(self, registration_id):
+        try:
+            reg = self.filter(pk=registration_id).get()
+            reg.slots.filter(status="X").update(**{"status": "P"})
         except ObjectDoesNotExist:
             pass
 

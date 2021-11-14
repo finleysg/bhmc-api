@@ -2,6 +2,7 @@ import logging
 import stripe
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import viewsets, permissions
@@ -12,7 +13,7 @@ from sentry_sdk import capture_message, capture_exception
 from payments.emails import send_notification
 from payments.models import Payment, Refund
 from payments.serializers import PaymentSerializer, RefundSerializer
-from register.models import Player
+from register.models import Player, Registration
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -58,6 +59,33 @@ class RefundViewSet(viewsets.ModelViewSet):
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
         return queryset
+
+
+@api_view(("PUT",))
+@permission_classes((permissions.IsAuthenticated,))
+def confirm_payment(request, payment_id):
+    registration_id = request.data.get("registrationId", 0)
+    payment_method_id = request.data.get("paymentMethodId", "")
+    save_card = request.data.get("saveCard", False)
+
+    try:
+        payment = Payment.objects.get(pk=payment_id)
+
+        # update status on the slots to processing
+        Registration.objects.payment_processing(registration_id)
+
+        if save_card:
+            intent = stripe.PaymentIntent\
+                .confirm(payment.payment_code, payment_method=payment_method_id, setup_future_usage="on_session")
+        else:
+            intent = stripe.PaymentIntent.confirm(payment.payment_code, payment_method=payment_method_id)
+
+        return Response(intent.status, status=200)
+
+    except Exception as e:
+        capture_exception(e)
+        Registration.objects.undo_payment_processing(registration_id)
+        return Response(str(e), status=500)
 
 
 @api_view(("GET",))
@@ -148,7 +176,7 @@ def handle_payment_complete(payment_intent):
 
     # important, but don"t cause the payment intent to fail
     try:
-        clear_available_slots(payment.event, slots[0].registration)
+        # clear_available_slots(payment.event, slots[0].registration)
         email = payment_intent.metadata.get("user_email")
         player = Player.objects.get(email=email)
         send_notification(payment, slots, player)
@@ -163,7 +191,7 @@ def handle_refund_complete(charge):
             local_refund = Refund.objects.get(refund_code=refund.stripe_id)
             local_refund.confirmed = True
             local_refund.save()
-        except Exception:
+        except ObjectDoesNotExist:
             # We get this hook for refunds created in the Stripe UI
             # so we will have not record to tie together
             pass
@@ -179,8 +207,8 @@ def save_customer_id(payment_intent):
     return player
 
 
-def clear_available_slots(event, registration):
-    if event.can_choose:
-        registration.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
-    else:
-        registration.slots.filter(status="P").delete()
+# def clear_available_slots(event, registration):
+#     if event.can_choose:
+#         registration.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
+#     else:
+#         registration.slots.filter(status="P").delete()

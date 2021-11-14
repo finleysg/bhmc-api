@@ -137,18 +137,6 @@ class PlayerHandicapViewsSet(viewsets.ModelViewSet):
 
 @api_view(["PUT", ])
 @permission_classes((permissions.IsAuthenticated,))
-def payment_processing(request, registration_id):
-
-    if registration_id == 0:
-        raise ValidationError("Missing registration_id")
-
-    Registration.objects.payment_processing(registration_id)
-
-    return Response(status=204)
-
-
-@api_view(["PUT", ])
-@permission_classes((permissions.IsAuthenticated,))
 def cancel_reserved_slots(request, registration_id):
 
     if registration_id == 0:
@@ -172,12 +160,12 @@ def create_event_slots(request, event_id):
     return Response(serializer.data)
 
 
-# @api_view(["GET", ])
-# @permission_classes((permissions.AllowAny,))
-# def cancel_expired(request):
-#     Registration.objects.clean_up_expired()
-#
-#     return Response(status=204)
+@api_view(["PUT", ])
+@permission_classes((permissions.IsAdminUser,))
+def cancel_expired(request):
+    cleaned = Registration.objects.clean_up_expired()
+
+    return Response("Cleaned up " + str(cleaned) + " registration slots", status=204)
 
 
 @api_view(("GET",))

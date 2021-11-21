@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, api_view
+from rest_framework.response import Response
 
 from .serializers import *
 
@@ -80,3 +81,13 @@ class StaticDocumentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(code=code)
 
         return queryset
+
+
+@api_view(("GET",))
+@permission_classes((permissions.AllowAny,))
+def random_photos(request):
+    tag = request.query_params.get("tag", None)
+    take = request.query_params.get("take", "1")
+    photo = Photo.objects.random(tag, int(take))
+    serializer = PhotoSerializer(photo, context={"request": request}, many=True)
+    return Response(serializer.data)

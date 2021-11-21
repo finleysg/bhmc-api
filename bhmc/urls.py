@@ -46,6 +46,7 @@ router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "r
 router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, "registration-slots")
 router.register(r"season-long-points", damcup_views.SeasonLongPointsViewSet, "season-long-points")
 router.register(r"static-documents", document_views.StaticDocumentViewSet, "static-documents")
+router.register(r"tags", document_views.TagViewSet, "tags")
 
 urlpatterns = [
       url(r"^admin/", admin.site.urls),
@@ -53,6 +54,7 @@ urlpatterns = [
       url(r"^api/contact/$", messaging_views.contact_message),
       url(r"^api/clean-up/$", register_views.cancel_expired),
       url(r"^api/copy-event/(?P<event_id>[0-9]+)/$", event_views.copy_event),
+      url(r"^api/random-photos/$", document_views.random_photos),
       url(r"^api/points/(?P<season>[0-9]+)/(?P<category>[a-z]+)/(?P<top_n>[0-9]+)/$", damcup_views.get_top_points),
       url(r"^api/friends/(?P<player_id>[0-9]+)/$", register_views.friends),
       url(r"^api/friends/add/(?P<player_id>[0-9]+)/$", register_views.add_friend),

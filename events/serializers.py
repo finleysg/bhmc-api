@@ -31,4 +31,4 @@ class EventSerializer(serializers.ModelSerializer):
                   "can_choose", "registration_window", "external_url", "season",
                   "notes", "event_type", "skins_type", "season_points", "portal_url",
                   "start_date", "start_time", "registration_type", "signup_start", "signup_end", "payments_end",
-                  "registration_maximum", "courses", "fees", )
+                  "registration_maximum", "courses", "fees", "default_tag", )

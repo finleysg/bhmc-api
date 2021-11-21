@@ -47,7 +47,7 @@ class EventAdmin(admin.ModelAdmin):
             "fields": ("notes",),
         }),
         ("Other", {
-            "fields": ("external_url", "portal_url",)
+            "fields": ("external_url", "portal_url", "default_tag", )
         }),
     )
     inlines = [EventFeesInline, ]

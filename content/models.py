@@ -11,3 +11,14 @@ class PageContent(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Tag(models.Model):
+
+    class Meta:
+        ordering = ["name", ]
+
+    name = models.CharField(verbose_name="Tag", max_length=40)
+
+    def __str__(self):
+        return self.name

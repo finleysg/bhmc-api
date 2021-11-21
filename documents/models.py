@@ -4,6 +4,7 @@ from imagekit import ImageSpec, register
 from imagekit.models import ImageSpecField
 from pilkit.processors import ResizeToFit
 
+from content.models import Tag
 from documents.managers import PhotoManager, DocumentManager
 from events.models import Event
 
@@ -44,17 +45,6 @@ class WebSpec(ImageSpec):
 
 register.generator("documents:photo:mobile_image", MobileSpec)
 register.generator("documents:photo:web_image", WebSpec)
-
-
-class Tag(models.Model):
-
-    class Meta:
-        ordering = ["name", ]
-
-    name = models.CharField(verbose_name="Tag", max_length=40)
-
-    def __str__(self):
-        return self.name
 
 
 class Document(models.Model):

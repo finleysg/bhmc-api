@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db import models
 from pagedown.widgets import AdminPagedownWidget
 
-from .models import PageContent
+from .models import PageContent, Tag
 
 
 class PageContentAdmin(admin.ModelAdmin):
@@ -15,4 +15,10 @@ class PageContentAdmin(admin.ModelAdmin):
     }
 
 
+class TagAdmin(admin.ModelAdmin):
+    fields = ["name", ]
+    list_display = ["name", ]
+
+
 admin.site.register(PageContent, PageContentAdmin)
+admin.site.register(Tag, TagAdmin)

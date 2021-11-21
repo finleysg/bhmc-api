@@ -6,20 +6,6 @@ from .serializers import *
 
 
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
-class TagViewSet(viewsets.ModelViewSet):
-    serializer_class = TagSerializer
-
-    def get_queryset(self):
-        queryset = Tag.objects.all()
-        pattern = self.request.query_params.get('pattern', None)
-
-        if pattern is not None:
-            queryset = queryset.filter(name__icontains=pattern)
-
-        return queryset
-
-
-@permission_classes((permissions.IsAuthenticatedOrReadOnly,))
 class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
 

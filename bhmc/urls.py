@@ -46,7 +46,7 @@ router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "r
 router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, "registration-slots")
 router.register(r"season-long-points", damcup_views.SeasonLongPointsViewSet, "season-long-points")
 router.register(r"static-documents", document_views.StaticDocumentViewSet, "static-documents")
-router.register(r"tags", document_views.TagViewSet, "tags")
+router.register(r"tags", content_views.TagViewSet, "tags")
 
 urlpatterns = [
       url(r"^admin/", admin.site.urls),

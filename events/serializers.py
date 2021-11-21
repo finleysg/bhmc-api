@@ -1,3 +1,4 @@
+from content.serializers import TagSerializer
 from courses.serializers import CourseSerializer
 from .models import Event, EventFee, FeeType
 from rest_framework import serializers
@@ -23,6 +24,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     courses = CourseSerializer(many=True, read_only=True)
     fees = EventFeeSerializer(many=True, read_only=True)
+    default_tag = TagSerializer()
 
     class Meta:
         model = Event

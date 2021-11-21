@@ -3,10 +3,10 @@ from django.utils.safestring import mark_safe
 from .models import Document, Tag, DocumentTag, PhotoTag, Photo, StaticDocument
 
 
-class TagInline(admin.TabularInline):
-    model = DocumentTag
-    can_delete = True
-    extra = 0
+# class TagInline(admin.TabularInline):
+#     model = DocumentTag
+#     can_delete = True
+#     extra = 0
 
 
 class PhotoTagInline(admin.TabularInline):
@@ -18,7 +18,7 @@ class PhotoTagInline(admin.TabularInline):
 class DocumentAdmin(admin.ModelAdmin):
     fields = ["year", "event", "title", "document_type", "file", "created_by", "last_update", ]
     readonly_fields = ("created_by", "last_update",)
-    inlines = [TagInline, ]
+    # inlines = [TagInline, ]
     exclude = ("tags",)
     list_display = ["year", "title", "event", "document_type", "last_update", ]
     list_filter = ("year", "document_type", )
@@ -28,11 +28,6 @@ class DocumentAdmin(admin.ModelAdmin):
         if not change:
             obj.created_by = request.user
         obj.save()
-
-
-class TagAdmin(admin.ModelAdmin):
-    fields = ["name", ]
-    list_display = ["name", ]
 
 
 class PhotoAdmin(admin.ModelAdmin):
@@ -59,6 +54,5 @@ class StaticDocumentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Document, DocumentAdmin)
-admin.site.register(Tag, TagAdmin)
 admin.site.register(Photo, PhotoAdmin)
 admin.site.register(StaticDocument, StaticDocumentAdmin)

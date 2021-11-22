@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import DO_NOTHING, CASCADE
 from imagekit import ImageSpec, register
 from imagekit.models import ImageSpecField
-from pilkit.processors import ResizeToFit
+from pilkit.processors import ResizeToFit, Transpose
 
 from content.models import Tag
 from documents.managers import PhotoManager, DocumentManager
@@ -34,13 +34,13 @@ def photo_directory_path(instance, filename):
 class MobileSpec(ImageSpec):
     format = 'JPEG'
     options = {'quality': 80}
-    processors = [ResizeToFit(600, 600)]
+    processors = [Transpose(Transpose.AUTO), ResizeToFit(900, 900)]
 
 
 class WebSpec(ImageSpec):
     format = 'JPEG'
     options = {'quality': 90}
-    processors = [ResizeToFit(1200, 1200, upscale=False)]
+    processors = [Transpose(Transpose.AUTO), ResizeToFit(1600, 1600, upscale=False)]
 
 
 register.generator("documents:photo:mobile_image", MobileSpec)

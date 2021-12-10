@@ -1,8 +1,13 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, pagination
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 
 from .serializers import *
+
+
+class GalleryPagination(pagination.PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "size"
 
 
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
@@ -31,6 +36,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
 class PhotoViewSet(viewsets.ModelViewSet):
     serializer_class = PhotoSerializer
+    pagination_class = GalleryPagination
 
     def get_queryset(self):
         queryset = Photo.objects.all()
@@ -38,15 +44,19 @@ class PhotoViewSet(viewsets.ModelViewSet):
         player_id = self.request.query_params.get('player', None)
         tags = self.request.query_params.get('tags', None)
 
-        if year is not None:
-            queryset = queryset.filter(year=year)
         if player_id is not None:
             queryset = queryset.filter(player_id=player_id)
+        else:
+            queryset = queryset.exclude(year=0)
+
+        if year is not None:
+            queryset = queryset.filter(year=year)
         if tags is not None and tags != "":
             tag_set = tags.split(",")
             for tag in tag_set:
                 queryset = queryset.filter(tags__tag__name__icontains=tag)
 
+        queryset = queryset.order_by("-last_update")
         return queryset
 
 

@@ -45,6 +45,7 @@ router.register(r"registration", register_views.RegistrationViewSet, "registrati
 router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "registration-fees")
 router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, "registration-slots")
 router.register(r"season-long-points", damcup_views.SeasonLongPointsViewSet, "season-long-points")
+router.register(r"settings", core_views.SeasonSettingsViewSet, "settings")
 router.register(r"static-documents", document_views.StaticDocumentViewSet, "static-documents")
 router.register(r"tags", content_views.TagViewSet, "tags")
 

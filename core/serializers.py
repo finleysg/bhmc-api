@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from register.models import Player
 from register.serializers import SimplePlayerSerializer
-from .models import BoardMember, MajorChampion, LowScore, Ace
+from .models import BoardMember, MajorChampion, LowScore, Ace, SeasonSettings
 from rest_framework import serializers
 
 
@@ -111,3 +111,10 @@ class AceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ace
         fields = ("id", "season", "hole_name", "player", "shot_date", )
+
+
+class SeasonSettingsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SeasonSettings
+        fields = ("id", "season", "member_event_id", "match_play_event_id", "is_active", )

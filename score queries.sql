@@ -21,7 +21,7 @@ select * from `bhmc-apr19`.register_playerhandicap where season = 2021 order by 
 	LEFT JOIN `bhmc-apr19`.register_registrationslot r3 ON f.to_player_id = r3.player_id AND r3.event_id = 264
 	WHERE f.from_player_id = 201;
 	
--- delete from `bhmc-apr19`.damcup_scores s
+-- select count(*) / 9 from `bhmc-apr19`.damcup_scores s
 
 select 
 	 c.name
@@ -39,7 +39,7 @@ join `bhmc-apr19`.courses_course c on h.course_id = c.id
 join `bhmc-apr19`.register_player p on s.player_id = p.id 
 join `bhmc-apr19`.register_playerhandicap i on i.player_id = p.id
 where p.tee = 'Club'
-and i.handicap between 18 and 24
+and i.handicap between 14 and 22
 group by c.name, h.hole_number, h.par, p.tee
 
 select 

@@ -56,7 +56,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
             for tag in tag_set:
                 queryset = queryset.filter(tags__tag__name__icontains=tag)
 
-        queryset = queryset.order_by("-last_update")
+        queryset = queryset.order_by("-year", "caption")
         return queryset
 
 

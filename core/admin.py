@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.models import BoardMember, MajorChampion, LowScore, Ace
+from core.models import BoardMember, MajorChampion, LowScore, Ace, SeasonSettings
 
 
 class BoardMemberAdmin(admin.ModelAdmin):
@@ -26,7 +26,14 @@ class AceAdmin(admin.ModelAdmin):
     list_filter = ("season", )
 
 
+class SeasonSettingsAdmin(admin.ModelAdmin):
+    fields = ["season", "member_event_id", "match_play_event_id", "is_active", ]
+    list_display = ["season", "member_event_id", "match_play_event_id", "is_active", ]
+    list_filter = ("season", )
+
+
 admin.site.register(BoardMember, BoardMemberAdmin)
 admin.site.register(MajorChampion, MajorChampionAdmin)
 admin.site.register(LowScore, LowScoreAdmin)
 admin.site.register(Ace, AceAdmin)
+admin.site.register(SeasonSettings, SeasonSettingsAdmin)

@@ -186,6 +186,7 @@ class EventFee(models.Model):
         constraints = [
             UniqueConstraint(fields=["event", "fee_type"], name="unique_event_feetype")
         ]
+        ordering = ["display_order", ]
 
     objects = EventFeeManager()
 

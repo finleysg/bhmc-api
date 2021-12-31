@@ -10,6 +10,7 @@ class EventManager(models.Manager):
         copy = self.get(pk=original.id)
         copy.pk = None
         copy.start_date = start_date
+        copy.season = start_date.year
 
         # relative dates/times
         if original.registration_type != "N":

@@ -145,6 +145,7 @@ class RegistrationSlotAdmin(admin.ModelAdmin):
     date_hierarchy = "event__start_date"
     search_fields = ("player__first_name", "player__last_name", "player__email")
     inlines = [RegistrationFeeInline, ]
+    ordering = ["id", ]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(RegistrationSlotAdmin, self).get_form(request, obj, **kwargs)

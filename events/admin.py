@@ -33,7 +33,7 @@ class EventAdmin(admin.ModelAdmin):
                        ("rounds", "season_points", "skins_type", ))
         }),
         ("Event Date", {
-            "fields": ("start_date", "start_time",)
+            "fields": ("start_date", "start_time", "tee_time_splits", )
         }),
         ("Registration Settings", {
             "fields": ("registration_type", ("signup_start", "signup_end", "payments_end",),

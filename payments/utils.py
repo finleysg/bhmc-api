@@ -6,8 +6,10 @@ from decimal import Decimal
 def get_start(event, registration, slot):
     if event.start_type == "TT":
         return get_starting_time(event, registration, slot)
-    else:
+    elif event.start_type == "SG":
         return get_starting_hole(event, registration, slot)
+    else:
+        return "N/A"
 
 
 def get_starting_time(event, registration, slot):

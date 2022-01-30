@@ -49,7 +49,7 @@ class SeasonLongPointsViewSet(viewsets.ModelViewSet):
 
 
 @api_view(("GET",))
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.AllowAny,))
 def get_top_points(request, season, category, top_n):
 
     if category == "gross":

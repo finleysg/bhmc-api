@@ -92,6 +92,8 @@ DJOSER = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 ROOT_URLCONF = "bhmc.urls"
 
 CORS_ORIGIN_ALLOW_ALL = True

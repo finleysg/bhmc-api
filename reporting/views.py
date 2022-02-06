@@ -4,6 +4,7 @@ from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
+from core.models import SeasonSettings
 from events.models import EventFee
 from payments.models import Payment
 from payments.serializers import PaymentReportSerializer
@@ -35,6 +36,12 @@ def get_payment_details_by_event(event_id):
 def get_skins_by_event(event_id):
     with connection.cursor() as cursor:
         cursor.callproc("GetSkinsByEvent", [event_id])
+        return fetch_all_as_dictionary(cursor)
+
+
+def get_membership_data(season_event_id, previous_season_event_id):
+    with connection.cursor() as cursor:
+        cursor.callproc("MembershipReport", [season_event_id, previous_season_event_id])
         return fetch_all_as_dictionary(cursor)
 
 
@@ -79,3 +86,13 @@ def skins_report(request, event_id):
 
     skins = get_skins_by_event(event_id)
     return Response(skins, status=200)
+
+
+@api_view(("GET",))
+@permission_classes((permissions.IsAuthenticated,))
+def membership_report(request, season):
+
+    current_season = SeasonSettings.objects.get(season=season)
+    previous_season = SeasonSettings.objects.get(season=season-1)
+    membership = get_membership_data(current_season.member_event.id, previous_season.member_event.id)
+    return Response(membership, status=200)

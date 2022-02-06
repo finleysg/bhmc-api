@@ -27,8 +27,8 @@ class AceAdmin(admin.ModelAdmin):
 
 
 class SeasonSettingsAdmin(admin.ModelAdmin):
-    fields = ["season", "member_event_id", "match_play_event_id", "is_active", ]
-    list_display = ["season", "member_event_id", "match_play_event_id", "is_active", ]
+    fields = ["season", "member_event", "match_play_event", "is_active", ]
+    list_display = ["season", "member_event", "match_play_event", "is_active", ]
     list_filter = ("season", )
 
 

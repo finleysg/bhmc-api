@@ -48,10 +48,10 @@ class Ace(models.Model):
 class SeasonSettings(models.Model):
     season = models.IntegerField(verbose_name="Season")
     is_active = models.BooleanField(verbose_name="Is Active", default=False)
-    member_event_id = models.ForeignKey(verbose_name="Membership Event", to=Event, related_name="member_event",
-                                        on_delete=DO_NOTHING)
-    match_play_event_id = models.ForeignKey(verbose_name="Match Play Event", to=Event, related_name="match_play_event",
-                                            on_delete=DO_NOTHING)
+    member_event = models.ForeignKey(verbose_name="Membership Event", to=Event, related_name="member_event",
+                                     on_delete=DO_NOTHING)
+    match_play_event = models.ForeignKey(verbose_name="Match Play Event", to=Event, related_name="match_play_event",
+                                         on_delete=DO_NOTHING)
 
     def __str__(self):
         return "{} ({})".format(self.season, "Active" if self.is_active else "Inactive")

@@ -1,6 +1,6 @@
-boto3==1.20.46
-botocore==1.23.46
-Django==4.0.1
+boto3==1.20.49
+botocore==1.23.49
+Django==4.0.2
 django-anymail==8.5
 django-cors-headers==3.11.0
 django-imagekit==4.1.0
@@ -11,7 +11,7 @@ django-templated-email==3.0.0
 djangorestframework==3.13.1
 djoser~=2.1.0
 mysqlclient==2.1.0
-Pillow==9.0.0
+Pillow==9.0.1
 requests==2.27.1
 sentry-sdk==1.5.4
 stripe==2.65.0

@@ -69,6 +69,7 @@ urlpatterns = [
       path("api/registration/<int:registration_id>/drop/", register_views.drop_players),
       path("api/registration/<int:registration_id>/move/", register_views.move_players),
       path("api/reports/event-report/<int:event_id>/", reporting_views.event_report),
+      path("api/reports/membership/<int:season>/", reporting_views.membership_report),
       path("api/reports/payment-report/<int:event_id>/", reporting_views.payment_report),
       path("api/reports/skins-report/<int:event_id>/", reporting_views.skins_report),
       path("auth/", include("djoser.urls")),

@@ -186,8 +186,11 @@ class RegistrationSlotManager(models.Manager):
             for course in event.courses.all():
                 hole = Hole.objects.filter(course=course).filter(hole_number=1).get()
                 for i in range(event.total_groups):
+                    status = "U" if event.starter_time_interval > 0\
+                                 and (i + 1) % event.starter_time_interval == 0\
+                                 else "A "
                     for s in range(0, event.group_size):
-                        slot = self.create(event=event, hole=hole, starting_order=i, slot=s)
+                        slot = self.create(event=event, hole=hole, starting_order=i, slot=s, status=status)
                         slots.append(slot)
 
         return slots

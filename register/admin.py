@@ -101,12 +101,12 @@ class RegistrationAdmin(admin.ModelAdmin):
             return True
         return False
 
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == "event":
-            kwargs["queryset"] = Event.objects.filter(start_date__year=settings.CURRENT_SEASON)\
-                .exclude(registration_type="N")\
-                .exclude(event_type="N")
-        return super(RegistrationAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+    #     if db_field.name == "event":
+    #         kwargs["queryset"] = Event.objects.filter(start_date__year=settings.CURRENT_SEASON)\
+    #             .exclude(registration_type="N")\
+    #             .exclude(event_type="N")
+    #     return super(RegistrationAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_changeform_initial_data(self, request):
         initial = super().get_changeform_initial_data(request)

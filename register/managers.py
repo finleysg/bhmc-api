@@ -1,8 +1,10 @@
 import logging
+
 import stripe
 
 from datetime import timedelta
 
+from backports.zoneinfo import ZoneInfo
 from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
@@ -19,13 +21,16 @@ logger = logging.getLogger("register-manager")
 class RegistrationManager(models.Manager):
 
     def clean_up_expired(self):
+        current_time = tz.localtime(tz.now(), timezone=ZoneInfo("America/Chicago"))
+
         registrations = self \
-            .filter(expires__lt=tz.now()) \
+            .filter(expires__lt=current_time) \
             .filter(slots__status="P")
         count = len(registrations)
 
         for reg in registrations:
-            capture_message("Cleaning up expired registration: " + str(reg), level="info")
+            capture_message(f"Cleaning up expired registration: {reg} (current time is {current_time}, \
+                              registration expiration is {reg.expires})", level="info")
 
             # Make can_choose slots available
             reg.slots\

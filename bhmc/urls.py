@@ -15,6 +15,7 @@ from register import views as register_views
 from payments import views as payment_views
 from content import views as content_views
 from reporting import views as reporting_views
+from scores import views as scoring_views
 
 admin.site.site_header = "Bunker Hills Men's Club Administration"
 
@@ -59,7 +60,7 @@ urlpatterns = [
       path("api/hooks/stripe/", payment_views.payment_complete),
       path("api/import-handicaps/", register_views.import_handicaps),
       path("api/import-points/", damcup_views.import_points),
-      path("api/import-scores/", damcup_views.import_scores),
+      path("api/import-scores/", scoring_views.import_scores),
       path("api/remove-card/<payment_method>", payment_views.remove_card),
       path("api/save-card/", payment_views.player_card),
       path("api/saved-cards/", payment_views.player_cards),

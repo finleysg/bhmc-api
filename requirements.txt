@@ -18,3 +18,4 @@ stripe==2.65.0
 django-pagedown~=2.2.0
 pytz==2021.3
 pilkit~=2.0
+xlrd~=2.0.1

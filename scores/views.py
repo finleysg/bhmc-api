@@ -1,3 +1,6 @@
+import requests
+import urllib
+
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -19,15 +22,21 @@ class EventScoreViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = EventScore.objects.all()
-        event_id = self.request.query_params.get("event_id", None)
+        season = self.request.query_params.get("season", None)
         player_id = self.request.query_params.get("player_id", None)
+        is_net = self.request.query_params.get("is_net", "false")
 
-        if event_id is not None:
-            queryset = queryset.filter(event=event_id)
-        if player_id is not None:
-            queryset = queryset.filter(player=player_id)
+        if season is None or player_id is None:
+            return
 
-        return queryset.select_related("player").order_by("player__last_name").then_by("hole")
+        queryset = queryset.filter(player=player_id)
+        queryset = queryset.filter(event__season=season)
+        if is_net == "true":
+            queryset = queryset.filter(is_net=True)
+        else:
+            queryset = queryset.filter(is_net=False)
+
+        return queryset.order_by("event__start_date", "hole")
 
 
 @api_view(("POST",))
@@ -47,27 +56,27 @@ def import_scores(request):
     if existing_scores > 0:
         return Response(status=409, data="scores have already been imported for this event")
 
-    with document.file.open("r") as content:
-        wb = open_workbook(content.path)
-        for s in wb.sheets():
-            if is_hole_scores(s):
-                score_type = get_score_type(s.name)
-                course_name = get_course(s.name)
-                course = [course for course in courses if course.name == course_name][0]
+    file_name, headers = urllib.request.urlretrieve(document.file.url)
+    wb = open_workbook(file_name)
+    for s in wb.sheets():
+        if is_hole_scores(s):
+            score_type = get_score_type(s.name)
+            course_name = get_course(s.name)
+            course = [course for course in courses if course.name == course_name][0]
 
-                for i in get_score_rows(s):
-                    try:
-                        player_name = get_player_name(s.cell(i, 0).value, score_type)
-                        player = player_map.get(player_name)
-                        if player is None:
-                            capture_message(f"player {player_name} not found when importing scores", level="error")
-                            continue
+            for i in get_score_rows(s):
+                try:
+                    player_name = get_player_name(s.cell(i, 0).value, score_type)
+                    player = player_map.get(player_name)
+                    if player is None:
+                        capture_message(f"player {player_name} not found when importing scores", level="error")
+                        continue
 
-                        score_map = get_scores(s, i)
-                        if score_map is not None:
-                            save_scores(event, course, player, score_map, score_type == "net")
-                    except:
-                        capture_exception()
+                    score_map = get_scores(s, i)
+                    if score_map is not None:
+                        save_scores(event, course, player, score_map, score_type == "net")
+                except:
+                    capture_exception()
 
     return Response(status=204)
 

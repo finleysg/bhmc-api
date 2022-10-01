@@ -1,10 +1,10 @@
 import logging
+from zoneinfo import ZoneInfo
 
 import stripe
 
 from datetime import timedelta
 
-from backports.zoneinfo import ZoneInfo
 from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction

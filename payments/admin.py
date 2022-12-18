@@ -26,13 +26,14 @@ class PaymentAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            "fields": ("event", "user", "payment_amount", "transaction_fee", )
+            "fields": ("event", "user", "payment_amount", "transaction_fee", "payment_date", )
         }),
         (None, {
-            "fields": ("payment_code", "confirmed", )
+            "fields": ("payment_code", "confirmed", "confirm_date", )
         }),
     )
-    list_display = ["payment_code", "event", "user", "payment_amount", "transaction_fee", "payment_date", "confirmed", ]
+    readonly_fields = ("payment_date", "confirm_date", )
+    list_display = ["payment_code", "event", "user", "payment_amount", "transaction_fee", "payment_date", "confirmed", "confirm_date" ]
     list_display_links = ("payment_code", )
     list_filter = (CurrentSeasonFilter, "confirmed", "payment_date", )
     date_hierarchy = "event__start_date"

@@ -3,6 +3,7 @@ import stripe
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import viewsets, permissions
@@ -160,6 +161,7 @@ def handle_payment_complete(payment_intent):
         return
 
     payment.confirmed = True
+    payment.confirm_date = timezone.now()
     payment.save()
 
     payment_details = list(payment.payment_details.all())

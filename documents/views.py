@@ -82,8 +82,11 @@ class StaticDocumentViewSet(viewsets.ModelViewSet):
 @api_view(("GET",))
 @permission_classes((permissions.AllowAny,))
 def random_photos(request):
-    tag = request.query_params.get("tag", None)
-    take = request.query_params.get("take", "1")
-    photo = Photo.objects.random(tag, int(take))
-    serializer = PhotoSerializer(photo, context={"request": request}, many=True)
-    return Response(serializer.data)
+    try:
+        tag = request.query_params.get("tag", None)
+        take = request.query_params.get("take", "1")
+        photo = Photo.objects.random(tag, int(take))
+        serializer = PhotoSerializer(photo, context={"request": request}, many=True)
+        return Response(serializer.data)
+    except:
+        return Response(status=204)

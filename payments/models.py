@@ -25,6 +25,7 @@ class Payment(models.Model):
                                          blank=True, null=True)
     confirmed = models.BooleanField(verbose_name="Confirmed", default=False)
     payment_date = models.DateTimeField(verbose_name="Payment date", auto_now_add=True, null=True)
+    confirm_date = models.DateTimeField(verbose_name="Confirm date", blank=True, null=True)
 
     def __str__(self):
         return "Payment {} ({})".format(self.payment_code, self.user.last_name)

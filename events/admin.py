@@ -37,7 +37,7 @@ class EventAdmin(admin.ModelAdmin):
         }),
         ("Registration Settings", {
             "fields": ("registration_type", ("signup_start", "signup_end", "payments_end",),
-                       ("group_size", "total_groups", "registration_maximum",
+                       ("group_size", "team_size", "total_groups", "registration_maximum",
                         "minimum_signup_group_size", "maximum_signup_group_size",),
                        ("ghin_required", "can_choose", ),
                        ("courses",),)

@@ -85,6 +85,7 @@ class Event(models.Model):
     tee_time_splits = models.CharField(verbose_name="Tee time splits", max_length=10, blank=True, null=True)
     default_tag = models.ForeignKey(verbose_name="Default tag", to=Tag, on_delete=DO_NOTHING, blank=True, null=True)
     starter_time_interval = models.IntegerField(verbose_name="Starter time interval", default=0)
+    team_size = models.IntegerField(verbose_name="Team size", default=1)
 
     class Meta:
         constraints = [

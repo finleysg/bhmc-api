@@ -1,5 +1,7 @@
 https://www.sqlshack.com/how-to-backup-and-restore-mysql-databases-using-the-mysqldump-command/
 
+1. login: sudo mysql -u root
+
 Backup with mysqldump:
 mysqldump -u mpgagolf -h mpgagolf.mysql.pythonanywhere-services.com 'mpgagolf$bhmc' > ${FILE}
 

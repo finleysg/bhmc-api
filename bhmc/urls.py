@@ -62,7 +62,7 @@ urlpatterns = [
       path("api/import-handicaps/", register_views.import_handicaps),
       path("api/import-points/", damcup_views.import_points),
       path("api/import-scores/", scoring_views.import_scores),
-      path("api/remove-card/<payment_method>", payment_views.remove_card),
+      path("api/remove-card/<payment_method>/", payment_views.remove_card),
       path("api/save-card/", payment_views.player_card),
       path("api/saved-cards/", payment_views.player_cards),
       path("api/payments/<int:payment_id>/confirm/", payment_views.confirm_payment),

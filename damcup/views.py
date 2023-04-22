@@ -1,13 +1,13 @@
 import csv
+import math
+import structlog
+
 from decimal import Decimal
 
-import math
 from django.db import connection
-from django.db.models.aggregates import Sum, Count
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from sentry_sdk import capture_exception, capture_message
 
 from courses.models import Course
 from damcup.models import DamCup, SeasonLongPoints, Scores
@@ -16,6 +16,9 @@ from documents.models import Document
 from events.models import Event
 from register.models import Player, RegistrationSlot
 from reporting.views import fetch_all_as_dictionary
+
+
+logger = structlog.get_logger()
 
 
 def get_top_gross_points(season, top_n):
@@ -82,7 +85,7 @@ def import_points(request):
             if gross_points > 0:
                 player = Player.objects.filter(ghin=row[0]).first()
                 if player is None:
-                    capture_message("ghin {} not found when importing points".format(row[0]), level="error")
+                    logger.warn("ghin {} not found when importing points".format(row[0]), level="error")
                 else:
                     points = SeasonLongPoints.objects.filter(event=event, player=player).first()
                     if points is None:
@@ -120,7 +123,7 @@ def import_scores(request):
             player = player_map.get(row[1])
 
             if player is None:
-                capture_message("player {} not found when importing scores".format(row[1]), level="error")
+                logger.warn("player {} not found when importing scores".format(row[1]), level="error")
                 continue
 
             save_score(1, row[2], event, course, player)

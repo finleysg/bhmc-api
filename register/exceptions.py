@@ -18,8 +18,8 @@ class PlayerConflictError(APIException):
 class MissingSlotsError(APIException):
 
     def __init__(self):
-        self.status_code = 400
-        self.detail = "This registration requires that you include at least one slot to reserve"
+        self.status_code = 409
+        self.detail = "One or more of the slots you requested are not available"
 
 
 class EventFullError(APIException):

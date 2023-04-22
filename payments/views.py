@@ -1,5 +1,5 @@
-import logging
 import stripe
+import structlog
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,14 +9,13 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from sentry_sdk import capture_message, capture_exception
 
 from payments.emails import send_notification
 from payments.models import Payment, Refund
 from payments.serializers import PaymentSerializer, RefundSerializer
 from register.models import Player, Registration
 
-logger = logging.getLogger(__name__)
+logger = structlog.getLogger()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
@@ -81,10 +80,11 @@ def confirm_payment(request, payment_id):
         else:
             intent = stripe.PaymentIntent.confirm(payment.payment_code, payment_method=payment_method_id)
 
+        logger.info("Payment confirmed", payment=payment_id, registration=registration_id)
         return Response(intent.status, status=200)
 
     except Exception as e:
-        capture_exception(e)
+        logger.error("Confirm payment failed", registration=registration_id, payment=payment_id, message=str(e))
         Registration.objects.undo_payment_processing(registration_id)
         return Response(str(e), status=500)
 
@@ -137,8 +137,7 @@ def payment_complete(request):
     if event is None:
         return Response(status=400)
     elif event.type == "payment_intent.payment_failed":
-        capture_message("Payment failure: " + event.stripe_id, level="error")
-        capture_message(event.data.object.last_payment_error.message, level="error")
+        logger.warn("Payment failure", stripeId=event.stripe_id, message=event.data.object.last_payment_error.message)
     elif event.type == "payment_intent.succeeded":
         payment_intent = event.data.object
         handle_payment_complete(payment_intent)
@@ -147,7 +146,6 @@ def payment_complete(request):
         handle_refund_complete(charge)
     else:
         pass
-        # capture_message("Stripe callback: " + event.type, level="info")
 
     return Response(status=204)
 
@@ -157,7 +155,7 @@ def handle_payment_complete(payment_intent):
 
     # exit early if we have already confirmed this payment
     if payment.confirmed:
-        capture_message("Already confirmed payment " + payment.payment_code, level="info")
+        logger.info("Payment already confirmed by Stripe", paymentCode=payment.payment_code)
         return
 
     payment.confirmed = True
@@ -176,6 +174,8 @@ def handle_payment_complete(payment_intent):
         slot.status = "R"
         slot.save()
 
+    logger.info("Payment confirmed by Stripe", paymentCode=payment.payment_code)
+
     # important, but don"t cause the payment intent to fail
     try:
         # clear_available_slots(payment.event, slots[0].registration)
@@ -183,8 +183,7 @@ def handle_payment_complete(payment_intent):
         player = Player.objects.get(email=email)
         send_notification(payment, slots, player)
     except Exception as e:
-        capture_message("Send notification failure: " + payment.payment_code, level="error")
-        capture_exception(e)
+        logger.error("Send notification failure", paymentCode=payment.payment_code, message=str(e))
 
 
 def handle_refund_complete(charge):
@@ -193,9 +192,11 @@ def handle_refund_complete(charge):
             local_refund = Refund.objects.get(refund_code=refund.stripe_id)
             local_refund.confirmed = True
             local_refund.save()
+            logger.info("Refund confirmed by Stripe", refundCode=refund.stripe_id, local=True)
         except ObjectDoesNotExist:
             # We get this hook for refunds created in the Stripe UI
             # so we will have not record to tie together
+            logger.info("Refund confirmed by Stripe", refundCode=refund.stripe_id, local=False)
             pass
 
 

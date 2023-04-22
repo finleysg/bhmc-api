@@ -19,7 +19,7 @@ def get_starting_time(event, registration, slot):
         minutes = parse_minutes(event.start_time)
         start_date = datetime.combine(event.start_date, datetime.min.time())
         first_time = start_date + timedelta(hours=hours, minutes=minutes)
-        start_time = first_time + timedelta(minutes=(8 * slot.starting_order))
+        start_time = first_time + timedelta(minutes=(10 * slot.starting_order))
         return "{} {}".format(course_name, start_time.strftime("%-I:%M %p"))
 
     return "Tee times"

@@ -1,4 +1,5 @@
 import csv
+
 from decimal import Decimal
 
 from django.conf import settings
@@ -9,7 +10,6 @@ from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
-from sentry_sdk import capture_message
 
 from documents.models import Document
 from events.models import Event
@@ -333,7 +333,6 @@ def import_handicaps(request):
             player = player_map.get(row[2])
 
             if player is None:
-                # capture_message("player {} not found when importing scores".format(row[2]), level="error")
                 continue
 
             player_hcp = PlayerHandicap(season=season, player=player, handicap=get_index(row[1]))

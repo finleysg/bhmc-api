@@ -1,5 +1,4 @@
 from django.contrib import admin
-from pagedown.widgets import AdminPagedownWidget
 
 from .models import Event, EventFee, FeeType
 

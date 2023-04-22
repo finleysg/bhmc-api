@@ -1,4 +1,4 @@
-import logging
+import structlog
 
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
@@ -8,7 +8,7 @@ from django.conf import settings
 from events.models import Event
 from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 
-logger = logging.getLogger("register")
+logger = structlog.getLogger(__name__)
 
 
 class CurrentSeasonFilter(SimpleListFilter):

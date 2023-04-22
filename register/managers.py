@@ -5,6 +5,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import stripe
+import structlog
 
 from datetime import timedelta
 
@@ -12,13 +13,12 @@ from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Max
-from sentry_sdk import capture_message
 
 from courses.models import Hole
 from payments.models import Payment
 from register.exceptions import SlotConflictError, MissingSlotsError
 
-logger = logging.getLogger("register-manager")
+logger = structlog.getLogger()
 
 
 class RegistrationManager(models.Manager):
@@ -32,8 +32,7 @@ class RegistrationManager(models.Manager):
         count = len(registrations)
 
         for reg in registrations:
-            capture_message(f"Cleaning up expired registration: {reg} (current time is {current_time}, \
-                              registration expiration is {reg.expires})", level="info")
+            logger.info("Cleaning up expired registration", currentTime=current_time, expiry=reg.expires, registrationId=reg.id)
 
             # Make can_choose slots available
             reg.slots\
@@ -60,10 +59,15 @@ class RegistrationManager(models.Manager):
 
         if event.can_choose:
             slot_ids = [slot["id"] for slot in registration_slots]
+            logger.info("Reserving slots", eventId=event.id, course=course.name, user=signed_up_by, slots=slot_ids)
+
             slots = list(event.registrations.select_for_update().filter(pk__in=slot_ids))
 
             if slots is None or len(slots) == 0:
                 raise MissingSlotsError()
+
+            if len(slots) != len(slot_ids):
+                raise SlotConflictError()
 
             for s in slots:
                 if s.status != "A":
@@ -114,6 +118,7 @@ class RegistrationManager(models.Manager):
     def cancel_registration(self, registration_id, payment_id, destroy):
         try:
             reg = self.filter(pk=registration_id).get()
+            logger.info("Canceling registration", registration=registration_id, payment=payment_id)
 
             if reg.event.can_choose:
                 reg.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})

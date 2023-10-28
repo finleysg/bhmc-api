@@ -1,10 +1,10 @@
 import stripe
 from decimal import Decimal
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from core.util import current_season
 from register.models import RegistrationFee, Player, RegistrationSlot
 from register.serializers import RegistrationFeeSerializer
 # noinspection PyPackages
@@ -205,16 +205,13 @@ def save_admin_payment(event, fees, player_email, validated_data):
 
 def derive_notification_type(event, player, payment_details):
 
-    if event.id == settings.REGISTRATION_EVENT_ID:
-        previous_season = RegistrationSlot.objects\
-            .filter(event=settings.PREVIOUS_REGISTRATION_EVENT_ID)\
-            .filter(player_id=player.id)\
-            .filter(status="R")
-        if len(previous_season) == 1:
+    if event.event_type == "R":  # season registration
+        season = current_season()
+        if player.last_season == (season - 1):
             return "R"
         else:
             return "N"
-    elif event.id == settings.MATCH_PLAY_EVENT_ID:
+    elif event.event_type == "S":  # season long match play
         return "M"
 
     # bit of a roundabout way to get this info, but if there are

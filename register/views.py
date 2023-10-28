@@ -2,7 +2,6 @@ import csv
 
 from decimal import Decimal
 
-from django.conf import settings
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
@@ -37,11 +36,14 @@ class PlayerViewSet(viewsets.ModelViewSet):
         queryset = Player.objects.all()
         email = self.request.query_params.get("email", None)
         ghin = self.request.query_params.get("ghin", None)
+        members_only = self.request.query_params.get("members-only", None)
 
         if email is not None:
             queryset = queryset.filter(email=email)
         if ghin is not None:
             queryset = queryset.filter(ghin=ghin)
+        if members_only and members_only == "true":
+            queryset = queryset.filter(is_member=True)
 
         return queryset
 
@@ -71,10 +73,6 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(user=self.request.user.id).prefetch_related("slots")
 
         return queryset
-
-    # def perform_create(self, serializer):
-    #     signed_up_by = self.request.user.get_full_name()
-    #     serializer.save(signed_up_by=signed_up_by, **self.request.data)
 
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):
@@ -182,8 +180,6 @@ def player_search(request):
                 pattern,
                 player_id,
                 event_id,
-                settings.REGISTRATION_EVENT_ID,
-                settings.PREVIOUS_REGISTRATION_EVENT_ID,
             ],
         )
         players = fetch_all_as_dictionary(cursor)
@@ -201,8 +197,6 @@ def friends(request, player_id):
             [
                 player_id,
                 event_id,
-                settings.REGISTRATION_EVENT_ID,
-                settings.PREVIOUS_REGISTRATION_EVENT_ID,
             ],
         )
         players = fetch_all_as_dictionary(cursor)

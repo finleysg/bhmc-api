@@ -22,13 +22,13 @@ FEE_RESTRICTION_CHOICES = (
 EVENT_TYPE_CHOICES = (
     ("N", "Weeknight Event"),
     ("W", "Weekend Major"),
-    ("H", "Holiday Pro-shop Event"),
     ("M", "Meeting"),
     ("O", "Other"),
     ("E", "External Event"),
     ("R", "Season Registration"),
     ("D", "Deadline"),
     ("P", "Open Event"),
+    ("S", "Season Long Match Play"),
 )
 START_TYPE_CHOICES = (
     ("TT", "Tee Times"),

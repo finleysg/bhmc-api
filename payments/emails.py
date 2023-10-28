@@ -2,6 +2,7 @@ import os
 from django.conf import settings
 from templated_email import send_templated_mail, InlineImage
 
+from core.util import current_season
 from payments.utils import *
 
 sender_email = "BHMC<postmaster@bhmc.org>"
@@ -41,7 +42,7 @@ def send_member_welcome(user):
         recipient_list=[user.email],
         context={
             "first_name": user.first_name,
-            "year": settings.CURRENT_SEASON,
+            "year": current_season(),
             "account_url": "{}/my-account".format(settings.WEBSITE_URL),
             "matchplay_url": "{}/match-play".format(settings.WEBSITE_URL),
             "logo_image": inline_image
@@ -94,7 +95,7 @@ def send_match_play_confirmation(user):
         recipient_list=[user.email],
         context={
             "first_name": user.first_name,
-            "year": settings.CURRENT_SEASON,
+            "year": current_season(),
             "matchplay_url": "{}/match-play".format(settings.WEBSITE_URL),
             "logo_image": inline_image
         },

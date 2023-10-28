@@ -1,4 +1,5 @@
 from typing import List, Tuple, Any
+from datetime import date
 
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.options import IncorrectLookupParameters
@@ -25,6 +26,11 @@ def linkify(field_name):
 
     _linkify.short_description = field_name.replace("_", " ").capitalize()
     return _linkify
+
+
+def current_season():
+    today = date.today()
+    return today.year
 
 
 class PreFilteredListFilter(SimpleListFilter):

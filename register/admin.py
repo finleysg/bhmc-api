@@ -3,8 +3,7 @@ import structlog
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 
-from django.conf import settings
-
+from core.util import current_season
 from events.models import Event
 from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 
@@ -12,11 +11,12 @@ logger = structlog.getLogger(__name__)
 
 
 class CurrentSeasonFilter(SimpleListFilter):
-    title = "{} events".format(settings.CURRENT_SEASON)
+    season = current_season()
+    title = "{} events".format(season)
     parameter_name = "event"
 
     def lookups(self, request, model_admin):
-        year = settings.CURRENT_SEASON
+        year = current_season()
         events = set([event for event in Event.objects.filter(season=year).exclude(registration_type="N")])
         return [(e.id, e.name) for e in events]
 
@@ -168,4 +168,3 @@ class RegistrationFeeAdmin(admin.ModelAdmin):
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Registration, RegistrationAdmin)
 admin.site.register(RegistrationSlot, RegistrationSlotAdmin)
-# admin.site.register(RegistrationFee, RegistrationFeeAdmin)

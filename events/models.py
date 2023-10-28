@@ -26,7 +26,7 @@ EVENT_TYPE_CHOICES = (
     ("M", "Meeting"),
     ("O", "Other"),
     ("E", "External Event"),
-    ("R", "Open Registration Period"),
+    ("R", "Season Registration"),
     ("D", "Deadline"),
     ("P", "Open Event"),
 )

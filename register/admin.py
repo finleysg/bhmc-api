@@ -61,9 +61,10 @@ class PlayerAdmin(admin.ModelAdmin):
     model = Player
     can_delete = True
     save_on_top = True
-    fields = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", "profile_picture", "stripe_customer_id", ]
+    fields = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", "profile_picture", "stripe_customer_id",
+              "is_member", "last_season", ]
     inlines = [PlayerHandicapInline, ]
-    list_display = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", ]
+    list_display = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", "is_member", ]
     list_display_links = ("email", )
     ordering = ["last_name", "first_name", ]
     search_fields = ("first_name", "last_name", "email", )

@@ -21,6 +21,7 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
             "id",
             "first_name",
             "last_name",
+            "is_member",
         )
 
 
@@ -41,6 +42,8 @@ class PlayerSerializer(serializers.ModelSerializer):
             "birth_date",
             "save_last_card",
             "profile_picture",
+            "is_member",
+            "last_season",
         )
 
     def create(self, validated_data):
@@ -217,7 +220,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         course = validated_data.pop("course", None)
         slots = validated_data.pop("slots")
         event = validated_data.pop("event")
-        # event = Event.objects.get(pk=event_id)
 
         player = None if is_admin else Player.objects.get(email=user.email)
         signed_up_by = user.get_full_name()

@@ -13,7 +13,7 @@ def custom_exception_handler(exc, context):
 
     # Log the exception
     if exc is not OSError and exc is not NotAuthenticated:
-        logger.error(exc)
+        logger.error(exc, exc_info=True)
 
     # Call REST framework's default exception handler first
     # to get the standard error response.

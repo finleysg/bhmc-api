@@ -35,6 +35,8 @@ class Player(models.Model):
     profile_picture = models.ForeignKey(verbose_name="Profile picture", to=Photo, null=True, blank=True,
                                         on_delete=CASCADE)
     favorites = models.ManyToManyField("self", blank=True)
+    is_member = models.BooleanField(verbose_name="Is Member", default=False)
+    last_season = models.IntegerField(verbose_name="Most Recent Membership Season", null=True, blank=True)
 
     history = HistoricalRecords()
 

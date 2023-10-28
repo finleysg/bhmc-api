@@ -174,6 +174,9 @@ def handle_payment_complete(payment_intent):
         slot.status = "R"
         slot.save()
 
+    # Season registration handling
+    update_membership(payment.event, slots)
+
     logger.info("Payment confirmed by Stripe", paymentCode=payment.payment_code)
 
     # important, but don"t cause the payment intent to fail
@@ -210,8 +213,16 @@ def save_customer_id(payment_intent):
     return player
 
 
-# def clear_available_slots(event, registration):
-#     if event.can_choose:
-#         registration.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
-#     else:
-#         registration.slots.filter(status="P").delete()
+def update_membership(event, slots):
+    try:
+        # R is a season membership event
+        if event.event_type == "R":
+            for slot in slots:
+                # Support multiple players for a registration
+                if slot.status == "R":
+                    player = slot.player
+                    player.is_member = True
+                    player.last_season = event.season
+                    player.save()
+    except Exception as e:
+        logger.error("Membership update failure", message=str(e))

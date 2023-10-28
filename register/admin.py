@@ -66,6 +66,8 @@ class PlayerAdmin(admin.ModelAdmin):
     inlines = [PlayerHandicapInline, ]
     list_display = ["email", "first_name", "last_name", "ghin", "tee", "birth_date", "is_member", ]
     list_display_links = ("email", )
+    list_filter = ("is_member", "last_season",)
+
     ordering = ["last_name", "first_name", ]
     search_fields = ("first_name", "last_name", "email", )
 

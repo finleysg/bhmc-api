@@ -19,6 +19,8 @@ class EventManager(models.Manager):
             copy.signup_end = original.signup_end + start_delta
             if original.payments_end is not None:
                 copy.payments_end = original.payments_end + start_delta
+            if original.priority_signup_start is not None:
+                copy.priority_signup_start = original.priority_signup_start + start_delta
 
         # remove url values
         copy.portal_url = None

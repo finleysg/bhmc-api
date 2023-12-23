@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework.routers import DefaultRouter
+from djoser import  views as djoser_views
 
 from core import views as core_views
 from courses import views as course_views
@@ -51,12 +52,8 @@ urlpatterns = [
       path("api/", include(router.urls)),
       path("api/contact/", messaging_views.contact_message),
       path("api/clean-up/", register_views.cancel_expired),
-      path("api/copy-event/<int:event_id>/", event_views.copy_event),
       path("api/random-photos/", document_views.random_photos),
       path("api/points/<int:season>/<category>/<int:top_n>/", damcup_views.get_top_points),
-      path("api/friends/<int:player_id>/", register_views.friends),
-      path("api/friends/add/<int:player_id>/", register_views.add_friend),
-      path("api/friends/remove/<int:player_id>/", register_views.remove_friend),
       path("api/player-search/", register_views.player_search),
       path("api/hooks/stripe/", payment_views.payment_complete),
       path("api/import-handicaps/", register_views.import_handicaps),
@@ -65,15 +62,21 @@ urlpatterns = [
       path("api/remove-card/<payment_method>/", payment_views.remove_card),
       path("api/save-card/", payment_views.player_card),
       path("api/saved-cards/", payment_views.player_cards),
+      path("api/events/<int:event_id>/clone/", event_views.copy_event),
+      path("api/events/<int:event_id>/create-slots/", register_views.create_event_slots),
+      path("api/events/<int:event_id>/add-player/", register_views.add_player),
+      path("api/events/<int:event_id>/event-report/", reporting_views.event_report),
+      path("api/events/<int:event_id>/payment-report/", reporting_views.payment_report),
+      path("api/events/<int:event_id>/skins-report/", reporting_views.skins_report),
+      path("api/friends/<int:player_id>/", register_views.friends),
+      path("api/friends/<int:player_id>/add/", register_views.add_friend),
+      path("api/friends/<int:player_id>/remove/", register_views.remove_friend),
       path("api/payments/<int:payment_id>/confirm/", payment_views.confirm_payment),
-      path("api/registration/<int:event_id>/create-slots/", register_views.create_event_slots),
       path("api/registration/<int:registration_id>/cancel/", register_views.cancel_reserved_slots),
       path("api/registration/<int:registration_id>/drop/", register_views.drop_players),
       path("api/registration/<int:registration_id>/move/", register_views.move_players),
-      path("api/reports/event-report/<int:event_id>/", reporting_views.event_report),
-      path("api/reports/membership/<int:season>/", reporting_views.membership_report),
-      path("api/reports/payment-report/<int:event_id>/", reporting_views.payment_report),
-      path("api/reports/skins-report/<int:event_id>/", reporting_views.skins_report),
+      path("api/membership/<int:season>/", reporting_views.membership_report),
       path("auth/", include("djoser.urls")),
-      path("auth/", include("djoser.urls.authtoken")),
+      path("auth/token/login/", core_views.TokenCreateView.as_view(), name="login"),
+      path("auth/token/logout/", core_views.TokenDestroyView.as_view(), name="logout"),
   ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

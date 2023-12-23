@@ -9,14 +9,14 @@ class BoardMemberAdmin(admin.ModelAdmin):
 
 
 class MajorChampionAdmin(admin.ModelAdmin):
-    fields = ["season", "event_name", "flight", "player", "score", ]
-    list_display = ["season", "event_name", "flight", "player", "score", ]
+    fields = ["season", "event_name", "flight", "player", "score", "is_net", ]
+    list_display = ["season", "event_name", "flight", "player", "score", "is_net", ]
     list_filter = ("season", )
 
 
 class LowScoreAdmin(admin.ModelAdmin):
-    fields = ["season", "course_name", "player", "score", ]
-    list_display = ["season", "course_name", "player", "score", ]
+    fields = ["season", "course_name", "player", "score", "is_net", ]
+    list_display = ["season", "course_name", "player", "score", "is_net", ]
     list_filter = ("season", )
 
 

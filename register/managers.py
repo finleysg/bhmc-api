@@ -54,7 +54,10 @@ class RegistrationManager(models.Manager):
     @transaction.atomic()
     def create_and_reserve(self, user, player, event, course, registration_slots, signed_up_by):
         reg = self.create(event=event, course=course, user=user, signed_up_by=signed_up_by)
-        reg.expires = tz.now() + timedelta(minutes=120)
+        if event.can_choose:
+            reg.expires = tz.now() + timedelta(minutes=5)
+        else:
+            reg.expires = tz.now() + timedelta(minutes=15)
         reg.save()
 
         if event.can_choose:

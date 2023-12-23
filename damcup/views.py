@@ -1,5 +1,7 @@
 import csv
 import math
+import os
+
 import structlog
 
 from decimal import Decimal
@@ -43,10 +45,16 @@ class SeasonLongPointsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = SeasonLongPoints.objects.all()
-        event_id = self.request.query_params.get("event_id", None)
+        season = self.request.query_params.get("season", None)
+        event_id = self.request.query_params.get("event", None)
+        player_id = self.request.query_params.get("player", None)
 
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
+        if season is not None:
+            queryset = queryset.filter(event__season=season)
+        if player_id is not None:
+            queryset = queryset.filter(player=player_id)
 
         return queryset.select_related("player").order_by("player__last_name")
 
@@ -67,25 +75,31 @@ def get_top_points(request, season, category, top_n):
 @permission_classes((permissions.IsAuthenticated,))
 def import_points(request):
 
-    event_id = request.data.get("event_id", 0)
-    document_id = request.data.get("document_id", 0)
-    additional_info = request.data.get("additional_info", None)
+    event_id = request.data.get("event", 0)
+    document_id = request.data.get("document", 0)
+    additional_info = request.data.get("category", None)
 
     event = Event.objects.get(pk=event_id)
     document = Document.objects.get(pk=document_id)
+    failures = []
 
-    # with open(document.file.read(), newline='') as csvfile:
     with document.file.open("r") as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         next(reader)  # skip header
 
         for row in reader:
+            ghin = str(int(row[0]))
             gross_points = 0 if row[3] == "" else int(round_half_up(Decimal(row[3])))
             net_points = 0 if row[4] == "" else int(round_half_up(Decimal(row[4])))
             if gross_points > 0:
-                player = Player.objects.filter(ghin=row[0]).first()
+                player = Player.objects.filter(ghin__contains=ghin).first()
                 if player is None:
                     logger.warn("ghin {} not found when importing points".format(row[0]), level="error")
+                    failures.append({
+                        "ghin": row[0],
+                        "first_name": row[1],
+                        "last_name": row[2],
+                    })
                 else:
                     points = SeasonLongPoints.objects.filter(event=event, player=player).first()
                     if points is None:
@@ -98,7 +112,11 @@ def import_points(request):
 
                     points.save()
 
-    return Response(status=204)
+    # do not keep the data file
+    document.file.delete()
+    document.delete()
+
+    return Response(data=failures, status=200)
 
 
 @api_view(("POST",))

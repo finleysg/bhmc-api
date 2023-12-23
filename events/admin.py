@@ -35,7 +35,7 @@ class EventAdmin(admin.ModelAdmin):
             "fields": ("start_date", "start_time", "tee_time_splits", "starter_time_interval", )
         }),
         ("Registration Settings", {
-            "fields": ("registration_type", ("signup_start", "signup_end", "payments_end",),
+            "fields": ("registration_type", ("signup_start", "signup_end", "payments_end", "priority_signup_start", ),
                        ("group_size", "team_size", "total_groups", "registration_maximum",
                         "minimum_signup_group_size", "maximum_signup_group_size",),
                        ("ghin_required", "can_choose", ),

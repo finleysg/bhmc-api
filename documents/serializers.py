@@ -30,6 +30,13 @@ class DocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = ("id", "year", "title", "document_type", "file", "event", "event_type", "created_by", "last_update", )
 
+    def validate(self, data):
+        if self.context["request"].method == "PUT" and not data.get("file"):
+            data.pop("file", None)
+        elif self.context["request"].method == "POST" and not data.get("file"):
+            raise Exception("A file is required.")
+        return data
+
     def create(self, validated_data):
         event = validated_data.get("event", None)
         year = validated_data.pop("year")

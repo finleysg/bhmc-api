@@ -1,16 +1,19 @@
 from django.db import models
 from django.db.models import DO_NOTHING, CASCADE
+from django.db.models.signals import post_delete
 from imagekit import ImageSpec, register
 from imagekit.models import ImageSpecField
 from pilkit.processors import ResizeToFit, Transpose
 
 from content.models import Tag
 from documents.managers import PhotoManager, DocumentManager
+from documents.utils import file_cleanup
 from events.models import Event
 
 DOCUMENT_TYPE_CHOICES = (
     ("R", "Event Results"),
     ("T", "Event Tee Times"),
+    ("L", "Event Flights"),
     ("P", "Season Long Points"),
     ("D", "Dam Cup"),
     ("M", "Match Play"),
@@ -53,7 +56,7 @@ class Document(models.Model):
     title = models.CharField(verbose_name="Title", max_length=120)
     event = models.ForeignKey(verbose_name="Event", to=Event, null=True, blank=True, on_delete=DO_NOTHING,
                               related_name="documents")
-    file = models.FileField(verbose_name="File", upload_to=document_directory_path)
+    file = models.FileField(verbose_name="File", upload_to=document_directory_path, null=True)
     created_by = models.CharField(verbose_name="Created By", max_length=100)
     last_update = models.DateTimeField(auto_now=True)
 
@@ -62,6 +65,10 @@ class Document(models.Model):
     def __str__(self):
         return "{}: {}".format(self.year, self.title)
 
+
+# post_delete.connect(
+#     file_cleanup, sender=Document, dispatch_uid="document.file.file_cleanup"
+# )
 
 class DocumentTag(models.Model):
     document = models.ForeignKey(verbose_name="Document", to=Document, on_delete=CASCADE, related_name="tags")

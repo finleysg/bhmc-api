@@ -169,40 +169,6 @@ def calculate_payment_amount(amount_due):
     return total, transaction_fee
 
 
-def save_admin_payment(event, fees, player_email, validated_data):
-    user = User.objects.get(email=player_email)
-    payment_amount = Decimal(validated_data.get("payment_amount", 0))
-
-    payment = Payment.objects.create(event=event,
-                                     user=user,
-                                     payment_code=validated_data.get("payment_code"),
-                                     payment_key="admin",
-                                     payment_amount=payment_amount,
-                                     transaction_fee=0,
-                                     confirmed=True,
-                                     notification_type="A")
-    payment.save()
-
-    for idx, fee in enumerate(fees):
-        registration_fee = RegistrationFee(event_fee=fee["event_fee"],
-                                           registration_slot=fee["registration_slot"],
-                                           is_paid=(payment_amount > 0),
-                                           payment=payment)
-        registration_fee.save()
-
-        slot = fee["registration_slot"]
-        slot.status = "R"
-        slot.save()
-
-        # Assign the user to the player on behalf of whom the admin is registering
-        if idx == 0:
-            registration = slot.registration
-            registration.user = user
-            registration.save()
-
-    return payment
-
-
 def derive_notification_type(event, player, payment_details):
 
     if event.event_type == "R":  # season registration

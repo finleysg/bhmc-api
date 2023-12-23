@@ -64,7 +64,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
 class StaticDocumentViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
-        if self.action == "create":
+        if self.action == "create" or self.action == "update":
             return UpdatableStaticDocumentSerializer
         else:
             return StaticDocumentSerializer

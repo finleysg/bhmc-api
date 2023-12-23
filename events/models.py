@@ -49,6 +49,7 @@ REGISTRATION_CHOICES = (
     ("M", "Member"),
     ("G", "Member Guest"),
     ("O", "Open"),
+    ("R", "Returning Member"),
     ("N", "None"),
 )
 
@@ -73,6 +74,7 @@ class Event(models.Model):
     notes = models.TextField(blank=True, null=True)
     start_date = models.DateField(verbose_name="Start date")
     start_time = models.CharField(verbose_name="Starting time", max_length=40, blank=True, null=True)
+    priority_signup_start = models.DateTimeField(verbose_name="Priority signup start", blank=True, null=True)
     signup_start = models.DateTimeField(verbose_name="Signup start", blank=True, null=True)
     signup_end = models.DateTimeField(verbose_name="Signup end", blank=True, null=True)
     payments_end = models.DateTimeField(verbose_name="Online payments deadline", blank=True, null=True)
@@ -104,9 +106,6 @@ class Event(models.Model):
         if self.registration_type != "N":
             state = "past"
             right_now = timezone.now()
-            # aware_start = pytz.utc.localize(datetime.combine(self.start_date, time=datetime.min.time()))
-            # signup_start = pytz.utc.normalize(self.signup_start)
-            # signup_end = pytz.utc.normalize(self.signup_end)
 
             if self.signup_start < right_now < self.signup_end:
                 state = "registration"
@@ -124,11 +123,6 @@ class Event(models.Model):
                                       'required')
             if self.signup_start > self.signup_end:
                 raise ValidationError('The signup start must be earlier than signup end')
-
-    # def validate_courses(self):
-    #     if self.can_choose and not self.courses.exists():
-    #         raise ValidationError('At least one course is required if players are choosing their starting hole or '
-    #                               'tee time')
 
     def validate_groups_size(self):
         if self.can_choose and (self.group_size is None or self.group_size == 0):
@@ -150,17 +144,10 @@ class Event(models.Model):
                                       'their own tee times')
 
     def clean(self):
-        # self.validate_courses()
         self.validate_groups_size()
         self.validate_signup_size()
         self.validate_total_groups()
         self.validate_registration_window()
-
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     if self.can_choose and self.registration_window == "future":
-    #         self.registrations.remove_slots_for_event(self)
-    #         self.registrations.create_slots_for_event(self)
 
     @staticmethod
     def autocomplete_search_fields():

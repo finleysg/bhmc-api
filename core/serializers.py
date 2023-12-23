@@ -92,7 +92,7 @@ class MajorChampionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MajorChampion
-        fields = ("id", "season", "event_name", "flight", "player", "score", )
+        fields = ("id", "season", "event_name", "flight", "player", "score", "is_net", )
 
 
 class LowScoreSerializer(serializers.ModelSerializer):
@@ -101,7 +101,7 @@ class LowScoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LowScore
-        fields = ("id", "season", "course_name", "player", "score", )
+        fields = ("id", "season", "course_name", "player", "score", "is_net", )
 
 
 class AceSerializer(serializers.ModelSerializer):

@@ -39,9 +39,9 @@ def get_skins_by_event(event_id):
         return fetch_all_as_dictionary(cursor)
 
 
-def get_membership_data(season_event_id, previous_season_event_id):
+def get_membership_data(season):
     with connection.cursor() as cursor:
-        cursor.callproc("MembershipReport", [season_event_id, previous_season_event_id])
+        cursor.callproc("MembershipReport", [season])
         return fetch_all_as_dictionary(cursor)
 
 
@@ -92,7 +92,5 @@ def skins_report(request, event_id):
 @permission_classes((permissions.IsAuthenticated,))
 def membership_report(request, season):
 
-    current_season = SeasonSettings.objects.get(season=season)
-    previous_season = SeasonSettings.objects.get(season=season-1)
-    membership = get_membership_data(current_season.member_event.id, previous_season.member_event.id)
+    membership = get_membership_data(season)
     return Response(membership, status=200)

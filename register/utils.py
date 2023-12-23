@@ -1,5 +1,5 @@
 import re
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime
 
 
 def get_start(slot):

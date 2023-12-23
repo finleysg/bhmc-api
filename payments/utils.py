@@ -2,6 +2,11 @@ import re
 from datetime import timedelta, datetime, date
 from decimal import Decimal
 
+from django.db.models.aggregates import Sum
+
+from payments.models import Payment
+from register.models import RegistrationFee
+
 
 def get_start(event, registration, slot):
     if event.start_type == "TT":
@@ -108,3 +113,29 @@ def parse_hours(time_text):
 def parse_minutes(time_text):
     parts = re.split("[ :]", time_text)
     return int(parts[1])
+
+
+def create_payment(event, slot, fee_ids, user):
+    """Create a payment record for the given event and slot."""
+    event_fees = event.fees.filter(pk__in=fee_ids)
+    payment_amount = Decimal(event_fees.aggregate(total=Sum("amount"))["total"])
+
+    payment = Payment.objects.create(event=event,
+                                     user=user,
+                                     payment_code="admin",
+                                     payment_key="n/a",
+                                     payment_amount=payment_amount,
+                                     transaction_fee=0,
+                                     confirmed=True,
+                                     confirm_date=date.today(),
+                                     notification_type="A")
+    payment.save()
+
+    for _, fee in enumerate(event_fees):
+        registration_fee = RegistrationFee(event_fee=fee,
+                                           registration_slot=slot,
+                                           is_paid=False,
+                                           payment=payment)
+        registration_fee.save()
+
+    return payment

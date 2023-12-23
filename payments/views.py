@@ -222,7 +222,6 @@ def update_membership(event, slots):
                 if slot.status == "R":
                     player = slot.player
                     player.is_member = True
-                    player.last_season = event.season
                     player.save()
     except Exception as e:
         logger.error("Membership update failure", message=str(e))

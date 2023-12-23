@@ -19,7 +19,8 @@ class MajorChampion(models.Model):
     event_name = models.CharField(verbose_name="Event name", max_length=60)
     flight = models.CharField(verbose_name="Flight", max_length=30)
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=DO_NOTHING)
-    score = models.CharField(verbose_name="Score", max_length=20)
+    score = models.IntegerField(verbose_name="Score", default=0)
+    is_net = models.BooleanField(verbose_name="Is net score", default=False)
 
     def __str__(self):
         return "{} {} - {}".format(self.season, self.event_name, self.player.last_name)
@@ -29,7 +30,8 @@ class LowScore(models.Model):
     season = models.IntegerField(verbose_name="Season")
     course_name = models.CharField(verbose_name="Course", max_length=40)
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=DO_NOTHING)
-    score = models.CharField(verbose_name="Score", max_length=20)
+    score = models.IntegerField(verbose_name="Score", default=0)
+    is_net = models.BooleanField(verbose_name="Is net score", default=False)
 
     def __str__(self):
         return "{} {} - {}".format(self.season, self.course_name, self.player.last_name)

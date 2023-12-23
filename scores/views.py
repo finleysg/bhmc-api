@@ -1,3 +1,5 @@
+import os
+
 import structlog
 import urllib
 
@@ -6,6 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from xlrd import open_workbook
 
+from bhmc import settings
 from courses.models import Course
 from documents.models import Document
 from events.models import Event
@@ -53,38 +56,58 @@ def import_scores(request):
     courses = list(Course.objects.all())
     players = Player.objects.all()
     player_map = {player.player_name(): player for player in players}
+    failures = []
 
-    existing_scores = EventScore.objects.filter(event=event).count()
-    if existing_scores > 0:
-        return Response(status=409, data="scores have already been imported for this event")
+    # existing_scores = EventScore.objects.filter(event=event).count()
+    # if existing_scores > 0:
+    #     return Response(status=409, data="scores have already been imported for this event")
 
-    file_name, headers = urllib.request.urlretrieve(document.file.url)
+    # file_name, headers = urllib.request.urlretrieve(document.file.url)
+    file_name = os.path.join(settings.MEDIA_ROOT, document.file.name)
     wb = open_workbook(file_name)
-    for s in wb.sheets():
-        if is_hole_scores(s):
-            score_type = get_score_type(s.name)
-            course_name = get_course(s.name)
+    for sheet in wb.sheets():
+        if is_hole_scores(sheet):
+            score_type = get_score_type(sheet.name)
+            course_name = get_course(sheet.name)
             course = [course for course in courses if course.name == course_name][0]
 
-            for i in get_score_rows(s):
+            for i in get_score_rows(sheet):
                 try:
-                    player_name = get_player_name(s.cell(i, 0).value, score_type)
+                    player_name = get_player_name(sheet.cell(i, 0).value, score_type)
                     player = player_map.get(player_name)
                     if player is None:
-                        logger.warn(f"player {player_name} not found when importing scores")
+                        message = f"player {player_name} not found when importing {score_type} scores"
+                        logger.warn(message)
+                        failures.append(message)
                         continue
 
-                    score_map = get_scores(s, i)
+                    score_map = get_scores(sheet, i)
                     if score_map is not None:
                         save_scores(event, course, player, score_map, score_type == "net")
                 except Exception as e:
+                    failures.append(str(e))
                     logger.error(e)
 
-    return Response(status=204)
+
+    # do not keep the data file
+    document.file.delete()
+    document.delete()
+
+    return Response(data=failures, status=200)
 
 
 def save_scores(event, course, player, score_map, is_net):
-    for hole in course.holes.all():
-        event_score = EventScore(event=event, player=player, hole=hole, score=score_map[hole.hole_number],
-                                 is_net=is_net)
-        event_score.save()
+    scores = EventScore.objects.filter(event=event, player=player, is_net=is_net)
+    if len(scores) == 0:
+        new_scores = []
+        for hole in course.holes.all():
+            new_scores.append(EventScore(event=event, player=player, hole=hole, score=score_map[hole.hole_number], is_net=is_net))
+        EventScore.objects.bulk_create(new_scores)
+    else:
+        for hole in course.holes.all():
+            score = next(
+                (obj for obj in scores if obj.hole.hole_number == hole.hole_number),
+                None
+            )
+            score.score = score_map[hole.hole_number]
+        EventScore.objects.bulk_update(scores, ["score"])

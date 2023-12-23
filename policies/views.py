@@ -7,4 +7,9 @@ from .serializers import PolicySerializer
 class PolicyViewSet(viewsets.ModelViewSet):
 
     serializer_class = PolicySerializer
-    queryset = Policy.objects.all()
+    def get_queryset(self):
+        queryset = Policy.objects.all()
+        policy_type = self.request.query_params.get("policy_type", None)
+        if policy_type is not None:
+            queryset = queryset.filter(policy_type=policy_type)
+        return queryset

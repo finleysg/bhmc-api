@@ -22,7 +22,12 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "phone_number",
+            "ghin",
+            "tee",
+            "birth_date",
             "is_member",
+            "last_season",
         )
 
 
@@ -117,6 +122,7 @@ class RegistrationFeeSerializer(serializers.ModelSerializer):
             "registration_slot",
             "payment",
             "is_paid",
+            "amount",
         )
 
 
@@ -225,11 +231,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         player = None if is_admin else Player.objects.get(email=user.email)
         signed_up_by = user.get_full_name()
 
-        # TODO: other validations?
         if not is_admin:
             validate_registration_is_open(event)
             validate_event_is_not_full(event)
-        # course = validate_course_for_event(event, validated_data.pop("course", None))
 
         return Registration.objects.create_and_reserve(user, player, event, course, slots, signed_up_by)
 
@@ -266,7 +270,7 @@ def validate_registration_is_open(event):
 
 
 def validate_course_for_event(event, course_id):
-    course = None  # not required for most events
+    course = None  # not required if event != "can_choose"
     if event.can_choose:
         if course_id is None:
             raise CourseRequiredError()

@@ -1,8 +1,7 @@
-import os
 import structlog
 from django.db import IntegrityError
 from rest_framework import status
-from rest_framework.exceptions import NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated, NotFound
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, set_rollback
 
@@ -30,6 +29,14 @@ def custom_exception_handler(exc, context):
     # TODO: do not log OSErrors (This fails: exc.name != "OSError")
     # if  exc.status_code != 401:
     #     logger.error(exc, exc_info=True)
+    if isinstance(exc, OSError):
+        pass
+    elif isinstance(exc, NotAuthenticated):
+        pass
+    elif isinstance(exc, NotFound):
+        pass
+    else:
+        logger.error(exc, exc_info=True)
 
     # Call REST framework's default exception handler first
     # to get the standard error response.

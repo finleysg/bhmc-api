@@ -34,7 +34,7 @@ def get_starting_hole(event, slot):
     return "Shotgun"
 
 
-# expected 3:00 PM or 7:30 AM, et al
+# expected 3:00 PM, 7:30 AM, etc.
 def parse_hours(time_text):
     parts = re.split("[ :]", time_text)
     hours = int(parts[0])

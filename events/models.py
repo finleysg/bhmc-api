@@ -17,6 +17,7 @@ FEE_RESTRICTION_CHOICES = (
     ("New Members", "New Members"),
     ("Seniors", "Seniors"),
     ("Non-Seniors", "Non-Seniors"),
+    ("Non-Members", "Non-Members"),
     ("None", "None"),
 )
 EVENT_TYPE_CHOICES = (
@@ -164,10 +165,23 @@ class FeeType(models.Model):
         return self.name
 
 
+class EventFeeOverride(models.Model):
+    amount = models.DecimalField(verbose_name="Amount", max_digits=5, decimal_places=2)
+    restriction = models.CharField(verbose_name="Restrict to", max_length=20, choices=FEE_RESTRICTION_CHOICES,
+                                   default="Members")
+
+    def __str__(self):
+        return "{} (${})".format(self.restriction, self.amount)
+
+
 class EventFee(models.Model):
     event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="fees")
     fee_type = models.ForeignKey(verbose_name="Fee Type", to=FeeType, on_delete=DO_NOTHING)
     amount = models.DecimalField(verbose_name="Amount", max_digits=5, decimal_places=2)
+    override_amount = models.DecimalField(verbose_name="Override Amount", max_digits=5, decimal_places=2,
+                                          blank=True, null=True)
+    override_restriction = models.CharField(verbose_name="Override Restriction", max_length=20,
+                                            choices=FEE_RESTRICTION_CHOICES, blank=True, null=True)
     is_required = models.BooleanField(verbose_name="Required", default=False)
     display_order = models.IntegerField(verbose_name="Display Order")
 

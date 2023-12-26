@@ -128,7 +128,7 @@ class RegistrationFee(models.Model):
     registration_slot = models.ForeignKey(verbose_name="Registration Slot", to=RegistrationSlot, on_delete=CASCADE,
                                           blank=True, null=True, related_name="fees")
     is_paid = models.BooleanField(verbose_name="Is Paid", default=False)
-    # blank=True so it's not required when creating a new payment
+    amount = models.DecimalField(verbose_name="Amount Paid", max_digits=5, decimal_places=2, default=0)
     payment = models.ForeignKey(verbose_name="Payment", to=Payment, blank=True,
                                 on_delete=CASCADE, related_name="payment_details")
 

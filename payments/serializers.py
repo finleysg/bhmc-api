@@ -41,9 +41,9 @@ class PaymentSerializer(serializers.ModelSerializer):
 
         # A = an admin is registering on behalf of a player
         notification_type = validated_data.get("notification_type", None)
-        if notification_type == "A":
-            player_email = self.context.get("request").query_params.get("player", None)
-            return save_admin_payment(event, payment_details, player_email, validated_data)
+        # if notification_type == "A":
+        #     player_email = self.context.get("request").query_params.get("player", None)
+        #     return save_admin_payment(event, payment_details, player_email, validated_data)
 
         amount_due = get_amount_due(event, payment_details)
         stripe_payment = calculate_payment_amount(amount_due)
@@ -101,6 +101,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         for detail in payment_details:
             registration_fee = RegistrationFee(event_fee=detail["event_fee"],
                                                registration_slot=detail["registration_slot"],
+                                               amount=detail["amount"],
                                                payment=payment)
             registration_fee.save()
 
@@ -125,6 +126,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         for detail in payment_details:
             registration_fee = RegistrationFee(event_fee=detail["event_fee"],
                                                registration_slot=detail["registration_slot"],
+                                               amount=detail["amount"],
                                                payment=instance)
             registration_fee.save()
 
@@ -188,12 +190,11 @@ def derive_notification_type(event, player, payment_details):
 
 
 def get_amount_due(event, payment_details):
+    # TODO: verify that the amount_received is a valid override
     amount_due = Decimal(0.0)
-    event_fees = event.fees.all()
-    event_fee_ids = [detail["event_fee"].id for detail in payment_details]
-    for event_fee_id in event_fee_ids:
-        event_fee = next(iter([f.amount for f in event_fees if f.id == event_fee_id]))
-        amount_due += event_fee
+    amounts = [detail["amount"] for detail in payment_details]
+    for amount in amounts:
+        amount_due += amount
 
     return amount_due
 

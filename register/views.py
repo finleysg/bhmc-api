@@ -98,7 +98,6 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         if seasons:
             queryset = queryset.filter(event__season__in=seasons)
         if is_open:
-            # queryset = queryset.filter(player__isnull=True)
             queryset = queryset.filter(status="A")
         return queryset
 

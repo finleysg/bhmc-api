@@ -103,7 +103,7 @@ def slugify(text):
     return slug
 
 
-# expected 3:00 PM or 7:30 AM, et al
+# expected 3:00 PM, 7:30 AM, etc.
 def parse_hours(time_text):
     parts = re.split("[ :]", time_text)
     hours = int(parts[0])

@@ -1,5 +1,5 @@
 from courses.serializers import CourseSerializer
-from .models import Event, EventFee, FeeType
+from .models import Event, EventFee, FeeType, EventFeeOverride
 from rest_framework import serializers
 
 
@@ -16,7 +16,7 @@ class EventFeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EventFee
-        fields = ("id", "event", "fee_type", "amount", "is_required", "display_order", )
+        fields = ("id", "event", "fee_type", "amount", "is_required", "display_order", "override_amount", "override_restriction", )
 
 
 class EventSerializer(serializers.ModelSerializer):

@@ -15,7 +15,7 @@ class EventFeesInline(admin.TabularInline):
     can_delete = True
     extra = 0
     verbose_name_plural = "Event Fees"
-    fields = ["display_order", "fee_type", "is_required", "amount", ]
+    fields = ["display_order", "fee_type", "is_required", "amount", "override_amount", "override_restriction", ]
 
 
 class FeeTypeAdmin(admin.ModelAdmin):

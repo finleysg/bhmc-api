@@ -32,7 +32,7 @@ class RegistrationFeeInline(admin.TabularInline):
     extra = 0
     show_change_link = False
     verbose_name_plural = "Registration fees"
-    fields = ["event_fee", "is_paid", ]
+    fields = ["event_fee", "amount", "is_paid", ]
     readonly_fields = ["event_fee", ]
 
     def has_add_permission(self, request, obj=None):
@@ -161,7 +161,7 @@ class RegistrationFeeAdmin(admin.ModelAdmin):
     model = RegistrationFee
     show_change_link = False
     verbose_name_plural = "Registration fees"
-    fields = ["registration_slot", "event_fee", "payment", "is_paid", ]
+    fields = ["registration_slot", "event_fee", "payment", "amount", "is_paid", ]
     readonly_fields = ["registration_slot", "event_fee", "payment", ]
 
 

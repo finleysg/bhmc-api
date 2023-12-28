@@ -100,5 +100,9 @@ class StaticDocument(models.Model):
     code = models.CharField(verbose_name="Code", max_length=6, unique=True)
     document = models.ForeignKey(verbose_name="Document", to=Document, on_delete=CASCADE)
 
+    class Meta:
+        verbose_name = "Club Document"
+        verbose_name_plural = "Club Documents"
+
     def __str__(self):
         return "{}: {}".format(self.code, self.document)

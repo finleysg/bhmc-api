@@ -29,6 +29,8 @@ class SeasonLongPoints(models.Model):
     additional_info = models.CharField(verbose_name="Additional Info", null=True, blank=True, max_length=30)
 
     class Meta:
+        verbose_name = "Season Long Points"
+        verbose_name_plural = "Season Long Points"
         constraints = [
             UniqueConstraint(fields=["event", "player", ], name="unique_slp")
         ]

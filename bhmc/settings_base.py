@@ -189,8 +189,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 ROOT_URLCONF = "bhmc.urls"
 
-CORS_ORIGIN_ALLOW_ALL = True
-
 WSGI_APPLICATION = "bhmc.wsgi.application"
 
 LANGUAGE_CODE = "en-us"

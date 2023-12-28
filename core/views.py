@@ -97,7 +97,8 @@ class TokenCreateView(djoser.views.TokenCreateView):
             max_age = timedelta(days=30),
             secure = not is_localhost,
             httponly = True,
-            samesite = "Strict"
+            samesite = "Lax",
+            domain = "api.bhmc.org",
         )
 
         response.data = "Welcome!"

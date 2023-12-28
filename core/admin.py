@@ -26,14 +26,14 @@ class AceAdmin(admin.ModelAdmin):
     list_filter = ("season", )
 
 
-class SeasonSettingsAdmin(admin.ModelAdmin):
-    fields = ["season", "member_event", "match_play_event", "is_active", ]
-    list_display = ["season", "member_event", "match_play_event", "is_active", ]
-    list_filter = ("season", )
+# class SeasonSettingsAdmin(admin.ModelAdmin):
+#     fields = ["season", "member_event", "match_play_event", "is_active", ]
+#     list_display = ["season", "member_event", "match_play_event", "is_active", ]
+#     list_filter = ("season", )
 
 
 admin.site.register(BoardMember, BoardMemberAdmin)
 admin.site.register(MajorChampion, MajorChampionAdmin)
 admin.site.register(LowScore, LowScoreAdmin)
 admin.site.register(Ace, AceAdmin)
-admin.site.register(SeasonSettings, SeasonSettingsAdmin)
+# admin.site.register(SeasonSettings, SeasonSettingsAdmin)

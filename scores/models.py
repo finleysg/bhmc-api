@@ -14,6 +14,8 @@ class EventScore(models.Model):
     is_net = models.BooleanField(verbose_name="Is Net?", default=False)
 
     class Meta:
+        verbose_name = "Event Scores"
+        verbose_name_plural = "Event Scores"
         constraints = [
             UniqueConstraint(fields=["event", "player", "hole", "is_net"], name="unique_event_score")
         ]

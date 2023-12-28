@@ -39,9 +39,9 @@ class EventManager(models.Manager):
             fee.save()
 
         # safe to create registration slots now that courses have been created
-        if copy.can_choose and copy.registration_window == "future":
-            copy.registrations.remove_slots_for_event(copy)
-            copy.registrations.create_slots_for_event(copy)
+        # if copy.can_choose and copy.registration_window == "future":
+        #     copy.registrations.remove_slots_for_event(copy)
+        #     copy.registrations.create_slots_for_event(copy)
 
         return copy
 

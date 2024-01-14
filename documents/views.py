@@ -6,7 +6,7 @@ from .serializers import *
 
 
 class GalleryPagination(pagination.PageNumberPagination):
-    page_size = 5
+    page_size = 15
     page_size_query_param = "size"
 
 

@@ -96,7 +96,7 @@ def player_cards(request):
     player = Player.objects.get(email=email)
     if player.stripe_customer_id:
         cards = stripe.PaymentMethod.list(customer=player.stripe_customer_id, type="card")
-        return Response(cards, status=200)
+        return Response(cards.data, status=200)
 
     return Response([], status=200)
 

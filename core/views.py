@@ -93,6 +93,7 @@ class TokenCreateView(djoser.views.TokenCreateView):
 
         response.set_cookie(
             key = "access_token",
+            path = "/",
             value = data["auth_token"],
             max_age = timedelta(days=30),
             secure = not is_localhost,
@@ -113,7 +114,12 @@ class TokenDestroyView(djoser.views.TokenDestroyView):
 
     def post(self, request):
         response = Response()
-        response.delete_cookie("access_token")
+        response.delete_cookie(
+            key = "access_token",
+            path = "/",
+            samesite = "Lax",
+            domain = "api.bhmc.org" if not is_localhost else None,
+        )
         response.status_code = status.HTTP_204_NO_CONTENT
         utils.logout_user(request)
         return response

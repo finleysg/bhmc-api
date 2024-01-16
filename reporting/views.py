@@ -27,9 +27,9 @@ def get_registration_fees_by_event(event_id):
         return fetch_all_as_dictionary(cursor)
 
 
-def get_payment_details_by_event(event_id):
+def get_payments_by_event(event_id):
     with connection.cursor() as cursor:
-        cursor.callproc("GetPaymentDetailsByEvent", [event_id])
+        cursor.callproc("GetPaymentsByEvent", [event_id])
         return fetch_all_as_dictionary(cursor)
 
 
@@ -65,9 +65,13 @@ def event_report(request, event_id):
                 None,
             )
             if player_fee is not None:
-                registration[fee.fee_type.name] = fee.amount if player_fee["is_paid"] == 1 else 0
+                registration[fee.fee_type.name] = player_fee.get("amount_paid", None)
+                registration["is_override"] = 1 if player_fee.get("amount_paid", None) == fee.override_amount else 0
+                registration["override_for"] = fee.override_restriction
             else:
                 registration[fee.fee_type.name] = None
+                registration["is_override"] = None
+                registration["override_for"] = None
 
     return Response(registrations, status=200)
 
@@ -75,9 +79,8 @@ def event_report(request, event_id):
 @api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
 def payment_report(request, event_id):
-    payments = Payment.objects.all().filter(event=event_id)
-    serializer = PaymentReportSerializer(payments, context={"request": request}, many=True)
-    return Response(serializer.data)
+    payments = get_payments_by_event(event_id)
+    return Response(payments, status=200)
 
 
 @api_view(("GET",))

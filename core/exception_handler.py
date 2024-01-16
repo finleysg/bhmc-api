@@ -5,6 +5,8 @@ from rest_framework.exceptions import NotAuthenticated, NotFound
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, set_rollback
 
+from core.views import is_localhost
+
 logger = structlog.get_logger()
 
 
@@ -32,6 +34,12 @@ def custom_exception_handler(exc, context):
         set_rollback()
 
     if len(exc.args) > 0 and exc.args[0] == "Invalid token.":
-        response.delete_cookie("access_token")
+        logger.warning("Detected an invalid token: deleting cookie")
+        response.delete_cookie(
+            key = "access_token",
+            path = "/",
+            samesite = "Lax",
+            domain = "api.bhmc.org" if not is_localhost else None,
+        )
 
     return response

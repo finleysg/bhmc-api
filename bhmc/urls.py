@@ -56,6 +56,7 @@ urlpatterns = [
       path("api/points/<int:season>/<category>/<int:top_n>/", damcup_views.get_top_points),
       path("api/player-search/", register_views.player_search),
       path("api/hooks/stripe/", payment_views.payment_complete),
+      path("api/import-champions/", core_views.import_champions),
       path("api/import-handicaps/", register_views.import_handicaps),
       path("api/import-points/", damcup_views.import_points),
       path("api/import-scores/", scoring_views.import_scores),

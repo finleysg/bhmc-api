@@ -16,6 +16,7 @@ class BoardMember(models.Model):
 
 class MajorChampion(models.Model):
     season = models.IntegerField(verbose_name="Season")
+    event = models.ForeignKey(verbose_name="Event", to=Event, null=True, blank=True, on_delete=DO_NOTHING)
     event_name = models.CharField(verbose_name="Event name", max_length=60)
     flight = models.CharField(verbose_name="Flight", max_length=30)
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=DO_NOTHING)

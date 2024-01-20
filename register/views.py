@@ -13,7 +13,7 @@ from rest_framework.serializers import ValidationError
 
 from documents.models import Document
 from events.models import Event
-from payments.utils import create_payment
+from payments.utils import create_admin_payment
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 from .serializers import (
@@ -236,6 +236,7 @@ def add_player(request, event_id):
     player_id = request.data.get("player_id", None)
     slot_id = request.data.get("slot_id", None)
     fee_ids = request.data.get("fees", [])
+    is_money_owed = request.data.get("is_money_owed", False)
     notes = request.data.get("notes", "")
 
     if player_id is None:
@@ -260,7 +261,7 @@ def add_player(request, event_id):
         slot = event.registrations.create(event=event, player=player, registration=registration, status="R",
                                           starting_order=0, slot=0)
 
-    create_payment(event, slot, fee_ids, user)
+    create_admin_payment(event, slot, fee_ids, is_money_owed, user)
 
     serializer = RegistrationSerializer(registration, context={"request": request})
     return Response(serializer.data, status=200)

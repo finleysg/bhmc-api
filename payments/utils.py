@@ -3,7 +3,9 @@ from datetime import timedelta, datetime, date
 from decimal import Decimal
 
 from django.db.models.aggregates import Sum
+from rest_framework.exceptions import APIException
 
+from events.models import EventFee
 from payments.models import Payment
 from register.models import RegistrationFee
 
@@ -115,14 +117,15 @@ def parse_minutes(time_text):
     return int(parts[1])
 
 
-def create_payment(event, slot, fee_ids, user):
+def create_admin_payment(event, slot, fee_ids, is_money_owed, user):
     """Create a payment record for the given event and slot."""
     event_fees = event.fees.filter(pk__in=fee_ids)
-    payment_amount = Decimal(event_fees.aggregate(total=Sum("amount"))["total"])
+    payment_amount = Decimal(event_fees.aggregate(total=Sum("amount"))["total"]) if is_money_owed else Decimal("0.00")
+    payment_code = "collect from player" if is_money_owed else "no charge"
 
     payment = Payment.objects.create(event=event,
                                      user=user,
-                                     payment_code="admin",
+                                     payment_code=payment_code,
                                      payment_key="n/a",
                                      payment_amount=payment_amount,
                                      transaction_fee=0,
@@ -139,3 +142,16 @@ def create_payment(event, slot, fee_ids, user):
         registration_fee.save()
 
     return payment
+
+
+def calculate_refund_amount(payment, refund_fees):
+    event_fees = EventFee.objects.filter(event=payment.event)
+    refund_amount = 0.0
+    for fee in refund_fees:
+        event_fee = next((ef for ef in event_fees if ef.id == fee.get("event_fee_id", 0)), None)
+        amount_paid = fee.get("amount_paid", 0)
+        if amount_paid != event_fee.amount and amount_paid != event_fee.override_amount:
+            raise APIException("Refund amount does not match the event fee amount")
+        refund_amount += amount_paid
+
+    return refund_amount

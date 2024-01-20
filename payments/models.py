@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import DO_NOTHING, CASCADE
 
 from events.models import Event
+from payments.managers import RefundManager
 
 NOTIFICATION_CHOICES = (
     ("A", "Admin"),
@@ -39,6 +40,8 @@ class Refund(models.Model):
     notes = models.TextField(verbose_name="Notes", blank=True, null=True)
     confirmed = models.BooleanField(verbose_name="Confirmed", default=False)
     refund_date = models.DateTimeField(verbose_name="Refund date", auto_now_add=True, null=True)
+
+    objects = RefundManager()
 
     def __str__(self):
         return "Refund id {} ({})".format(self.refund_code, "Confirmed" if self.confirmed else "Not Confirmed")

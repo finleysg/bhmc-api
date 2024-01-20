@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from payments.emails import send_notification
 from payments.models import Payment, Refund
 from payments.serializers import PaymentSerializer, RefundSerializer
+from payments.utils import calculate_refund_amount
 from register.models import Player, Registration
 
 logger = structlog.getLogger()
@@ -87,6 +88,31 @@ def confirm_payment(request, payment_id):
         logger.error("Confirm payment failed", registration=registration_id, payment=payment_id, message=str(e))
         Registration.objects.undo_payment_processing(registration_id)
         return Response(str(e), status=500)
+
+
+@api_view(("POST",))
+@permission_classes((permissions.IsAuthenticated,))
+def create_refunds(request):
+    refunds = request.data.get("refunds", [])
+    successful_refunds = []
+    failures = []
+    for refund in refunds:
+        try:
+            payment = Payment.objects.get(pk=refund["payment"])
+            refund_amount = calculate_refund_amount(payment, refund["refund_fees"])
+            result = Refund.objects.create_refund(request.user, payment, refund_amount, refund["notes"])
+            successful_refunds.append("Refund of {} created for {}".format(result.refund_amount, result.payment.id))
+        except Exception as e:
+            message = "Refund failed for {}: {}".format(refund, str(e))
+            logger.error(message)
+            failures.append(message)
+
+    if len(failures) > 0:
+        status = 400
+    else:
+        status = 200
+
+    return Response({"refunds": successful_refunds, "failures": failures}, status=status)
 
 
 @api_view(("GET",))

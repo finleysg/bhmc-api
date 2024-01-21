@@ -13,7 +13,8 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 
-from bhmc.settings import is_development, to_bool, MEDIA_ROOT
+from bhmc import settings as bhmc_settings
+from bhmc.settings import is_development, to_bool
 from documents.models import Document
 from events.models import Event
 from register.models import Player
@@ -153,7 +154,7 @@ def import_champions(request):
     event_name = event.name
     failures = []
 
-    file_name = os.path.join(MEDIA_ROOT, document.file.name)
+    file_name = os.path.join(bhmc_settings.MEDIA_ROOT, document.file.name)
     wb = load_workbook(filename=str(file_name), read_only=True)
     sheet = wb.active
     last_row = sheet.max_row

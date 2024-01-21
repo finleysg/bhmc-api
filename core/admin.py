@@ -9,8 +9,8 @@ class BoardMemberAdmin(admin.ModelAdmin):
 
 
 class MajorChampionAdmin(admin.ModelAdmin):
-    fields = ["season", "event", "event_name", "flight", "player", "score", "is_net", ]
-    list_display = ["season", "event_name", "flight", "player", "score", "is_net", ]
+    fields = ["season", "event", "event_name", "flight", "player", "team_id", "score", "is_net", ]
+    list_display = ["season", "event_name", "flight", "player", "team_id", "score", "is_net", ]
     list_filter = ("season", "event_name")
 
 

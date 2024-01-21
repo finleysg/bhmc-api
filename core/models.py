@@ -22,6 +22,7 @@ class MajorChampion(models.Model):
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=DO_NOTHING)
     score = models.IntegerField(verbose_name="Score", default=0)
     is_net = models.BooleanField(verbose_name="Is net score", default=False)
+    team_id = models.CharField(verbose_name="Team Id", max_length=8, null=True, blank=True)
 
     def __str__(self):
         return "{} {} - {}".format(self.season, self.event_name, self.player.last_name)

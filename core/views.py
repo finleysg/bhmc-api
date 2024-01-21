@@ -1,3 +1,5 @@
+import random
+import string
 import os
 from datetime import timedelta
 
@@ -168,6 +170,7 @@ def import_champions(request):
 
         try:
             players, errors = get_players(champion, player_map)
+            team_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
             for player in players:
                 existing = existing_champions.get(player.id)
                 if existing is None:
@@ -176,11 +179,12 @@ def import_champions(request):
                                                                 event_name=event_name,
                                                                 flight=flight,
                                                                 player=player,
+                                                                team_id=team_id,
                                                                 score=score,
                                                                 is_net=is_net)
                     new_champion.save()
                 else:
-                    existing.update(flight=flight, score=score, is_net=is_net)
+                    existing.update(flight=flight, score=score, is_net=is_net, teamId=team_id)
 
             for error in errors:
                 failures.append(error)

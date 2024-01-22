@@ -1,5 +1,3 @@
-import os
-
 import structlog
 
 from rest_framework import viewsets, permissions
@@ -7,7 +5,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from xlrd import open_workbook
 
-from bhmc import settings
 from courses.models import Course
 from documents.models import Document
 from events.models import Event
@@ -56,13 +53,7 @@ def import_scores(request):
     player_map = {player.player_name(): player for player in players}
     failures = []
 
-    # existing_scores = EventScore.objects.filter(event=event).count()
-    # if existing_scores > 0:
-    #     return Response(status=409, data="scores have already been imported for this event")
-
-    # file_name, headers = urllib.request.urlretrieve(document.file.url)
-    file_name = os.path.join(settings.MEDIA_ROOT, document.file.name)
-    wb = open_workbook(file_name)
+    wb = open_workbook(document.file.path)
     for sheet in wb.sheets():
         if is_hole_scores(sheet):
             score_type = get_score_type(sheet.name)

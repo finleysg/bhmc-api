@@ -1,6 +1,32 @@
 import os
+import requests
+
 from django.core.files.storage import default_storage
 from django.db.models import FileField
+from io import BytesIO
+from openpyxl.reader.excel import load_workbook
+from xlrd import open_workbook
+
+from bhmc import settings
+from bhmc.settings import is_development
+
+
+def open_xls_workbook(document):
+    if is_development:
+        file_name = os.path.join(settings.MEDIA_ROOT, document.file.name)
+        return open_workbook(file_name)
+    else:
+        file_bytes = requests.get(document.file.url).content
+        return open_workbook(file_contents=file_bytes)
+
+
+def open_xlsx_workbook(document):
+    if is_development:
+        file_name = os.path.join(settings.MEDIA_ROOT, document.file.name)
+        return load_workbook(filename=str(file_name), read_only=True)
+    else:
+        file_bytes = requests.get(document.file.url).content
+        return load_workbook(filename=BytesIO(file_bytes), read_only=True)
 
 
 def file_cleanup(sender, **kwargs):

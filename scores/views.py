@@ -3,10 +3,10 @@ import structlog
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from xlrd import open_workbook
 
 from courses.models import Course
 from documents.models import Document
+from documents.utils import open_xls_workbook
 from events.models import Event
 from register.models import Player
 from scores.models import EventScore
@@ -53,30 +53,29 @@ def import_scores(request):
     player_map = {player.player_name(): player for player in players}
     failures = []
 
-    with document.file.open("r") as content:
-        wb = open_workbook(content.path)
-        for sheet in wb.sheets():
-            if is_hole_scores(sheet):
-                score_type = get_score_type(sheet.name)
-                course_name = get_course(sheet.name)
-                course = [course for course in courses if course.name == course_name][0]
+    wb = open_xls_workbook(document)
+    for sheet in wb.sheets():
+        if is_hole_scores(sheet):
+            score_type = get_score_type(sheet.name)
+            course_name = get_course(sheet.name)
+            course = [course for course in courses if course.name == course_name][0]
 
-                for i in get_score_rows(sheet):
-                    try:
-                        player_name = get_player_name(sheet.cell(i, 0).value, score_type)
-                        player = player_map.get(player_name)
-                        if player is None:
-                            message = f"player {player_name} not found when importing {score_type} scores"
-                            logger.warn(message)
-                            failures.append(message)
-                            continue
+            for i in get_score_rows(sheet):
+                try:
+                    player_name = get_player_name(sheet.cell(i, 0).value, score_type)
+                    player = player_map.get(player_name)
+                    if player is None:
+                        message = f"player {player_name} not found when importing {score_type} scores"
+                        logger.warn(message)
+                        failures.append(message)
+                        continue
 
-                        score_map = get_scores(sheet, i)
-                        if score_map is not None:
-                            save_scores(event, course, player, score_map, score_type == "net")
-                    except Exception as e:
-                        failures.append(str(e))
-                        logger.error(e)
+                    score_map = get_scores(sheet, i)
+                    if score_map is not None:
+                        save_scores(event, course, player, score_map, score_type == "net")
+                except Exception as e:
+                    failures.append(str(e))
+                    logger.error(e)
 
 
     # do not keep the data file

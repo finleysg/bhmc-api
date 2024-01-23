@@ -7,14 +7,13 @@ import djoser.views
 from djoser import utils
 from djoser.conf import settings
 
-from openpyxl import load_workbook
-
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 
 from bhmc.settings import is_development, to_bool
 from documents.models import Document
+from documents.utils import open_xlsx_workbook
 from events.models import Event
 from register.models import Player
 from .models import BoardMember, MajorChampion, Ace, LowScore, SeasonSettings
@@ -145,56 +144,56 @@ def import_champions(request):
     document_id = request.data.get("document_id", 0)
 
     event = Event.objects.get(pk=event_id)
-    document = Document.objects.get(pk=document_id)
+    season = event.season
+    event_name = event.name
+
     players = Player.objects.all()
     player_map = {player.player_name(): player for player in players}
     existing_champions = {champ.player.id: champ for champ in list(MajorChampion.objects.filter(event=event))}
-    season = event.season
-    event_name = event.name
+
+    document = Document.objects.get(pk=document_id)
+    wb = open_xlsx_workbook(document)
+    sheet = wb.active
+    last_row = sheet.max_row
     failures = []
 
-    with document.file.open("r") as content:
-        wb = load_workbook(filename=content.path, read_only=True)
-        sheet = wb.active
-        last_row = sheet.max_row
+    # skip header row
+    for i in range(2, last_row + 1):
+        flight = sheet.cell(row=i, column=1).value
+        if flight is None:
+            break
 
-        # skip header row
-        for i in range(2, last_row + 1):
-            flight = sheet.cell(row=i, column=1).value
-            if flight is None:
-                break
+        champion = sheet.cell(row=i, column=2).value
+        score = sheet.cell(row=i, column=3).value
+        is_net = False if sheet.cell(row=i, column=4).value is None else sheet.cell(row=i, column=4).value
 
-            champion = sheet.cell(row=i, column=2).value
-            score = sheet.cell(row=i, column=3).value
-            is_net = False if sheet.cell(row=i, column=4).value is None else sheet.cell(row=i, column=4).value
+        try:
+            players, errors = get_players(champion, player_map)
+            team_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+            for player in players:
+                existing = existing_champions.get(player.id)
+                if existing is None:
+                    new_champion = MajorChampion.objects.create(season=season,
+                                                                event=event,
+                                                                event_name=event_name,
+                                                                flight=flight,
+                                                                player=player,
+                                                                team_id=team_id,
+                                                                score=score,
+                                                                is_net=is_net)
+                    new_champion.save()
+                else:
+                    existing.flight = flight
+                    existing.score = score
+                    existing.is_net = is_net
+                    existing.team_id = team_id
+                    existing.save()
 
-            try:
-                players, errors = get_players(champion, player_map)
-                team_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-                for player in players:
-                    existing = existing_champions.get(player.id)
-                    if existing is None:
-                        new_champion = MajorChampion.objects.create(season=season,
-                                                                    event=event,
-                                                                    event_name=event_name,
-                                                                    flight=flight,
-                                                                    player=player,
-                                                                    team_id=team_id,
-                                                                    score=score,
-                                                                    is_net=is_net)
-                        new_champion.save()
-                    else:
-                        existing.flight = flight
-                        existing.score = score
-                        existing.is_net = is_net
-                        existing.team_id = team_id
-                        existing.save()
+            for error in errors:
+                failures.append(error)
 
-                for error in errors:
-                    failures.append(error)
-
-            except Exception as ex:
-                failures.append(str(ex))
+        except Exception as ex:
+            failures.append(str(ex))
 
     # do not keep the data file
     document.file.delete()

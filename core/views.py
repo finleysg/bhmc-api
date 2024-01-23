@@ -153,43 +153,48 @@ def import_champions(request):
     event_name = event.name
     failures = []
 
-    wb = load_workbook(filename=str(document.file.path), read_only=True)
-    sheet = wb.active
-    last_row = sheet.max_row
+    with document.file.open("r") as content:
+        wb = load_workbook(filename=content.path, read_only=True)
+        sheet = wb.active
+        last_row = sheet.max_row
 
-    # skip header row
-    for i in range(2, last_row + 1):
-        flight = sheet.cell(row=i, column=1).value
-        if flight is None:
-            break
+        # skip header row
+        for i in range(2, last_row + 1):
+            flight = sheet.cell(row=i, column=1).value
+            if flight is None:
+                break
 
-        champion = sheet.cell(row=i, column=2).value
-        score = sheet.cell(row=i, column=3).value
-        is_net = False if sheet.cell(row=i, column=4).value is None else sheet.cell(row=i, column=4).value
+            champion = sheet.cell(row=i, column=2).value
+            score = sheet.cell(row=i, column=3).value
+            is_net = False if sheet.cell(row=i, column=4).value is None else sheet.cell(row=i, column=4).value
 
-        try:
-            players, errors = get_players(champion, player_map)
-            team_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-            for player in players:
-                existing = existing_champions.get(player.id)
-                if existing is None:
-                    new_champion = MajorChampion.objects.create(season=season,
-                                                                event=event,
-                                                                event_name=event_name,
-                                                                flight=flight,
-                                                                player=player,
-                                                                team_id=team_id,
-                                                                score=score,
-                                                                is_net=is_net)
-                    new_champion.save()
-                else:
-                    existing.update(flight=flight, score=score, is_net=is_net, teamId=team_id)
+            try:
+                players, errors = get_players(champion, player_map)
+                team_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+                for player in players:
+                    existing = existing_champions.get(player.id)
+                    if existing is None:
+                        new_champion = MajorChampion.objects.create(season=season,
+                                                                    event=event,
+                                                                    event_name=event_name,
+                                                                    flight=flight,
+                                                                    player=player,
+                                                                    team_id=team_id,
+                                                                    score=score,
+                                                                    is_net=is_net)
+                        new_champion.save()
+                    else:
+                        existing.flight = flight
+                        existing.score = score
+                        existing.is_net = is_net
+                        existing.team_id = team_id
+                        existing.save()
 
-            for error in errors:
-                failures.append(error)
+                for error in errors:
+                    failures.append(error)
 
-        except Exception as ex:
-            failures.append(str(ex))
+            except Exception as ex:
+                failures.append(str(ex))
 
     # do not keep the data file
     document.file.delete()

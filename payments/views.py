@@ -87,7 +87,7 @@ def confirm_payment(request, payment_id):
     except Exception as e:
         logger.error("Confirm payment failed", registration=registration_id, payment=payment_id, message=str(e))
         Registration.objects.undo_payment_processing(registration_id)
-        return Response(str(e), status=500)
+        return Response(str(e), status=400)
 
 
 @api_view(("POST",))

@@ -9,7 +9,8 @@ from events.serializers import EventFeeSerializer
 from .exceptions import (
     EventFullError,
     EventRegistrationNotOpenError,
-    CourseRequiredError, PlayerConflictError,
+    CourseRequiredError,
+    PlayerConflictError,
 )
 from .models import Player, Registration, RegistrationSlot, RegistrationFee, PlayerHandicap
 
@@ -265,7 +266,7 @@ def validate_event_is_not_full(event):
 
 
 def validate_registration_is_open(event):
-    if event.registration_window != "registration":
+    if event.registration_window != "registration" and event.registration_window != "priority":
         raise EventRegistrationNotOpenError()
 
 

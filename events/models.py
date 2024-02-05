@@ -107,8 +107,9 @@ class Event(models.Model):
         if self.registration_type != "N":
             state = "past"
             right_now = timezone.now()
-
-            if self.signup_start < right_now < self.signup_end:
+            if self.priority_signup_start is not None and self.priority_signup_start < right_now < self.signup_start:
+                state = "priority"
+            elif self.signup_start < right_now < self.signup_end:
                 state = "registration"
             elif self.signup_start > right_now:
                 state = "future"

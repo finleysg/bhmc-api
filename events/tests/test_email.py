@@ -1,84 +1,28 @@
-from datetime import date
-from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from courses.models import Course, Hole
+from events.tests.factories import WeeknightEventFactory
 from payments.models import Payment
 from payments.utils import get_event_url, get_start, get_required_fees, get_optional_fees, get_players, get_recipients
 from register.models import Registration, Player, RegistrationSlot, RegistrationFee
-from .models import Event, EventFee
+from events.models import Event, EventFee
+
+def create_teetime_event(splits):
+    event = WeeknightEventFactory()
+    event.start_time = "3:00 PM"
+    event.start_type = "TT"
+    event.tee_time_splits = splits
+    return event
 
 
-class EventModelTests(TestCase):
-    fixtures = ["fee_type", "event", "event_fee", "course", "hole"]
-
-    def test_weeknight_teetimes_is_valid(self):
-        event = Event.objects.get(pk=3)
-        event.clean()
-        self.assertTrue(True)
-
-    def test_weeknight_teetimes_must_have_total_groups(self):
-        event = Event.objects.get(pk=3)
-        event.total_groups = 0
-        with self.assertRaises(ValidationError, msg='You must include the number of groups per course when players are '
-                                                    'choosing their own tee times'):
-            event.clean()
-
-    def test_weeknight_shotgun_is_valid(self):
-        event = Event.objects.get(pk=6)
-        event.clean()
-        self.assertTrue(True)
-
-    def test_weeknight_can_choose_must_have_group_size(self):
-        event = Event.objects.get(pk=3)
-        event.group_size = 0
-        with self.assertRaises(ValidationError, msg='A group size is required if players are choosing their starting '
-                                                    'hole or tee time'):
-            event.clean()
-
-    def test_weeknight_registration_signup_end(self):
-        event = Event.objects.get(pk=3)
-        event.signup_end = None
-        with self.assertRaises(ValidationError, msg='When an event requires registration, both signup start and '
-                                                    'signup end are required'):
-            event.clean()
-
-    def test_weeknight_registration_signup_start(self):
-        event = Event.objects.get(pk=3)
-        event.signup_start = None
-        with self.assertRaises(ValidationError, msg='When an event requires registration, both signup start and '
-                                                    'signup end are required'):
-            event.clean()
-
-    def test_weeknight_registration_signup_start_before_end(self):
-        event = Event.objects.get(pk=3)
-        event.signup_start = event.signup_end + timedelta(hours=1)
-        with self.assertRaises(ValidationError, msg='The signup start must be earlier than signup end'):
-            event.clean()
-
-    def test_can_clone(self):
-        event = Event.objects.get(pk=1)
-        new_dt = date.fromisoformat('2020-12-04')
-        copy = Event.objects.clone(event, new_dt)
-        self.assertNotEqual(event.id, copy.id)
-        self.assertEqual(event.name, copy.name)
-        self.assertGreater(copy.signup_start, event.signup_start)
-
-    def test_clone_includes_registration_slots(self):
-        event = Event.objects.get(pk=3)
-        new_dt = date.fromisoformat('2020-12-04')
-        copy = Event.objects.clone(event, new_dt)
-        self.assertEqual(len(copy.registrations.all()), 0)
-
-    def test_clone_includes_fees(self):
-        event = Event.objects.get(pk=4)
-        new_dt = date.fromisoformat('2020-12-31')
-        copy = Event.objects.clone(event, new_dt)
-        self.assertGreater(len(copy.fees.all()), 0)
+def create_shotgun_event():
+    event = WeeknightEventFactory()
+    event.start_time = "5:00 PM"
+    event.start_type = "SG"
+    return event
 
 
 class EmailUtilsTests(TestCase):
@@ -95,7 +39,7 @@ class EmailUtilsTests(TestCase):
         self.assertEqual("http://localhost/event/2020-11-14/2-man-best-ball", event_url)
 
     def test_get_start_shotgun_a_group(self):
-        event = Event.objects.get(pk=6)
+        event = create_shotgun_event()
         course = Course.objects.get(pk=1)
         hole = Hole.objects.get(pk=2)
         registration = Registration(event=event, course=course)
@@ -104,7 +48,7 @@ class EmailUtilsTests(TestCase):
         self.assertEqual("East 2A", start)
 
     def test_get_start_shotgun_b_group(self):
-        event = Event.objects.get(pk=6)
+        event = create_shotgun_event()
         course = Course.objects.get(pk=1)
         hole = Hole.objects.get(pk=9)
         registration = Registration(event=event, course=course)
@@ -112,32 +56,97 @@ class EmailUtilsTests(TestCase):
         start = get_start(event, registration, slot)
         self.assertEqual("East 9B", start)
 
-    def test_get_start_teetimes_first_group(self):
-        event = Event.objects.get(pk=3)
+    def test_get_start_teetimes_first_group_default_split(self):
+        event = create_teetime_event(None)
         course = Course.objects.get(pk=1)
-        hole = Hole.objects.get(pk=1)
+        hole = course.holes.first()
         registration = Registration(event=event, course=course)
         slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=0)
+
         start = get_start(event, registration, slot)
         self.assertEqual("East 3:00 PM", start)
 
-    def test_get_start_teetimes_third_group(self):
-        event = Event.objects.get(pk=3)
+    def test_get_start_teetimes_third_group_default_split(self):
+        event = create_teetime_event(None)
         course = Course.objects.get(pk=1)
-        hole = Hole.objects.get(pk=1)
+        hole = course.holes.first()
         registration = Registration(event=event, course=course)
         slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=2)
-        start = get_start(event, registration, slot)
-        self.assertEqual("East 3:16 PM", start)
 
-    def test_get_start_teetimes_tenth_group(self):
-        event = Event.objects.get(pk=3)
+        start = get_start(event, registration, slot)
+        self.assertEqual("East 3:20 PM", start)
+
+    def test_get_start_teetimes_tenth_group_default_split(self):
+        event = create_teetime_event(None)
         course = Course.objects.get(pk=1)
-        hole = Hole.objects.get(pk=1)
+        hole = course.holes.first()
         registration = Registration(event=event, course=course)
         slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=9)
+
         start = get_start(event, registration, slot)
-        self.assertEqual("East 4:12 PM", start)
+        self.assertEqual("East 4:30 PM", start)
+
+    def test_get_start_teetimes_first_group_defined_split(self):
+        event = create_teetime_event("9")
+        course = Course.objects.get(pk=1)
+        hole = course.holes.first()
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=0)
+
+        start = get_start(event, registration, slot)
+        self.assertEqual("East 3:00 PM", start)
+
+    def test_get_start_teetimes_third_group_defined_split(self):
+        event = create_teetime_event("9")
+        course = Course.objects.get(pk=1)
+        hole = course.holes.first()
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=2)
+
+        start = get_start(event, registration, slot)
+        self.assertEqual("East 3:18 PM", start)
+
+    def test_get_start_teetimes_tenth_group_defined_split(self):
+        event = create_teetime_event("9")
+        course = Course.objects.get(pk=1)
+        hole = course.holes.first()
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=9)
+
+        start = get_start(event, registration, slot)
+        self.assertEqual("East 4:21 PM", start)
+
+    def test_get_start_teetimes_first_group_alternating_split(self):
+        event = create_teetime_event("8,9")
+        course = Course.objects.get(pk=1)
+        hole = course.holes.first()
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=0)
+
+        start = get_start(event, registration, slot)
+        self.assertEqual("East 3:00 PM", start)
+
+    def test_get_start_teetimes_third_group_alternating_split(self):
+        event = create_teetime_event("8,9")
+        course = Course.objects.get(pk=1)
+        hole = course.holes.first()
+        registration = Registration(event=event, course=course)
+        slot1 = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=1)
+        slot2 = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=2)
+
+        self.assertEqual("East 3:08 PM", get_start(event, registration, slot1))
+        self.assertEqual("East 3:17 PM", get_start(event, registration, slot2))
+
+    def test_get_start_teetimes_tenth_group_alternating_split(self):
+        event = create_teetime_event("8,9")
+        course = Course.objects.get(pk=1)
+        hole = course.holes.first()
+        registration = Registration(event=event, course=course)
+        slot = RegistrationSlot(event=event, registration=registration, hole=hole, starting_order=9)
+
+        start = get_start(event, registration, slot)
+        print(start)
+        self.assertEqual("East 4:16 PM", start)
 
     def test_get_fee_amounts(self):
         event = Event.objects.get(pk=6)

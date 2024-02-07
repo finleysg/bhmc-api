@@ -9,6 +9,8 @@ from events.models import EventFee
 from payments.models import Payment
 from register.models import RegistrationFee
 
+DEFAULT_INTERVAL = 10
+
 
 def get_start(event, registration, slot):
     if event.start_type == "TT":
@@ -26,10 +28,26 @@ def get_starting_time(event, registration, slot):
         minutes = parse_minutes(event.start_time)
         start_date = datetime.combine(event.start_date, datetime.min.time())
         first_time = start_date + timedelta(hours=hours, minutes=minutes)
-        start_time = first_time + timedelta(minutes=(10 * slot.starting_order))
+        start_time = get_starting_time_offset(first_time, slot.starting_order, event.tee_time_splits)
         return "{} {}".format(course_name, start_time.strftime("%-I:%M %p"))
 
     return "Tee times"
+
+
+def get_starting_time_offset(first_time, starting_order, tee_time_splits):
+    intervals = [int(i) for i in tee_time_splits.split(',')] if tee_time_splits is not None else [DEFAULT_INTERVAL]
+    return first_time + timedelta(minutes=get_offset(starting_order, intervals))
+
+
+def get_offset(starting_order, intervals):
+    if starting_order == 0:
+        return 0
+    elif len(intervals) == 1:
+        return starting_order * intervals[0]
+    elif starting_order % 2 == 0:
+        return (starting_order // 2) * (intervals[0] + intervals[1])
+    else:
+        return (starting_order // 2) * (intervals[0] + intervals[1]) + intervals[0]
 
 
 def get_starting_hole(event, registration, slot):

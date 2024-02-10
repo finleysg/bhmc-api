@@ -70,6 +70,8 @@ urlpatterns = [
       path("api/events/<int:event_id>/add-player/", register_views.add_player),
       path("api/events/<int:event_id>/event-report/", reporting_views.event_report),
       path("api/events/<int:event_id>/payment-report/", reporting_views.payment_report),
+      path("api/events/<int:event_id>/payment-report/<int:payment_id>/details/", reporting_views.payment_details_for_payment),
+      path("api/events/<int:event_id>/payment-report/<int:payment_id>/refunds/", reporting_views.refund_details_for_payment),
       path("api/events/<int:event_id>/skins-report/", reporting_views.skins_report),
       path("api/friends/<int:player_id>/", register_views.friends),
       path("api/friends/<int:player_id>/add/", register_views.add_friend),

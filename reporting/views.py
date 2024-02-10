@@ -45,6 +45,18 @@ def get_membership_data(season):
         return fetch_all_as_dictionary(cursor)
 
 
+def payment_details(payment_id):
+    with connection.cursor() as cursor:
+        cursor.callproc("PaymentDetails", [payment_id])
+        return fetch_all_as_dictionary(cursor)
+
+
+def refund_details(payment_id):
+    with connection.cursor() as cursor:
+        cursor.callproc("RefundDetails", [payment_id])
+        return fetch_all_as_dictionary(cursor)
+
+
 @api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
 def event_report(request, event_id):
@@ -97,3 +109,17 @@ def membership_report(request, season):
 
     membership = get_membership_data(season)
     return Response(membership, status=200)
+
+
+@api_view(("GET",))
+@permission_classes((permissions.IsAuthenticated,))
+def payment_details_for_payment(request, event_id, payment_id):
+    details = payment_details(payment_id)
+    return Response(details, status=200)
+
+
+@api_view(("GET",))
+@permission_classes((permissions.IsAuthenticated,))
+def refund_details_for_payment(request, event_id, payment_id):
+    details = refund_details(payment_id)
+    return Response(details, status=200)

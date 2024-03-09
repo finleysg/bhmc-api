@@ -30,7 +30,10 @@ class EventScoreViewSet(viewsets.ModelViewSet):
             return
 
         queryset = queryset.filter(player=player_id)
-        queryset = queryset.filter(event__season=season)
+
+        if season != "0":
+            queryset = queryset.filter(event__season=season)
+
         if is_net == "true":
             queryset = queryset.filter(is_net=True)
         else:

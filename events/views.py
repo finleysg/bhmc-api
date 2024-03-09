@@ -27,7 +27,7 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(start_date__year=year)
         if month is not None:
             queryset = queryset.filter(start_date__month=month)
-        if season is not None:
+        if season is not None and season != '0':
             queryset = queryset.filter(season=season)
         if active is not None:
             today = timezone.now()

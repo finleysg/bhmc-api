@@ -147,7 +147,7 @@ def import_champions(request):
     season = event.season
     event_name = event.name
 
-    players = Player.objects.all()
+    players = Player.objects.filter(is_member=True).all()
     player_map = {player.player_name(): player for player in players}
     existing_champions = {champ.player.id: champ for champ in list(MajorChampion.objects.filter(event=event))}
 

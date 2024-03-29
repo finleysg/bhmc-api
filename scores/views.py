@@ -52,7 +52,7 @@ def import_scores(request):
     event = Event.objects.get(pk=event_id)
     document = Document.objects.get(pk=document_id)
     courses = list(Course.objects.all())
-    players = Player.objects.all()
+    players = Player.objects.filter(is_member=True).all()
     player_map = {player.player_name(): player for player in players}
     failures = []
 

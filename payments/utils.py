@@ -99,7 +99,7 @@ def get_fees(event, payment_details):
         event_fee = next((f for f in event.fees.all() if f == fee.event_fee), None)
         player_fees.append({
             "description": event_fee.fee_type.name,
-            "amount": "${:,.2f}".format(event_fee.amount)
+            "amount": "${:,.2f}".format(fee.amount)
         })
     return player_fees
 

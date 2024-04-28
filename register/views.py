@@ -142,7 +142,9 @@ def cancel_reserved_slots(request, registration_id):
         raise ValidationError("Missing registration_id")
 
     payment_id = int(request.query_params.get("payment_id", "0"))
-    Registration.objects.cancel_registration(registration_id, payment_id, True)
+    reason = request.query_params.get("reason", "user")  # user, timeout, navigation
+
+    Registration.objects.cancel_registration(registration_id, payment_id, reason)
 
     return Response(status=204)
 

@@ -12,11 +12,11 @@ from datetime import timedelta
 from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 
 from courses.models import Hole
 from payments.models import Payment
-from register.exceptions import SlotConflictError, MissingSlotsError
+from register.exceptions import SlotConflictError, MissingSlotsError, AlreadyRegisteredError
 
 logger = structlog.getLogger()
 
@@ -32,10 +32,11 @@ class RegistrationManager(models.Manager):
         count = len(registrations)
 
         for reg in registrations:
-            logger.info("Cleaning up expired registration", currentTime=current_time, expiry=reg.expires, registrationId=reg.id)
+            logger.info("Cleaning up expired registration", currentTime=current_time, expiry=reg.expires,
+                        registrationId=reg.id, user=reg.signed_up_by)
 
             # Make can_choose slots available
-            reg.slots\
+            reg.slots \
                 .filter(status="P") \
                 .filter(event__can_choose=True) \
                 .update(**{"status": "A", "registration": None, "player": None})
@@ -53,16 +54,10 @@ class RegistrationManager(models.Manager):
 
     @transaction.atomic()
     def create_and_reserve(self, user, player, event, course, registration_slots, signed_up_by):
-        reg = self.create(event=event, course=course, user=user, signed_up_by=signed_up_by)
-        if event.can_choose:
-            reg.expires = tz.now() + timedelta(minutes=5)
-        else:
-            reg.expires = tz.now() + timedelta(minutes=15)
-        reg.save()
 
         if event.can_choose:
             slot_ids = [slot["id"] for slot in registration_slots]
-            logger.info("Reserving slots", eventId=event.id, course=course.name, user=signed_up_by, slots=slot_ids)
+            logger.info("Checking slots", eventId=event.id, course=course.name, user=signed_up_by, slots=slot_ids)
 
             slots = list(event.registrations.select_for_update().filter(pk__in=slot_ids))
 
@@ -76,6 +71,9 @@ class RegistrationManager(models.Manager):
                 if s.status != "A":
                     raise SlotConflictError()
 
+            reg = self.create_or_update_registration(event, user, course, signed_up_by)
+
+            logger.info("Reserving slots", eventId=event.id, course=course.name, user=signed_up_by, slots=slot_ids)
             for i, slot in enumerate(slots):
                 if i == 0:
                     slot.player = player
@@ -83,6 +81,7 @@ class RegistrationManager(models.Manager):
                 slot.registration = reg
                 slot.save()
         else:
+            reg = self.create_or_update_registration(event, user, course, signed_up_by)
             for s in range(0, event.maximum_signup_group_size):
                 slot = event.registrations.create(event=event, registration=reg, status="P", starting_order=0, slot=s)
                 if slot.slot == 0:
@@ -90,6 +89,27 @@ class RegistrationManager(models.Manager):
                 slot.save()
 
         return reg
+
+    def create_or_update_registration(self, event, user, course, signed_up_by):
+        registration = self.filter(user=user, event=event).first()
+        if registration is not None:
+            is_duplicate = registration.slots.filter(Q(status="R") | Q(status="X")).exists()
+            if is_duplicate:
+                raise AlreadyRegisteredError()
+            registration.course = course
+            registration.signed_up_by = signed_up_by
+            registration.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
+        else:
+            registration = self.create(event=event, course=course, user=user, signed_up_by=signed_up_by)
+
+        if event.can_choose:
+            registration.expires = tz.now() + timedelta(minutes=5)
+        else:
+            registration.expires = tz.now() + timedelta(minutes=15)
+
+        registration.save()
+
+        return registration
 
     def payment_processing(self, registration_id):
         try:
@@ -113,32 +133,32 @@ class RegistrationManager(models.Manager):
     def undo_payment_processing(self, registration_id):
         try:
             reg = self.filter(pk=registration_id).get()
+            logger.info("Undoing payment processing", registration=registration_id, user=reg.signed_up_by)
             reg.slots.filter(status="X").update(**{"status": "P"})
         except ObjectDoesNotExist:
             pass
 
     @transaction.atomic()
-    def cancel_registration(self, registration_id, payment_id, destroy):
+    def cancel_registration(self, registration_id, payment_id, reason):
         try:
             reg = self.filter(pk=registration_id).get()
-            logger.info("Canceling registration", registration=registration_id, payment=payment_id)
+            logger.info("Canceling registration", registration=registration_id, payment=payment_id,
+                        user=reg.signed_up_by, reason=reason)
 
             if reg.event.can_choose:
                 reg.slots.filter(status="P").update(**{"status": "A", "player": None, "registration": None})
             else:
                 reg.slots.filter(status="P").delete()
 
-            # destroy is True if cancel comes from a user, otherwise we"re cleaning up
-            # expired registrations. In that case, we will be more conservative about the data.
-            if destroy and len(reg.slots.all()) == 0:
-                reg.delete()
+            reg.delete()
 
-                if payment_id is not None and payment_id > 0:
-                    payment = Payment.objects.get(pk=payment_id)
-                    payment.payment_details.all().delete()
-                    if payment.payment_code is not None and payment.payment_code.startswith("pi_"):
-                        stripe.PaymentIntent.cancel(payment.payment_code)
-                    payment.delete()
+            if payment_id is not None and payment_id > 0:
+                payment = Payment.objects.get(pk=payment_id)
+                payment.payment_details.all().delete()
+                if payment.payment_code is not None and payment.payment_code.startswith("pi_"):
+                    logger.info("Canceling stripe payment", payment=payment_id, code=payment.payment_code, user=reg.signed_up_by)
+                    stripe.PaymentIntent.cancel(payment.payment_code)
+                payment.delete()
 
         except ObjectDoesNotExist:
             pass

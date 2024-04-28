@@ -22,6 +22,13 @@ class MissingSlotsError(APIException):
         self.detail = "One or more of the slots you requested are not available"
 
 
+class AlreadyRegisteredError(APIException):
+
+    def __init__(self):
+        self.status_code = 400
+        self.detail = "You already have a completed registration for this event"
+
+
 class EventFullError(APIException):
 
     def __init__(self):

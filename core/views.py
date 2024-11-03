@@ -106,11 +106,11 @@ class TokenCreateView(djoser.views.TokenCreateView):
             key = "access_token",
             path = "/",
             value = data["auth_token"],
-            max_age = timedelta(days=30),
+            max_age = timedelta(days=90),
             secure = not is_localhost,
             httponly = True,
             samesite = "Lax",
-            domain = "api.bhmc.org" if not is_localhost else None,
+            domain = "data.bhmc.org" if not is_localhost else None,
         )
 
         response.data = "Welcome!"
@@ -129,7 +129,7 @@ class TokenDestroyView(djoser.views.TokenDestroyView):
             key = "access_token",
             path = "/",
             samesite = "Lax",
-            domain = "api.bhmc.org" if not is_localhost else None,
+            domain = "data.bhmc.org" if not is_localhost else None,
         )
         response.status_code = status.HTTP_204_NO_CONTENT
         utils.logout_user(request)

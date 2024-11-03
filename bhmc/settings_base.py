@@ -34,6 +34,7 @@ INSTALLED_APPS = (
     "storages",
     "anymail",
     "pagedown.apps.PagedownConfig",
+    "imagekit",
     "content",
     "core",
     "courses",

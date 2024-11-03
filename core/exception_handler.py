@@ -39,7 +39,7 @@ def custom_exception_handler(exc, context):
             key = "access_token",
             path = "/",
             samesite = "Lax",
-            domain = "api.bhmc.org" if not is_localhost else None,
+            domain = "data.bhmc.org" if not is_localhost else None,
         )
 
     return response

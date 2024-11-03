@@ -28,3 +28,6 @@ bhmc-api.iml
 
 db-backup.sh
 venv/
+
+# SQL
+*.sql

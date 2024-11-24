@@ -172,7 +172,6 @@ def cancel_expired(request):
 @api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
 def player_search(request):
-    event_id = request.query_params.get("event_id", 0)
     player_id = request.query_params.get("player_id", 0)
     pattern = request.query_params.get("pattern", "")
 
@@ -182,7 +181,6 @@ def player_search(request):
             [
                 pattern,
                 player_id,
-                event_id,
             ],
         )
         players = fetch_all_as_dictionary(cursor)

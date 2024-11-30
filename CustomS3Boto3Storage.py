@@ -6,7 +6,8 @@ from boto3 import setup_default_session
 from boto3.session import Session
 from botocore import parsers
 from botocore.utils import parse_timestamp
-from storages.backends.s3boto3 import S3Boto3Storage, SpooledTemporaryFile
+from storages.backends.s3boto3 import S3Boto3Storage
+from tempfile import SpooledTemporaryFile
 
 
 class CustomS3Boto3Storage(S3Boto3Storage, ABC):

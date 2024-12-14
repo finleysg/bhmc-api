@@ -20,7 +20,7 @@ from register.models import Player, RegistrationSlot
 from reporting.views import fetch_all_as_dictionary
 
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 
 
 def get_top_gross_points(season, top_n):

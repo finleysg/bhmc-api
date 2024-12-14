@@ -18,7 +18,7 @@ from courses.models import Hole
 from payments.models import Payment
 from register.exceptions import SlotConflictError, MissingSlotsError, AlreadyRegisteredError
 
-logger = structlog.getLogger()
+logger = structlog.getLogger(__name__)
 
 
 class RegistrationManager(models.Manager):

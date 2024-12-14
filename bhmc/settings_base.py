@@ -5,20 +5,15 @@ import structlog
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 LOG_DIR = os.path.join(BASE_DIR, 'var/log')
-FLAT_LOG_FILE = '/bhmc.log'
-FLAT_LOG_PATH = LOG_DIR + FLAT_LOG_FILE
 
 if not os.path.exists(LOG_DIR):
     os.mkdir(LOG_DIR)
 
-if not os.path.exists(FLAT_LOG_PATH):
-    f = open(FLAT_LOG_PATH, "a").close()
-else:
-    f = open(FLAT_LOG_PATH, "w").close()
-
 SITE_ID = 1
 
 INSTALLED_APPS = (
+    "anymail",
+    "corsheaders",
     "django.contrib.contenttypes",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -27,14 +22,13 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.sites",
     "django.contrib.staticfiles",
+    "django_structlog",
+    "djoser",
+    "imagekit",
+    "pagedown.apps.PagedownConfig",
     "rest_framework",
     "rest_framework.authtoken",
-    "djoser",
-    "corsheaders",
     "storages",
-    "anymail",
-    "pagedown.apps.PagedownConfig",
-    "imagekit",
     "content",
     "core",
     "courses",
@@ -113,6 +107,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
+        "json_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
+        },
         "plain_console": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.dev.ConsoleRenderer(),
@@ -128,8 +126,10 @@ LOGGING = {
             "formatter": "plain_console",
         },
         "flat_line_file": {
-            "class": "logging.handlers.WatchedFileHandler",
-            "filename": FLAT_LOG_PATH,
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": LOG_DIR + "/bhmc.log",
+            "when": "W5",
+            "backupCount": 12,
             "formatter": "key_value",
         },
     },

@@ -7,7 +7,7 @@ from rest_framework.views import exception_handler, set_rollback
 
 from core.views import is_localhost
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 
 
 def custom_exception_handler(exc, context):

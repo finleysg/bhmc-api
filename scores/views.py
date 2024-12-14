@@ -14,7 +14,7 @@ from scores.serializers import EventScoreSerializer
 from scores.utils import is_hole_scores, get_score_type, get_course, get_score_rows, get_player_name, get_scores
 
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 
 
 class EventScoreViewSet(viewsets.ModelViewSet):

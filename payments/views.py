@@ -16,7 +16,7 @@ from payments.serializers import PaymentSerializer, RefundSerializer
 from payments.utils import calculate_refund_amount
 from register.models import Player, Registration
 
-logger = structlog.getLogger()
+logger = structlog.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 

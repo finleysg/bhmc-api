@@ -73,7 +73,6 @@ class Registration(models.Model):
     created_date = models.DateTimeField(verbose_name="Created date", auto_now_add=True)
 
     objects = RegistrationManager()
-    history = HistoricalRecords()
 
     @property
     def players(self):
@@ -100,7 +99,6 @@ class RegistrationSlot(models.Model):
         ]
 
     objects = RegistrationSlotManager()
-    history = HistoricalRecords()
 
     def __str__(self):
         return "{} - {} ({})".format(self.player, self.status, self.registration)
@@ -116,8 +114,6 @@ class PlayerHandicap(models.Model):
         constraints = [
             UniqueConstraint(fields=["player", "season"], name="unique_player_season_index")
         ]
-
-    history = HistoricalRecords()
 
     def __str__(self):
         return "{} - {} ({})".format(self.season, self.player, self.handicap)

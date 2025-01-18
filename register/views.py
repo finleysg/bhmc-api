@@ -271,8 +271,6 @@ def add_player(request, event_id):
 @transaction.atomic()
 @permission_classes((permissions.IsAuthenticated,))
 def move_players(request, registration_id):
-    # TODO: validate that len(source) == len(destination)
-    # TODO: validate that destination is open
     source_slots = request.data.get("source_slots", [])
     destination_slots = request.data.get("destination_slots", [])
 

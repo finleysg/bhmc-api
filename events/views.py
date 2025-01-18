@@ -1,6 +1,8 @@
 from datetime import timedelta, date
 
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -36,6 +38,14 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(signup_start__lte=today, signup_end__gt=end_dt)
 
         return queryset.order_by('start_date')
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @method_decorator(cache_page(60 * 30))
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 class FeeTypeViewSet(viewsets.ModelViewSet):

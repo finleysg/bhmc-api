@@ -129,6 +129,14 @@ class RegistrationManager(models.Manager):
         except ObjectDoesNotExist:
             pass
 
+    def payment_confirmed(self, registration_id):
+        try:
+            reg = self.filter(pk=registration_id).get()
+            reg.slots.filter(status="X").update(**{"status": "R"})
+            return reg.slots.filter(status="R")
+        except ObjectDoesNotExist:
+            pass
+        
     # Something went wrong on the client side, so we revert the status to Pending
     def undo_payment_processing(self, registration_id):
         try:

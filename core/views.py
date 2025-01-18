@@ -11,7 +11,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 
-from bhmc.settings import is_development, to_bool
+from bhmc.settings import DJANGO_ENV
 from documents.models import Document
 from documents.utils import open_xlsx_workbook
 from events.models import Event
@@ -21,7 +21,7 @@ from .serializers import BoardMemberSerializer, AceSerializer, LowScoreSerialize
     SeasonSettingsSerializer
 
 
-is_localhost = to_bool(is_development)
+is_localhost = DJANGO_ENV != "prod"
 
 class BoardMemberViewSet(viewsets.ModelViewSet):
     serializer_class = BoardMemberSerializer

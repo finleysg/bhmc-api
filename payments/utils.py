@@ -1,3 +1,4 @@
+import math
 import re
 from datetime import timedelta, datetime, date
 from decimal import Decimal
@@ -5,11 +6,60 @@ from decimal import Decimal
 from django.db.models.aggregates import Sum
 from rest_framework.exceptions import APIException
 
+from core.util import current_season
 from events.models import EventFee
 from payments.models import Payment
 from register.models import RegistrationFee
 
 DEFAULT_INTERVAL = 10
+
+
+def calculate_payment_amount(amount_due):
+    transaction_fixed_cost = Decimal(0.3)
+    transaction_percentage = Decimal(0.029)
+    total = (amount_due + transaction_fixed_cost) / (Decimal(1.0) - transaction_percentage)
+    transaction_fee = total - amount_due
+    return total, transaction_fee
+
+
+def derive_notification_type(event, player, payment_details):
+
+    if event.event_type == "R":  # season registration
+        season = current_season()
+        if player.last_season == (season - 1):
+            return "R"
+        else:
+            return "N"
+    elif event.event_type == "S":  # season long match play
+        return "M"
+
+    # This is a roundabout way to get this info, but if there are
+    # no required fees in the payment details, we know this is an
+    # "edit" (skins payment, or other fees, after the initial registration)
+    if has_required_fees(event, payment_details):
+        return "C"
+
+
+def get_amount_due(event, payment_details):
+    # TODO: verify that the amount_received is a valid override
+    amount_due = Decimal(0.0)
+    amounts = [detail.amount for detail in payment_details]
+    for amount in amounts:
+        amount_due += amount
+
+    return amount_due
+
+
+def round_half_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n*multiplier + Decimal(0.5)) / multiplier
+
+
+def has_required_fees(event, payment_details):
+    event_fees = event.fees.all()
+    event_fee_ids = [detail["event_fee"].id for detail in payment_details]
+    required = next(iter([f for f in event_fees if f.is_required and f.id in event_fee_ids]), None)
+    return required is not None
 
 
 def get_start(event, registration, slot):

@@ -1,4 +1,0 @@
-python manage.py dumpdata events.Event --format=yaml --indent=4 > events/fixtures/event.yaml
-python manage.py dumpdata events.EventFee --format=yaml --indent=4 > events/fixtures/event_fee.yaml
-python manage.py dumpdata courses.Course --format=yaml --indent=4 > courses/fixtures/course.yaml
-python manage.py dumpdata courses.Hole --format=yaml --indent=4 > courses/fixtures/hole.yaml

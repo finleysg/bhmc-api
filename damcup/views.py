@@ -7,6 +7,7 @@ import structlog
 from decimal import Decimal
 
 from django.db import connection
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -61,6 +62,7 @@ class SeasonLongPointsViewSet(viewsets.ModelViewSet):
 
 @api_view(("GET",))
 @permission_classes((permissions.AllowAny,))
+@cache_page(60 * 60)
 def get_top_points(request, season, category, top_n):
 
     if category == "gross":

@@ -1,3 +1,3 @@
-from CustomS3Boto3Storage import get_session
+from .celery import app as celery_app
 
-get_session()
+__all__ = ('celery_app',)

@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, permissions, pagination
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
@@ -58,6 +60,10 @@ class PhotoViewSet(viewsets.ModelViewSet):
 
         queryset = queryset.order_by("-year", "caption")
         return queryset
+
+    @method_decorator(cache_page(timeout=60 * 60 * 24, cache="file"))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))

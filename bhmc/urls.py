@@ -1,9 +1,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from djoser import  views as djoser_views
 
 from core import views as core_views
 from courses import views as course_views
@@ -55,16 +54,15 @@ urlpatterns = [
       path("api/random-photos/", document_views.random_photos),
       path("api/points/<int:season>/<category>/<int:top_n>/", damcup_views.get_top_points),
       path("api/player-search/", register_views.player_search),
-      path("api/hooks/stripe/", payment_views.payment_complete),
+      path("api/hooks/stripe/acacia/", payment_views.payment_complete_acacia),
       path("api/import-champions/", core_views.import_champions),
       path("api/import-handicaps/", register_views.import_handicaps),
       path("api/import-points/", damcup_views.import_points),
       path("api/import-scores/", scoring_views.import_scores),
-      path("api/payments/<int:payment_id>/confirm/", payment_views.confirm_payment),
+      path("api/create-customer-session/", payment_views.create_customer_session),
       path("api/issue-refunds/", payment_views.create_refunds),
-      path("api/remove-card/<payment_method>/", payment_views.remove_card),
-      path("api/save-card/", payment_views.player_card),
-      path("api/saved-cards/", payment_views.player_cards),
+      path("api/payments/<int:payment_id>/amount/", payment_views.get_payment_amount),
+      path("api/payments/<int:payment_id>/create-payment-intent/", payment_views.create_payment_intent),
       path("api/events/<int:event_id>/clone/", event_views.copy_event),
       path("api/events/<int:event_id>/create-slots/", register_views.create_event_slots),
       path("api/events/<int:event_id>/add-player/", register_views.add_player),

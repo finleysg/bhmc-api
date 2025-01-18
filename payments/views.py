@@ -2,24 +2,24 @@ import stripe
 import structlog
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from payments.emails import send_notification
+from events.models import Event
 from payments.models import Payment, Refund
 from payments.serializers import PaymentSerializer, RefundSerializer
-from payments.utils import calculate_refund_amount
+from payments.tasks import handle_payment_complete, handle_refund_complete
+from payments.utils import calculate_refund_amount, get_amount_due, calculate_payment_amount, round_half_up
 from register.models import Player, Registration
 
 logger = structlog.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
+#============================ ViewSets ============================#
 
 @permission_classes((permissions.IsAuthenticated,))
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -43,12 +43,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
         context = super(PaymentViewSet, self).get_serializer_context()
         return context
 
-    def destroy(self, request, *args, **kwargs):
-        queryset = Payment.objects.all()
-        payment = queryset.get(pk=kwargs.get("pk"))
-        stripe.PaymentIntent.cancel(payment.payment_code)
-        return super(PaymentViewSet, self).destroy(request, *args, **kwargs)
-
 
 @permission_classes((permissions.IsAuthenticated,))
 class RefundViewSet(viewsets.ModelViewSet):
@@ -61,32 +55,102 @@ class RefundViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(event=event_id)
         return queryset
 
+#============================ Payment Endpoints ============================#
 
-@api_view(("PUT",))
+@api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
-def confirm_payment(request, payment_id):
-    registration_id = request.data.get("registrationId", 0)
-    payment_method_id = request.data.get("paymentMethodId", "")
-    save_card = request.data.get("saveCard", False)
+def get_payment_amount(request, payment_id):
+    payment = Payment.objects.get(pk=payment_id)
+    payment_details = list(payment.payment_details.all())
 
+    amount_due = get_amount_due(None, payment_details)
+    stripe_payment = calculate_payment_amount(amount_due)
+    stripe_amount_due = int(round_half_up(stripe_payment[0] * 100))
+
+    return Response(stripe_amount_due, status=200)
+
+
+@api_view(("POST",))
+@permission_classes((permissions.IsAuthenticated,))
+def create_customer_session(request):
+    email = request.user.email
+    player = Player.objects.get(email=email)
+
+    if player.stripe_customer_id is None:
+        customer = stripe.Customer.create()
+        player.stripe_customer_id = customer.id
+        player.save()
+
+    session = stripe.CustomerSession.create(
+        customer=player.stripe_customer_id,
+        components={
+            "payment_element": {
+                "enabled": True,
+                "features": {
+                    "payment_method_redisplay": "enabled",
+                    "payment_method_save": "enabled",
+                    "payment_method_save_usage": "on_session",
+                    "payment_method_remove": "enabled",
+                }
+            }
+        }
+    )
+    return Response(session, status=200)
+
+
+@api_view(("POST",))
+@permission_classes((permissions.IsAuthenticated,))
+def create_payment_intent(request, payment_id):
     try:
+        event_id = request.data.get("event_id", 0)
+        registration_id = request.data.get("registration_id", 0)
+        user = request.user
+        player = Player.objects.get(email=user.email)
+        event = Event.objects.get(pk=event_id)
         payment = Payment.objects.get(pk=payment_id)
+        payment_details = list(payment.payment_details.all())
 
-        # update status on the slots to processing
+        amount_due = get_amount_due(event, payment_details)
+        stripe_payment = calculate_payment_amount(amount_due)
+        stripe_amount_due = int(round_half_up(stripe_payment[0] * 100))  # total (with fees) in cents
+
+        if amount_due > 0 and (player.stripe_customer_id is None or player.stripe_customer_id.strip() == ""):
+            customer = stripe.Customer.create()
+            player.stripe_customer_id = customer.id
+            player.save()
+
+        intent = stripe.PaymentIntent.create(
+            amount=stripe_amount_due,
+            currency="usd",
+            automatic_payment_methods={"enabled": True},
+            description="Online payment for {} ({}) by {}".format(
+                event.name,
+                event.start_date.strftime("%Y-%m-%d"),
+                user.get_full_name()),
+            metadata={
+                "user_name": user.get_full_name(),
+                "user_email": user.email,
+                "event_id": event.id,
+                "event_name": event.name,
+                "event_date": event.start_date.strftime("%Y-%m-%d"),
+                "registration_id": registration_id,
+            },
+            customer=player.stripe_customer_id,
+            receipt_email=user.email,
+        )
+        logger.info("Payment intent created", payment_id=payment_id, intent_id=intent.id, status=intent.status)
+
+        payment.payment_code = intent.id
+        payment.payment_key = intent.client_secret
+        payment.save()
+
+        # Updates the registration slots to processing and frees up any slots without players
         Registration.objects.payment_processing(registration_id)
 
-        if save_card:
-            intent = stripe.PaymentIntent\
-                .confirm(payment.payment_code, payment_method=payment_method_id, setup_future_usage="on_session")
-        else:
-            intent = stripe.PaymentIntent.confirm(payment.payment_code, payment_method=payment_method_id)
-
-        logger.info("Payment confirmed", payment=payment_id, registration=registration_id)
-        return Response(intent.status, status=200)
+        return Response(intent, status=200)
 
     except Exception as e:
-        logger.error("Confirm payment failed", registration=registration_id, payment=payment_id, message=str(e))
-        Registration.objects.undo_payment_processing(registration_id)
+        logger.error("Payment intent creation failed", payment_id=payment_id, message=str(e))
         return Response(str(e), status=400)
 
 
@@ -114,140 +178,60 @@ def create_refunds(request):
 
     return Response({"refunds": successful_refunds, "failures": failures}, status=status)
 
+#============================ Stripe Webhook ============================#
 
-@api_view(("GET",))
-@permission_classes((permissions.IsAuthenticated,))
-def player_cards(request):
-    email = request.user.email
-    player = Player.objects.get(email=email)
-    if player.stripe_customer_id:
-        cards = stripe.PaymentMethod.list(customer=player.stripe_customer_id, type="card")
-        return Response(cards.data, status=200)
-
-    return Response([], status=200)
-
-
-@api_view(("POST",))
-@permission_classes((permissions.IsAuthenticated,))
-def player_card(request):
-    email = request.user.email
-    player = Player.objects.get(email=email)
-    if player.stripe_customer_id is None:
-        customer = stripe.Customer.create()
-        player.stripe_customer_id = customer.stripe_id
-        player.save()
-
-    intent = stripe.SetupIntent.create(customer=player.stripe_customer_id, usage="on_session")
-    return Response(intent, status=200)
-
-
-@api_view(("DELETE",))
-@permission_classes((permissions.IsAuthenticated,))
-def remove_card(request, payment_method):
-    stripe.PaymentMethod.detach(payment_method)
-    return Response(status=204)
-
-
-# This is a webhook registered with Stripe
 @csrf_exempt
 @api_view(("POST",))
 @permission_classes((permissions.AllowAny,))
-def payment_complete(request):
-    payload = request.body
-    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
-    event = stripe.Webhook.construct_event(
-        payload, sig_header, webhook_secret
-    )
+def payment_complete_acacia(request):
+    try:
+        # Verify and construct the Stripe event
+        payload = request.body
+        sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
 
-    # Handle the event
-    if event is None:
+        if event is None:
+            return Response(status=400)
+
+        handlers = {
+            "payment_intent.payment_failed": _handle_payment_failed,
+            "payment_intent.succeeded": _handle_payment_succeeded,
+            "charge.refunded": _handle_charge_refunded
+        }
+
+        handler = handlers.get(event.type)
+        if handler:
+            handler(event)
+        else:
+            logger.debug("Unhandled event", event_type=event.type)
+
+        return Response(status=200)
+
+    except stripe.error.SignatureVerificationError as se:
+        logger.error("Invalid signature in webhook", error=str(se))
         return Response(status=400)
-    elif event.type == "payment_intent.payment_failed":
-        logger.warn("Payment failure", stripeId=event.stripe_id, message=event.data.object.last_payment_error.message)
-    elif event.type == "payment_intent.succeeded":
-        payment_intent = event.data.object
-        handle_payment_complete(payment_intent)
-    elif event.type == "charge.refunded":
-        charge = event.data.object
-        handle_refund_complete(charge)
-    else:
-        pass
-
-    return Response(status=204)
-
-
-def handle_payment_complete(payment_intent):
-    payment = Payment.objects.get(payment_code=payment_intent.stripe_id)
-
-    # exit early if we have already confirmed this payment
-    if payment.confirmed:
-        logger.info("Payment already confirmed by Stripe", paymentCode=payment.payment_code)
-        return
-
-    payment.confirmed = True
-    payment.confirm_date = timezone.now()
-    payment.save()
-
-    payment_details = list(payment.payment_details.all())
-    for detail in payment_details:
-        detail.is_paid = True
-        detail.save()
-
-    # We are doing extra work here, since the slot record
-    # can be duplicated across payment details
-    slots = [detail.registration_slot for detail in payment_details]
-    for slot in slots:
-        slot.status = "R"
-        slot.save()
-
-    # Season registration handling
-    update_membership(payment.event, slots)
-
-    logger.info("Payment confirmed by Stripe", paymentCode=payment.payment_code)
-
-    # important, but don"t cause the payment intent to fail
-    try:
-        # clear_available_slots(payment.event, slots[0].registration)
-        email = payment_intent.metadata.get("user_email")
-        player = Player.objects.get(email=email)
-        send_notification(payment, slots, player)
     except Exception as e:
-        logger.error("Send notification failure", paymentCode=payment.payment_code, message=str(e))
+        logger.error("Webhook processing failed", error=str(e))
+        return Response(status=400)
 
 
-def handle_refund_complete(charge):
-    for refund in charge.refunds.data:
-        try:
-            local_refund = Refund.objects.get(refund_code=refund.stripe_id)
-            local_refund.confirmed = True
-            local_refund.save()
-            logger.info("Refund confirmed by Stripe", refundCode=refund.stripe_id, local=True)
-        except ObjectDoesNotExist:
-            # We get this hook for refunds created in the Stripe UI
-            # so we will have not record to tie together
-            logger.info("Refund confirmed by Stripe", refundCode=refund.stripe_id, local=False)
-            pass
+def _handle_payment_failed(event):
+    payment_intent = event.data.object
+    error = payment_intent.last_payment_error
+    logger.warn("Payment failure",
+                event_id=event.id,
+                payment_intent_id=payment_intent.id,
+                error_message=error.message if error else "Unknown error",
+                error_code=error.code if error else None,
+                error_type=error.type if error else None,
+                user_email=payment_intent.metadata.get("user_email"))
 
 
-def save_customer_id(payment_intent):
-    email = payment_intent.metadata.get("user_email")
-    player = Player.objects.get(email=email)
-    if player.stripe_customer_id is None:
-        player.stripe_customer_id = payment_intent.customer
-        player.save()
-
-    return player
+def _handle_payment_succeeded(event):
+    payment_intent = event.data.object
+    handle_payment_complete.delay(payment_intent)
 
 
-def update_membership(event, slots):
-    try:
-        # R is a season membership event
-        if event.event_type == "R":
-            for slot in slots:
-                # Support multiple players for a registration
-                if slot.status == "R":
-                    player = slot.player
-                    player.is_member = True
-                    player.save()
-    except Exception as e:
-        logger.error("Membership update failure", message=str(e))
+def _handle_charge_refunded(event):
+    charge = event.data.object
+    handle_refund_complete.delay(charge)

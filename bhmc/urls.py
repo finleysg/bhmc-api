@@ -49,6 +49,7 @@ router.register(r"tags", content_views.TagViewSet, "tags")
 urlpatterns = [
       path("admin/", admin.site.urls),
       path("api/", include(router.urls)),
+      path("api/celery-check", core_views.ping_celery),
       path("api/contact/", messaging_views.contact_message),
       path("api/clean-up/", register_views.cancel_expired),
       path("api/random-photos/", document_views.random_photos),

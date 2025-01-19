@@ -19,7 +19,7 @@ from register.models import Player
 from .models import BoardMember, MajorChampion, Ace, LowScore, SeasonSettings
 from .serializers import BoardMemberSerializer, AceSerializer, LowScoreSerializer, MajorChampionSerializer, \
     SeasonSettingsSerializer
-
+from .tasks import debug_task
 
 is_localhost = DJANGO_ENV != "prod"
 
@@ -134,6 +134,13 @@ class TokenDestroyView(djoser.views.TokenDestroyView):
         response.status_code = status.HTTP_204_NO_CONTENT
         utils.logout_user(request)
         return response
+
+
+@api_view(("GET",))
+@permission_classes((permissions.AllowAny,))
+def ping_celery(request):
+    debug_task.delay()
+    return Response(data="task started", status=200)
 
 
 @api_view(("POST",))

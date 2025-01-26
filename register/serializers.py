@@ -66,9 +66,9 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = User.objects.get(email=instance.email)
-        ghin = validated_data["ghin"].strip()
+        ghin = validated_data["ghin"]
         if ghin is not None:
-            if ghin == "":
+            if ghin.strip() == "":
                 ghin = None
             else:
                 exists = (

@@ -80,6 +80,16 @@ def handle_refund_complete(charge):
             pass
 
 
+@shared_task(bind=True)
+def delete_abandoned_payments(self):
+    logger.info("Scheduled job: delete abandoned payments")
+    count = Payment.objects.cleanup_abandoned()
+    if count > 0:
+        logger.info("Abandoned payments deleted", count=count)
+    else:
+        logger.info("No abandoned payments found")
+
+
 def _update_membership(event, slots):
     # R is a season membership event
     if event.event_type == "R":

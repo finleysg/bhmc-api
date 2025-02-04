@@ -24,6 +24,7 @@ COPY ./scripts /scripts
 
 RUN chmod +x /scripts/start.sh
 RUN chmod +x /scripts/celery.sh
+RUN chmod +x /scripts/celery-beat.sh
 
 RUN mkdir /app
 WORKDIR /app

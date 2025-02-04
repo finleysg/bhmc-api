@@ -12,7 +12,7 @@ class PaymentManager(models.Manager):
         # Player reviewed the payment details but abandoned the registration. We know they are
         # abandoned because they have no payment code, which became possible after the 2025 payment changes.
         # Run in the overnight to ensure we're not deleting payments that are still in progress.
-        abandoned_payments = self.filter(payment_code="")
+        abandoned_payments = self.filter(payment_code="").filter(confirmed=False)
         count = len(abandoned_payments)
         for payment in abandoned_payments:
             try:

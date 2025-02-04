@@ -2,7 +2,9 @@ import stripe
 import structlog
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
+from kombu.abstract import Object
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
@@ -60,7 +62,12 @@ class RefundViewSet(viewsets.ModelViewSet):
 @api_view(("GET",))
 @permission_classes((permissions.IsAuthenticated,))
 def get_payment_amount(request, payment_id):
-    payment = Payment.objects.get(pk=payment_id)
+    try:
+        payment = Payment.objects.get(pk=payment_id)
+    except ObjectDoesNotExist:
+        logger.warn("No payment found when calculating payment amount.", payment_id=payment_id)
+        return Response("No payment found. Your registration may have timed out. Cancel your current registration and start again.", status=404)
+
     payment_details = list(payment.payment_details.all())
 
     amount_due = get_amount_due(None, payment_details)

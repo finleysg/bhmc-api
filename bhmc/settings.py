@@ -85,6 +85,7 @@ USE_TZ = True
 INSTALLED_APPS = (
     "anymail",
     "corsheaders",
+    "django_celery_beat",
     "django_celery_results",
     "django.contrib.contenttypes",
     "django.contrib.admin",

@@ -256,6 +256,13 @@ class RegistrationSlotManager(models.Manager):
 
         return slots
 
+    def remove_unused_slots(self):
+        count = self.exclude(event__can_choose=True) \
+                    .filter(registration__isnull=True) \
+                    .filter(player__isnull=True) \
+                    .delete()
+        return count
+
 
 class RegistrationFeeManager(models.Manager):
 

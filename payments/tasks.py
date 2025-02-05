@@ -84,10 +84,10 @@ def handle_refund_complete(charge):
 def delete_abandoned_payments(self):
     logger.info("Scheduled job: delete abandoned payments")
     count = Payment.objects.cleanup_abandoned()
-    if count > 0:
-        logger.info("Abandoned payments deleted", count=count)
-    else:
-        logger.info("No abandoned payments found")
+    return {
+        "message": "Abandoned payments cleanup complete",
+        "count": count
+    }
 
 
 def _update_membership(event, slots):

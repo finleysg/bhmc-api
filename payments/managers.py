@@ -21,6 +21,8 @@ class PaymentManager(models.Manager):
             except Exception as e:
                 logger.error("Failed to delete abandoned payment", payment_id=payment.id, error=str(e))
 
+        logger.info("Abandoned payments cleanup complete", count=count)
+
         return count
 
 

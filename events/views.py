@@ -39,13 +39,13 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by('start_date')
 
-    @method_decorator(cache_page(60 * 60 * 2))
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+#    @method_decorator(cache_page(60 * 60 * 2))
+#    def list(self, request, *args, **kwargs):
+#        return super().list(request, *args, **kwargs)
 
-    @method_decorator(cache_page(60 * 30))
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+#    @method_decorator(cache_page(60 * 30))
+#    def retrieve(self, request, *args, **kwargs):
+#        return super().retrieve(request, *args, **kwargs)
 
 
 class FeeTypeViewSet(viewsets.ModelViewSet):

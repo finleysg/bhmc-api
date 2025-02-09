@@ -53,7 +53,11 @@ REGISTRATION_CHOICES = (
     ("R", "Returning Member"),
     ("N", "None"),
 )
-
+AGE_RESTRICTION_CHOICES = (
+    ("O", "Over"),
+    ("U", "Under"),
+    ("N", "None"),
+)
 
 class Event(models.Model):
     event_type = models.CharField(verbose_name="Event type", choices=EVENT_TYPE_CHOICES, max_length=1, default="N")
@@ -89,6 +93,9 @@ class Event(models.Model):
     default_tag = models.ForeignKey(verbose_name="Default tag", to=Tag, on_delete=DO_NOTHING, blank=True, null=True)
     starter_time_interval = models.IntegerField(verbose_name="Starter time interval", default=0)
     team_size = models.IntegerField(verbose_name="Team size", default=1)
+    age_restriction = models.IntegerField(verbose_name="Age restriction", blank=True, null=True)
+    age_restriction_type = models.CharField(verbose_name="Age restriction type", max_length=1,
+                                            choices=AGE_RESTRICTION_CHOICES, default="N")
 
     class Meta:
         constraints = [

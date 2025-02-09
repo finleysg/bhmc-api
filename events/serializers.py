@@ -1,5 +1,5 @@
 from courses.serializers import CourseSerializer
-from .models import Event, EventFee, FeeType, EventFeeOverride
+from .models import Event, EventFee, FeeType
 from rest_framework import serializers
 
 
@@ -16,7 +16,8 @@ class EventFeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EventFee
-        fields = ("id", "event", "fee_type", "amount", "is_required", "display_order", "override_amount", "override_restriction", )
+        fields = ("id", "event", "fee_type", "amount", "is_required", "display_order", "override_amount",
+                  "override_restriction", )
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -32,4 +33,5 @@ class EventSerializer(serializers.ModelSerializer):
                   "can_choose", "registration_window", "external_url", "season", "tee_time_splits",
                   "notes", "event_type", "skins_type", "season_points", "portal_url", "priority_signup_start",
                   "start_date", "start_time", "registration_type", "signup_start", "signup_end", "payments_end",
-                  "registration_maximum", "courses", "fees", "default_tag", "starter_time_interval", "team_size", )
+                  "registration_maximum", "courses", "fees", "default_tag", "starter_time_interval", "team_size",
+                  "age_restriction", "age_restriction_type", )

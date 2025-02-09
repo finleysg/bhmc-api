@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# LOG_DIR = os.path.join(BASE_DIR, 'var/log')
 LOG_DIR = os.path.join(BASE_DIR, '/var/log/django')
 CACHE_DIR = os.path.join(BASE_DIR, 'var/cache')
 

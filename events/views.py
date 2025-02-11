@@ -1,14 +1,14 @@
 from datetime import timedelta, date
 
+from django.db import transaction
 from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from rest_framework import permissions, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
+from register.models import RegistrationSlot
 from .models import Event, FeeType
 from .serializers import EventSerializer, FeeTypeSerializer
 
@@ -39,44 +39,31 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by('start_date')
 
-#    @method_decorator(cache_page(60 * 60 * 2))
-#    def list(self, request, *args, **kwargs):
-#        return super().list(request, *args, **kwargs)
+    @action(detail=True, methods=['put'])
+    @transaction.atomic()
+    def append_teetime(self, request, pk):
+        event = Event.objects.get(pk=pk)
+        if not event.can_choose:
+            raise ValidationError("This event does not allow tee time selection")
 
-#    @method_decorator(cache_page(60 * 30))
-#    def retrieve(self, request, *args, **kwargs):
-#        return super().retrieve(request, *args, **kwargs)
+        last_start = RegistrationSlot.objects.append_teetime(event)
+        event.total_groups = last_start + 1
+        event.save()
+
+        serializer = EventSerializer(event, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def copy_event(self, request, pk):
+        start_dt = request.query_params.get("start_dt")
+        event = Event.objects.get(pk=pk)
+        new_dt = date.fromisoformat(start_dt)
+        copy = Event.objects.clone(event, new_dt)
+
+        serializer = EventSerializer(copy, context={'request': request})
+        return Response(serializer.data)
 
 
 class FeeTypeViewSet(viewsets.ModelViewSet):
     queryset = FeeType.objects.all()
     serializer_class = FeeTypeSerializer
-
-
-# TODO: move to patch or put
-@api_view(['POST', ])
-@permission_classes((permissions.IsAuthenticated,))
-def update_portal(request, pk):
-
-    event = get_object_or_404(Event, pk=pk)
-    portal = request.data.get("portal", None)
-    if portal is None:
-        raise ValidationError("A portal url is required")
-
-    event.portal_url = portal
-    event.save()
-
-    serializer = EventSerializer(event, context={'request': request})
-    return Response(serializer.data)
-
-
-@api_view(['POST', ])
-@permission_classes((permissions.IsAuthenticated,))
-def copy_event(request, event_id):
-    start_dt = request.query_params.get("start_dt")
-    event = Event.objects.get(pk=event_id)
-    new_dt = date.fromisoformat(start_dt)
-    copy = Event.objects.clone(event, new_dt)
-
-    serializer = EventSerializer(copy, context={'request': request})
-    return Response(serializer.data)

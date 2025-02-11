@@ -220,9 +220,6 @@ class RegistrationSlotManager(models.Manager):
                     for s in range(0, event.group_size):
                         a_slot = self.create(event=event, hole=hole, starting_order=0, slot=s)
                         slots.append(a_slot)
-                    # Only add 2nd group on par 4s and 5s
-                    # if hole.par != 3:
-                    # for s in range(0, event.group_size):
                         b_slot = self.create(event=event, hole=hole, starting_order=1, slot=s)
                         slots.append(b_slot)
         elif event.can_choose and event.start_type == "TT":
@@ -241,20 +238,24 @@ class RegistrationSlotManager(models.Manager):
     def remove_hole(self, event, hole, starting_order):
         self.filter(event=event, hole=hole, starting_order=starting_order).delete()
 
-    def add_slots_for_hole(self, event, hole):
+    def append_teetime(self, event):
         slots = []
         start = 0
+        courses = event.courses.all()
+        holes = Hole.objects.filter(course=courses[0]).filter(hole_number=1)
 
         # get max starting order and increment 1
-        previous = self.filter(event=event, hole=hole).aggregate(Max("starting_order"))
+        previous = self.filter(event=event, hole=holes[0]).aggregate(Max("starting_order"))
         if len(previous):
             start = previous["starting_order__max"] + 1
 
-        for s in range(0, event.maximum_signup_group_size):
-            slot = self.create(event=event, hole=hole, starting_order=start, slot=s)
-            slots.append(slot)
+        for course in courses:
+            hole = Hole.objects.filter(course=course).filter(hole_number=1).get()
+            for s in range(0, event.maximum_signup_group_size):
+                slot = self.create(event=event, hole=hole, starting_order=start, slot=s)
+                slots.append(slot)
 
-        return slots
+        return start
 
     def remove_unused_slots(self):
         count = self.exclude(event__can_choose=True) \

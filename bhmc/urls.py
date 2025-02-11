@@ -64,7 +64,6 @@ urlpatterns = [
       path("api/issue-refunds/", payment_views.create_refunds),
       path("api/payments/<int:payment_id>/amount/", payment_views.get_payment_amount),
       path("api/payments/<int:payment_id>/create-payment-intent/", payment_views.create_payment_intent),
-      path("api/events/<int:event_id>/clone/", event_views.copy_event),
       path("api/events/<int:event_id>/create-slots/", register_views.create_event_slots),
       path("api/events/<int:event_id>/add-player/", register_views.add_player),
       path("api/events/<int:event_id>/event-report/", reporting_views.event_report),

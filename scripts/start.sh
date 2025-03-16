@@ -8,4 +8,5 @@ do
   sleep 2
 done
 
-python manage.py runserver 0.0.0.0:8000
+# https://bugs.python.org/issue1666807#msg416932
+python -Xfrozen_modules=off manage.py runserver 0.0.0.0:8000

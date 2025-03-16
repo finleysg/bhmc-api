@@ -2,18 +2,17 @@ import csv
 
 from decimal import Decimal
 
-from django.contrib.auth.models import User
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from documents.models import Document
 from events.models import Event
-from payments.utils import create_admin_payment
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 from .serializers import (
@@ -53,6 +52,59 @@ class PlayerViewSet(viewsets.ModelViewSet):
         context = super(PlayerViewSet, self).get_serializer_context()
         return context
 
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def search(self, request):
+        player_id = request.query_params.get("player_id", 0)
+        pattern = request.query_params.get("pattern", "")
+
+        with connection.cursor() as cursor:
+            cursor.callproc(
+                "SearchPlayers",
+                [
+                    pattern,
+                    player_id,
+                ],
+            )
+            players = fetch_all_as_dictionary(cursor)
+
+        return Response(players, status=200)
+
+    @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
+    def friends(self, request, pk):
+        player_id = pk
+        with connection.cursor() as cursor:
+            cursor.callproc(
+                "GetFriends",
+                [
+                    player_id,
+                ],
+            )
+            players = fetch_all_as_dictionary(cursor)
+
+        return Response(players, status=200)
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def add_friend(self, request, pk):
+        player = Player.objects.get(email=request.user.email)
+        friend = get_object_or_404(Player, pk=pk)
+        player.favorites.add(friend)
+        player.save()
+        serializer = PlayerSerializer(
+            player.favorites, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
+    def remove_friend(self, request, pk):
+        player = Player.objects.get(email=request.user.email)
+        friend = get_object_or_404(Player, pk=pk)
+        player.favorites.remove(friend)
+        player.save()
+        serializer = PlayerSerializer(
+            player.favorites, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
+
 
 class RegistrationViewSet(viewsets.ModelViewSet):
 
@@ -75,6 +127,112 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(user=self.request.user.id).prefetch_related("slots")
 
         return queryset
+
+    @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
+    def cancel(self, request, pk):
+        if pk == 0:
+            raise ValidationError("Missing registration_id")
+
+        payment_id = int(request.query_params.get("payment_id", "0"))
+        reason = request.query_params.get("reason", "user")  # user, timeout, navigation
+
+        Registration.objects.cancel_registration(pk, payment_id, reason)
+
+        return Response(status=204)
+
+    @transaction.atomic()
+    @action(detail=True, methods=["put"], permission_classes=[IsAdminUser])
+    def move(self, request, pk):
+        source_slots = request.data.get("source_slots", [])
+        destination_slots = request.data.get("destination_slots", [])
+
+        registration = Registration.objects.filter(pk=pk).get()
+
+        for index, slot_id in enumerate(source_slots):
+            source = registration.slots.get(pk=slot_id)
+            destination = RegistrationSlot.objects.get(pk=destination_slots[index])
+
+            user_name = request.user.get_full_name()
+            player_name = "{} {}".format(source.player.first_name, source.player.last_name)
+            source_start = get_start(source)
+            destination_start = get_start(destination)
+            message = "\n{} moved from {} to {} by {}".format(player_name, source_start, destination_start, user_name)
+            if registration.notes is None:
+                registration.notes = message
+            else:
+                registration.notes = registration.notes + "\n" + message
+            registration.save()
+
+            for fee in source.fees.all():
+                fee.registration_slot = destination
+                fee.save()
+
+            player_ref = source.player
+            source.registration = None
+            source.player = None
+            source.status = "A"
+            source.save()
+
+            destination.registration = registration
+            destination.player = player_ref
+            destination.status = "R"
+            destination.save()
+
+        return Response(status=204)
+
+    @transaction.atomic()
+    @action(detail=True, methods=["delete"], permission_classes=[IsAdminUser])
+    def drop(self, request, pk):
+        source_slots = request.data.get("source_slots", [])
+        registration = Registration.objects.filter(pk=pk).get()
+
+        for slot_id in source_slots:
+            source = registration.slots.get(pk=slot_id)
+
+            user_name = request.user.get_full_name()
+            player_name = "{} {}".format(source.player.first_name, source.player.last_name)
+            message = "\n{} dropped from the event by {}".format(player_name, user_name)
+            if registration.notes is None:
+                registration.notes = message
+            else:
+                registration.notes = registration.notes + "\n" + message
+            registration.save()
+
+            for fee in source.fees.all():
+                fee.registration_slot = None
+                fee.save()
+
+            if registration.event.can_choose:
+                source.registration = None
+                source.player = None
+                source.status = "A"
+                source.save()
+            else:
+                source.delete()
+
+        return Response(status=204)
+
+    @action(detail=False, methods=["put"], permission_classes=[IsAdminUser])
+    def cancel_expired(self, request):
+        cleaned = Registration.objects.clean_up_expired()
+        return Response("Cleaned up " + str(cleaned) + " registration slots", status=204)
+
+    @action(detail=True, methods=['put'], permission_classes=[IsAdminUser])
+    def move_registration(self, request, pk):
+        target_event_id = request.data.get("target_event_id", None)
+        if target_event_id is None:
+            raise ValidationError("Missing target_event_id")
+
+        registration = Registration.objects.get(pk=pk)
+        source_event = registration.event
+        target_event = Event.objects.get(pk=target_event_id)
+
+        registration.event = target_event_id
+        registration.slots.all().update(event=target_event_id)
+        registration.notes = f"Moved player(s) from {source_event.name} to {target_event.name}. Payment records were not changed."
+        registration.save()
+
+        return Response(status=204)
 
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):
@@ -132,215 +290,6 @@ class PlayerHandicapViewsSet(viewsets.ModelViewSet):
         if season is not None:
             queryset = queryset.filter(season=season)
         return queryset
-
-
-@api_view(["PUT", ])
-@permission_classes((permissions.IsAuthenticated,))
-def cancel_reserved_slots(request, registration_id):
-
-    if registration_id == 0:
-        raise ValidationError("Missing registration_id")
-
-    payment_id = int(request.query_params.get("payment_id", "0"))
-    reason = request.query_params.get("reason", "user")  # user, timeout, navigation
-
-    Registration.objects.cancel_registration(registration_id, payment_id, reason)
-
-    return Response(status=204)
-
-
-@api_view(['POST', ])
-@permission_classes((permissions.IsAdminUser,))
-def create_event_slots(request, event_id):
-    event = Event.objects.get(pk=event_id)
-
-    RegistrationSlot.objects.remove_slots_for_event(event)
-    slots = RegistrationSlot.objects.create_slots_for_event(event)
-
-    serializer = RegistrationSlotSerializer(slots, many=True, context={'request': request})
-    return Response(serializer.data)
-
-
-@api_view(["PUT", ])
-@permission_classes((permissions.IsAdminUser,))
-def cancel_expired(request):
-    cleaned = Registration.objects.clean_up_expired()
-
-    return Response("Cleaned up " + str(cleaned) + " registration slots", status=204)
-
-
-@api_view(("GET",))
-@permission_classes((permissions.IsAuthenticated,))
-def player_search(request):
-    player_id = request.query_params.get("player_id", 0)
-    pattern = request.query_params.get("pattern", "")
-
-    with connection.cursor() as cursor:
-        cursor.callproc(
-            "SearchPlayers",
-            [
-                pattern,
-                player_id,
-            ],
-        )
-        players = fetch_all_as_dictionary(cursor)
-
-    return Response(players, status=200)
-
-
-@api_view(["GET", ])
-@permission_classes((permissions.IsAuthenticated,))
-def friends(request, player_id):
-    with connection.cursor() as cursor:
-        cursor.callproc(
-            "GetFriends",
-            [
-                player_id,
-            ],
-        )
-        players = fetch_all_as_dictionary(cursor)
-
-    return Response(players, status=200)
-
-
-@api_view(["POST", ])
-@permission_classes((permissions.IsAuthenticated,))
-def add_friend(request, player_id):
-    player = Player.objects.get(email=request.user.email)
-    friend = get_object_or_404(Player, pk=player_id)
-    player.favorites.add(friend)
-    player.save()
-    serializer = PlayerSerializer(
-        player.favorites, context={"request": request}, many=True
-    )
-    return Response(serializer.data)
-
-
-@api_view(["DELETE", ])
-@permission_classes((permissions.IsAuthenticated,))
-def remove_friend(request, player_id):
-    player = Player.objects.get(email=request.user.email)
-    friend = get_object_or_404(Player, pk=player_id)
-    player.favorites.remove(friend)
-    player.save()
-    serializer = PlayerSerializer(
-        player.favorites, context={"request": request}, many=True
-    )
-    return Response(serializer.data)
-
-
-@api_view(["PUT", ])
-@transaction.atomic()
-@permission_classes((permissions.IsAdminUser,))
-def add_player(request, event_id):
-    player_id = request.data.get("player_id", None)
-    slot_id = request.data.get("slot_id", None)
-    fee_ids = request.data.get("fees", [])
-    is_money_owed = request.data.get("is_money_owed", False)
-    notes = request.data.get("notes", "")
-
-    if player_id is None:
-        raise ValidationError("A player is required.")
-
-    event = Event.objects.get(pk=event_id)
-    player = Player.objects.get(pk=player_id)
-    user = User.objects.get(email=player.email)
-
-    if event.can_choose:
-        # a slot_id is expected for this kind of event
-        slot = RegistrationSlot.objects.get(pk=slot_id)
-        registration = Registration.objects.create(event=event, course=slot.hole.course, user=user,
-                                                   signed_up_by=request.user.get_full_name(), notes=notes)
-        slot.status = "R"
-        slot.player = player
-        slot.registration = registration
-        slot.save()
-    else:
-        registration = Registration.objects.create(event=event, user=user, signed_up_by=request.user.get_full_name(),
-                                                   notes=notes)
-        slot = event.registrations.create(event=event, player=player, registration=registration, status="R",
-                                          starting_order=0, slot=0)
-
-    create_admin_payment(event, slot, fee_ids, is_money_owed, user)
-
-    serializer = RegistrationSerializer(registration, context={"request": request})
-    return Response(serializer.data, status=200)
-
-
-@api_view(["PUT", ])
-@transaction.atomic()
-@permission_classes((permissions.IsAuthenticated,))
-def move_players(request, registration_id):
-    source_slots = request.data.get("source_slots", [])
-    destination_slots = request.data.get("destination_slots", [])
-
-    registration = Registration.objects.filter(pk=registration_id).get()
-
-    for index, slot_id in enumerate(source_slots):
-        source = registration.slots.get(pk=slot_id)
-        destination = RegistrationSlot.objects.get(pk=destination_slots[index])
-
-        user_name = request.user.get_full_name()
-        player_name = "{} {}".format(source.player.first_name, source.player.last_name)
-        source_start = get_start(source)
-        destination_start = get_start(destination)
-        message = "\n{} moved from {} to {} by {}".format(player_name, source_start, destination_start, user_name)
-        if registration.notes is None:
-            registration.notes = message
-        else:
-            registration.notes = registration.notes + "\n" + message
-        registration.save()
-
-        for fee in source.fees.all():
-            fee.registration_slot = destination
-            fee.save()
-
-        player_ref = source.player
-        source.registration = None
-        source.player = None
-        source.status = "A"
-        source.save()
-
-        destination.registration = registration
-        destination.player = player_ref
-        destination.status = "R"
-        destination.save()
-
-    return Response(status=204)
-
-
-@api_view(["DELETE", ])
-@transaction.atomic()
-@permission_classes((permissions.IsAuthenticated,))
-def drop_players(request, registration_id):
-    source_slots = request.data.get("source_slots", [])
-    registration = Registration.objects.filter(pk=registration_id).get()
-
-    for slot_id in source_slots:
-        source = registration.slots.get(pk=slot_id)
-
-        user_name = request.user.get_full_name()
-        player_name = "{} {}".format(source.player.first_name, source.player.last_name)
-        message = "\n{} dropped from the event by {}".format(player_name, user_name)
-        if registration.notes is None:
-            registration.notes = message
-        else:
-            registration.notes = registration.notes + "\n" + message
-        registration.save()
-
-        for fee in source.fees.all():
-            fee.registration_slot = None
-            fee.save()
-
-        if registration.event.can_choose:
-            source.registration = None
-            source.player = None
-            source.status = "A"
-            source.save()
-        else:
-            source.delete()
-
-    return Response(status=204)
 
 
 @api_view(("POST",))

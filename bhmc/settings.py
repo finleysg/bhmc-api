@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# LOG_DIR = os.path.join(BASE_DIR, 'var/log')
-LOG_DIR = os.path.join(BASE_DIR, '/var/log/django')
+LOG_DIR = os.path.join(BASE_DIR, 'var/log')
+# LOG_DIR = os.path.join(BASE_DIR, '/var/log/django')
 CACHE_DIR = os.path.join(BASE_DIR, 'var/cache')
 
 if not os.path.exists(LOG_DIR):
@@ -231,7 +231,7 @@ LOGGING = {
         },
         "core": {
             "handlers": ["console", "flat_line_file"],
-            "level": "ERROR",
+            "level": "INFO",
         },
         "damcup": {
             "handlers": ["console", "flat_line_file"],

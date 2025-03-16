@@ -7,7 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from kombu.abstract import Object
 
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from events.models import Event
@@ -45,6 +46,112 @@ class PaymentViewSet(viewsets.ModelViewSet):
         context = super(PaymentViewSet, self).get_serializer_context()
         return context
 
+    @action(detail=True, methods=['put'], permission_classes=[IsAdminUser])
+    def move_payment(self, request, pk):
+        target_event_id = request.data.get("target_event_id", None)
+
+        payment = Payment.objects.get(pk=pk)
+        payment.event = target_event_id
+        payment.save()
+
+        return Response(status=204)
+
+    @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
+    def stripe_amount(self, request, pk):
+        try:
+            payment = Payment.objects.get(pk=pk)
+        except ObjectDoesNotExist:
+            logger.warn("No payment found when calculating payment amount.", payment_id=pk)
+            return Response("No payment found. Your registration may have timed out. Cancel your current registration and start again.", status=404)
+
+        payment_details = list(payment.payment_details.all())
+
+        amount_due = get_amount_due(None, payment_details)
+        stripe_payment = calculate_payment_amount(amount_due)
+        stripe_amount_due = int(round_half_up(stripe_payment[0] * 100))
+
+        return Response(stripe_amount_due, status=200)
+
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    def customer_session(self, request):
+        email = request.user.email
+        player = Player.objects.get(email=email)
+
+        if player.stripe_customer_id is None:
+            customer = stripe.Customer.create()
+            player.stripe_customer_id = customer.id
+            player.save()
+
+        session = stripe.CustomerSession.create(
+            customer=player.stripe_customer_id,
+            components={
+                "payment_element": {
+                    "enabled": True,
+                    "features": {
+                        "payment_method_redisplay": "enabled",
+                        "payment_method_save": "enabled",
+                        "payment_method_save_usage": "on_session",
+                        "payment_method_remove": "enabled",
+                    }
+                }
+            }
+        )
+        return Response(session, status=200)
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def payment_intent(self, request, pk):
+        try:
+            event_id = request.data.get("event_id", 0)
+            registration_id = request.data.get("registration_id", 0)
+            user = request.user
+            player = Player.objects.get(email=user.email)
+            event = Event.objects.get(pk=event_id)
+            payment = Payment.objects.get(pk=pk)
+            payment_details = list(payment.payment_details.all())
+
+            amount_due = get_amount_due(event, payment_details)
+            stripe_payment = calculate_payment_amount(amount_due)
+            stripe_amount_due = int(round_half_up(stripe_payment[0] * 100))  # total (with fees) in cents
+
+            if amount_due > 0 and (player.stripe_customer_id is None or player.stripe_customer_id.strip() == ""):
+                customer = stripe.Customer.create()
+                player.stripe_customer_id = customer.id
+                player.save()
+
+            intent = stripe.PaymentIntent.create(
+                amount=stripe_amount_due,
+                currency="usd",
+                automatic_payment_methods={"enabled": True},
+                description="Online payment for {} ({}) by {}".format(
+                    event.name,
+                    event.start_date.strftime("%Y-%m-%d"),
+                    user.get_full_name()),
+                metadata={
+                    "user_name": user.get_full_name(),
+                    "user_email": user.email,
+                    "event_id": event.id,
+                    "event_name": event.name,
+                    "event_date": event.start_date.strftime("%Y-%m-%d"),
+                    "registration_id": registration_id,
+                },
+                customer=player.stripe_customer_id,
+                receipt_email=user.email,
+            )
+            logger.info("Payment intent created", payment_id=pk, intent_id=intent.id, status=intent.status)
+
+            payment.payment_code = intent.id
+            payment.payment_key = intent.client_secret
+            payment.save()
+
+            # Updates the registration slots to processing and frees up any slots without players
+            Registration.objects.payment_processing(registration_id)
+
+            return Response(intent, status=200)
+
+        except Exception as e:
+            logger.error("Payment intent creation failed", payment_id=pk, message=str(e))
+            return Response(str(e), status=400)
+
 
 @permission_classes((permissions.IsAuthenticated,))
 class RefundViewSet(viewsets.ModelViewSet):
@@ -57,133 +164,29 @@ class RefundViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(event=event_id)
         return queryset
 
-#============================ Payment Endpoints ============================#
+    @action(detail=False, methods=["post"], permission_classes=[IsAdminUser])
+    def issue_refunds(self, request):
+        refunds = request.data.get("refunds", [])
+        successful_refunds = []
+        failures = []
+        for refund in refunds:
+            try:
+                payment = Payment.objects.get(pk=refund["payment"])
+                refund_amount = calculate_refund_amount(payment, refund["refund_fees"])
+                result = Refund.objects.create_refund(request.user, payment, refund_amount, refund["notes"])
+                successful_refunds.append("Refund of {} created for {}".format(result.refund_amount, result.payment.id))
+            except Exception as e:
+                message = "Refund failed for {}: {}".format(refund, str(e))
+                logger.error(message)
+                failures.append(message)
 
-@api_view(("GET",))
-@permission_classes((permissions.IsAuthenticated,))
-def get_payment_amount(request, payment_id):
-    try:
-        payment = Payment.objects.get(pk=payment_id)
-    except ObjectDoesNotExist:
-        logger.warn("No payment found when calculating payment amount.", payment_id=payment_id)
-        return Response("No payment found. Your registration may have timed out. Cancel your current registration and start again.", status=404)
+        if len(failures) > 0:
+            status = 400
+        else:
+            status = 200
 
-    payment_details = list(payment.payment_details.all())
+        return Response({"refunds": successful_refunds, "failures": failures}, status=status)
 
-    amount_due = get_amount_due(None, payment_details)
-    stripe_payment = calculate_payment_amount(amount_due)
-    stripe_amount_due = int(round_half_up(stripe_payment[0] * 100))
-
-    return Response(stripe_amount_due, status=200)
-
-
-@api_view(("POST",))
-@permission_classes((permissions.IsAuthenticated,))
-def create_customer_session(request):
-    email = request.user.email
-    player = Player.objects.get(email=email)
-
-    if player.stripe_customer_id is None:
-        customer = stripe.Customer.create()
-        player.stripe_customer_id = customer.id
-        player.save()
-
-    session = stripe.CustomerSession.create(
-        customer=player.stripe_customer_id,
-        components={
-            "payment_element": {
-                "enabled": True,
-                "features": {
-                    "payment_method_redisplay": "enabled",
-                    "payment_method_save": "enabled",
-                    "payment_method_save_usage": "on_session",
-                    "payment_method_remove": "enabled",
-                }
-            }
-        }
-    )
-    return Response(session, status=200)
-
-
-@api_view(("POST",))
-@permission_classes((permissions.IsAuthenticated,))
-def create_payment_intent(request, payment_id):
-    try:
-        event_id = request.data.get("event_id", 0)
-        registration_id = request.data.get("registration_id", 0)
-        user = request.user
-        player = Player.objects.get(email=user.email)
-        event = Event.objects.get(pk=event_id)
-        payment = Payment.objects.get(pk=payment_id)
-        payment_details = list(payment.payment_details.all())
-
-        amount_due = get_amount_due(event, payment_details)
-        stripe_payment = calculate_payment_amount(amount_due)
-        stripe_amount_due = int(round_half_up(stripe_payment[0] * 100))  # total (with fees) in cents
-
-        if amount_due > 0 and (player.stripe_customer_id is None or player.stripe_customer_id.strip() == ""):
-            customer = stripe.Customer.create()
-            player.stripe_customer_id = customer.id
-            player.save()
-
-        intent = stripe.PaymentIntent.create(
-            amount=stripe_amount_due,
-            currency="usd",
-            automatic_payment_methods={"enabled": True},
-            description="Online payment for {} ({}) by {}".format(
-                event.name,
-                event.start_date.strftime("%Y-%m-%d"),
-                user.get_full_name()),
-            metadata={
-                "user_name": user.get_full_name(),
-                "user_email": user.email,
-                "event_id": event.id,
-                "event_name": event.name,
-                "event_date": event.start_date.strftime("%Y-%m-%d"),
-                "registration_id": registration_id,
-            },
-            customer=player.stripe_customer_id,
-            receipt_email=user.email,
-        )
-        logger.info("Payment intent created", payment_id=payment_id, intent_id=intent.id, status=intent.status)
-
-        payment.payment_code = intent.id
-        payment.payment_key = intent.client_secret
-        payment.save()
-
-        # Updates the registration slots to processing and frees up any slots without players
-        Registration.objects.payment_processing(registration_id)
-
-        return Response(intent, status=200)
-
-    except Exception as e:
-        logger.error("Payment intent creation failed", payment_id=payment_id, message=str(e))
-        return Response(str(e), status=400)
-
-
-@api_view(("POST",))
-@permission_classes((permissions.IsAuthenticated,))
-def create_refunds(request):
-    refunds = request.data.get("refunds", [])
-    successful_refunds = []
-    failures = []
-    for refund in refunds:
-        try:
-            payment = Payment.objects.get(pk=refund["payment"])
-            refund_amount = calculate_refund_amount(payment, refund["refund_fees"])
-            result = Refund.objects.create_refund(request.user, payment, refund_amount, refund["notes"])
-            successful_refunds.append("Refund of {} created for {}".format(result.refund_amount, result.payment.id))
-        except Exception as e:
-            message = "Refund failed for {}: {}".format(refund, str(e))
-            logger.error(message)
-            failures.append(message)
-
-    if len(failures) > 0:
-        status = 400
-    else:
-        status = 200
-
-    return Response({"refunds": successful_refunds, "failures": failures}, status=status)
 
 #============================ Stripe Webhook ============================#
 

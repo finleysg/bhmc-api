@@ -50,6 +50,7 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+      - "5000:5000"
     depends_on:
       - mysql
       - redis
@@ -75,6 +76,20 @@ services:
       DJANGO_ENV: "docker"
     volumes:
       - .:/app
+    depends_on:
+      - django
+
+  bhmc:
+    build:
+      context: ../bhmc
+      dockerfile: Dockerfile
+    volumes:
+      - ../bhmc:/app
+      - ../bhmc/node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
     depends_on:
       - django
 

@@ -66,7 +66,9 @@ def handle_payment_complete(self, payment_intent):
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 3})
-def handle_refund_complete(charge):
+def handle_refund_complete(self, charge):
+    # NOTE: https://support.stripe.com/questions/understanding-fees-for-refunded-payments
+    # Refunds are not subject to the Stripe fee, but the original charge fee is not refunded.
     for refund in charge.refunds.data:
         try:
             local_refund = Refund.objects.get(refund_code=refund.stripe_id)

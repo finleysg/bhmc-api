@@ -4,6 +4,7 @@ import string
 from datetime import timedelta
 
 import djoser.views
+import structlog
 from djoser import utils
 from djoser.conf import settings
 
@@ -12,16 +13,20 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 
 from bhmc.settings import DJANGO_ENV
+from damcup.utils import is_points, get_point_rows
 from documents.models import Document
-from documents.utils import open_xlsx_workbook
+from documents.utils import open_xlsx_workbook, open_xls_workbook
 from events.models import Event
 from register.models import Player
+from scores.utils import get_score_type, get_course
 from .models import BoardMember, MajorChampion, Ace, LowScore, SeasonSettings
 from .serializers import BoardMemberSerializer, AceSerializer, LowScoreSerializer, MajorChampionSerializer, \
     SeasonSettingsSerializer
 from .tasks import debug_task
 
 is_localhost = DJANGO_ENV != "prod"
+logger = structlog.get_logger(__name__)
+
 
 class BoardMemberViewSet(viewsets.ModelViewSet):
     serializer_class = BoardMemberSerializer
@@ -207,6 +212,70 @@ def import_champions(request):
     document.delete()
 
     return Response(data=failures, status=200)
+
+
+@api_view(("POST",))
+@permission_classes((permissions.IsAuthenticated,))
+def import_low_scores(request):
+
+    event_id = request.data.get("event_id", 0)
+    document_id = request.data.get("document_id", 0)
+
+    event = Event.objects.get(pk=event_id)
+    document = Document.objects.get(pk=document_id)
+    failures = []
+
+    wb = open_xls_workbook(document)
+    for sheet in wb.sheets():
+        if is_points(sheet):
+            score_type = get_score_type(sheet.name)
+            course_name = get_course(sheet.name)
+            low_score = 100
+
+            for i in get_point_rows(sheet):
+                if isinstance(sheet.cell(i, 3).value, (int, float)):
+                    this_score = int(sheet.cell(i, 3).value)
+                    if this_score < low_score:
+                        low_score = this_score
+
+            current_low_score = LowScore.objects.filter(season=event.season,
+                                                        course_name=course_name,
+                                                        is_net=score_type == "net").first()
+
+            logger.info(f"Tonight's low {score_type} score on the {course_name}: {low_score}")
+            if current_low_score is None:
+                save_low_score(event, course_name, score_type, low_score, sheet, failures)
+            else:
+                if low_score < current_low_score.score:
+                    LowScore.objects.delete(season=event.season, course_name=course_name, is_net=score_type == "net")
+                    save_low_score(event, course_name, score_type, low_score, sheet, failures)
+                elif low_score == current_low_score.score:
+                    save_low_score(event, course_name, score_type, low_score, sheet, failures)
+
+    return Response(data=failures, status=200)
+
+
+def save_low_score(event, course_name, score_type, score, sheet, failures):
+    players = Player.objects.filter().all()
+    player_map = {player.player_name(): player for player in players}
+    for i in get_point_rows(sheet):
+        this_score = int(sheet.cell(i, 3).value)
+        if this_score == score:
+            player_name = sheet.cell(i, 1).value
+            player = player_map.get(player_name)
+
+            if player is None:
+                message = f"player {player_name} not found when importing low scores"
+                failures.append(message)
+                continue
+
+            try:
+                logger.info(f"Saving low {score_type} score of {score} for {player_name} on the {course_name}")
+                low_score = LowScore.objects.create(season=event.season, course_name=course_name, player=player,
+                                                    score=score, is_net=score_type == "net")
+                low_score.save()
+            except Exception as ex:
+                failures.append(str(ex))
 
 
 def get_players(champion, player_map):

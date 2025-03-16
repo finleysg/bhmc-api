@@ -22,7 +22,7 @@ class PlayerScore:
 
 
 def is_hole_scores(sheet):
-    if "hole" in sheet.name.lower() and "skin" not in sheet.name.lower() and "points" not in sheet.name.lower():
+    if "hole" in sheet.name.lower() and "points" in sheet.name.lower():
         return True
     return False
 

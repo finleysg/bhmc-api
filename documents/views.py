@@ -1,7 +1,7 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, permissions, pagination
-from rest_framework.decorators import permission_classes, api_view
+from rest_framework.decorators import permission_classes, api_view, action
 from rest_framework.response import Response
 
 from .serializers import *
@@ -65,6 +65,17 @@ class PhotoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    @action(detail=False, methods=["get"], permission_classes=[permissions.AllowAny])
+    def random(self, request):
+        try:
+            tag = request.query_params.get("tag", None)
+            take = request.query_params.get("take", "1")
+            photo = Photo.objects.random(tag, int(take))
+            serializer = PhotoSerializer(photo, context={"request": request}, many=True)
+            return Response(serializer.data)
+        except:
+            return Response(status=204)
+
 
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
 class StaticDocumentViewSet(viewsets.ModelViewSet):
@@ -83,16 +94,3 @@ class StaticDocumentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(code=code)
 
         return queryset
-
-
-@api_view(("GET",))
-@permission_classes((permissions.AllowAny,))
-def random_photos(request):
-    try:
-        tag = request.query_params.get("tag", None)
-        take = request.query_params.get("take", "1")
-        photo = Photo.objects.random(tag, int(take))
-        serializer = PhotoSerializer(photo, context={"request": request}, many=True)
-        return Response(serializer.data)
-    except:
-        return Response(status=204)

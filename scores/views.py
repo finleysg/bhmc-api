@@ -80,11 +80,6 @@ def import_scores(request):
                     failures.append(str(e))
                     logger.error(e)
 
-
-    # do not keep the data file
-    document.file.delete()
-    document.delete()
-
     return Response(data=failures, status=200)
 
 

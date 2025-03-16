@@ -1,9 +1,16 @@
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 import math
 import re
-from datetime import timedelta, datetime, date
-from decimal import Decimal
+
+from datetime import timedelta, datetime
+from decimal import Decimal, Context
 
 from django.db.models.aggregates import Sum
+from django.utils import timezone as tz
 from rest_framework.exceptions import APIException
 
 from core.util import current_season
@@ -198,7 +205,7 @@ def create_admin_payment(event, slot, fee_ids, is_money_owed, user):
                                      payment_amount=payment_amount,
                                      transaction_fee=0,
                                      confirmed=True,
-                                     confirm_date=date.today(),
+                                     confirm_date=tz.localtime(tz.now(), timezone=ZoneInfo("America/Chicago")),
                                      notification_type="A")
     payment.save()
 
@@ -214,12 +221,12 @@ def create_admin_payment(event, slot, fee_ids, is_money_owed, user):
 
 def calculate_refund_amount(payment, refund_fees):
     event_fees = EventFee.objects.filter(event=payment.event)
-    refund_amount = 0.0
+    refund_amount = Decimal("0.00")
     for fee in refund_fees:
         event_fee = next((ef for ef in event_fees if ef.id == fee.get("event_fee_id", 0)), None)
-        amount_paid = fee.get("amount_paid", 0)
+        amount_paid = Decimal(fee.get("amount_paid", 0)).quantize(Decimal("0.01"))
         if amount_paid != event_fee.amount and amount_paid != event_fee.override_amount:
-            raise APIException("Refund amount does not match the event fee amount")
+            raise APIException(f"Refund amount does not match the event fee amount: {amount_paid} != {event_fee.amount}")
         refund_amount += amount_paid
 
     return refund_amount

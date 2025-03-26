@@ -35,3 +35,10 @@ class EventSerializer(serializers.ModelSerializer):
                   "start_date", "start_time", "registration_type", "signup_start", "signup_end", "payments_end",
                   "registration_maximum", "courses", "fees", "default_tag", "starter_time_interval", "team_size",
                   "age_restriction", "age_restriction_type", )
+
+
+class SimpleEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
+        fields = ("id", "name", "event_type", "season", "start_date", )

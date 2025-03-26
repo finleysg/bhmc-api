@@ -3,6 +3,8 @@ from datetime import timedelta, date
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -41,6 +43,10 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(signup_start__lte=today, signup_end__gt=end_dt)
 
         return queryset.order_by('start_date')
+
+    @method_decorator(cache_page(60 * 60 * 8))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @transaction.atomic()
     @action(detail=True, methods=['put'], permission_classes=[IsAdminUser])

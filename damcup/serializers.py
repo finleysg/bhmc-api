@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from damcup.models import DamCup, SeasonLongPoints, Scores
+from events.serializers import SimpleEventSerializer
 from register.serializers import SimplePlayerSerializer
 
 
@@ -13,7 +14,8 @@ class DamCupSerializer(serializers.ModelSerializer):
 
 class SeasonLongPointsSerializer(serializers.ModelSerializer):
 
-    player = SimplePlayerSerializer()
+    event = SimpleEventSerializer()
+    # player = SimplePlayerSerializer()
 
     class Meta:
         model = SeasonLongPoints

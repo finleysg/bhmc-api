@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes, action
@@ -51,6 +53,10 @@ class PlayerViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super(PlayerViewSet, self).get_serializer_context()
         return context
+
+    @method_decorator(cache_page(60 * 60 * 4))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def search(self, request):

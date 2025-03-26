@@ -43,7 +43,7 @@ pillow==11.0.0
 prompt_toolkit==3.0.48
 ptvsd==4.3.2
 pycparser==2.22
-PyJWT==2.10.1
+PyJWT==2.10.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-ipware==3.0.0

@@ -5,6 +5,8 @@ from datetime import timedelta
 
 import djoser.views
 import structlog
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from djoser import utils
 from djoser.conf import settings
 
@@ -32,6 +34,10 @@ class BoardMemberViewSet(viewsets.ModelViewSet):
     serializer_class = BoardMemberSerializer
     queryset = BoardMember.objects.all()
 
+    @method_decorator(cache_page(60 * 60 * 4))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class MajorChampionViewSet(viewsets.ModelViewSet):
     serializer_class = MajorChampionSerializer
@@ -52,6 +58,10 @@ class MajorChampionViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @method_decorator(cache_page(60 * 60 * 4))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class LowScoreViewSet(viewsets.ModelViewSet):
     serializer_class = LowScoreSerializer
@@ -64,6 +74,10 @@ class LowScoreViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(season=season)
 
         return queryset
+
+    @method_decorator(cache_page(60 * 60 * 1))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class AceViewSet(viewsets.ModelViewSet):
@@ -81,6 +95,10 @@ class AceViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by("-season")
 
         return queryset
+
+    @method_decorator(cache_page(60 * 60 * 4))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class SeasonSettingsViewSet(viewsets.ModelViewSet):

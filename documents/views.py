@@ -61,7 +61,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
         queryset = queryset.order_by("-year", "caption")
         return queryset
 
-    @method_decorator(cache_page(timeout=60 * 60 * 24, cache="file"))
+    @method_decorator(cache_page(timeout=60 * 60 * 4, cache="file"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -94,3 +94,7 @@ class StaticDocumentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(code=code)
 
         return queryset
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

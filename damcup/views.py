@@ -1,8 +1,4 @@
-import csv
-
 import structlog
-
-from decimal import Decimal
 
 from django.db import connection
 from rest_framework import viewsets, permissions

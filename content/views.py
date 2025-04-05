@@ -20,7 +20,7 @@ class PageContentViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(cache_page(60 * 60 * 4))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 

@@ -277,23 +277,24 @@ def save_low_score(event, course_name, score_type, score, sheet, failures):
     players = Player.objects.filter().all()
     player_map = {player.player_name(): player for player in players}
     for i in get_point_rows(sheet):
-        this_score = int(sheet.cell(i, 3).value)
-        if this_score == score:
-            player_name = sheet.cell(i, 1).value
-            player = player_map.get(player_name)
+        if isinstance(sheet.cell(i, 3).value, (int, float)):
+            this_score = int(sheet.cell(i, 3).value)
+            if this_score == score:
+                player_name = sheet.cell(i, 1).value
+                player = player_map.get(player_name)
 
-            if player is None:
-                message = f"player {player_name} not found when importing low scores"
-                failures.append(message)
-                continue
+                if player is None:
+                    message = f"player {player_name} not found when importing low scores"
+                    failures.append(message)
+                    continue
 
-            try:
-                logger.info(f"Saving low {score_type} score of {score} for {player_name} on the {course_name}")
-                low_score = LowScore.objects.create(season=event.season, course_name=course_name, player=player,
-                                                    score=score, is_net=score_type == "net")
-                low_score.save()
-            except Exception as ex:
-                failures.append(str(ex))
+                try:
+                    logger.info(f"Saving low {score_type} score of {score} for {player_name} on the {course_name}")
+                    low_score = LowScore.objects.create(season=event.season, course_name=course_name, player=player,
+                                                        score=score, is_net=score_type == "net")
+                    low_score.save()
+                except Exception as ex:
+                    failures.append(str(ex))
 
 
 def get_players(champion, player_map):

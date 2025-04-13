@@ -1,7 +1,7 @@
 import structlog
 from django.db import IntegrityError
 from rest_framework import status
-from rest_framework.exceptions import NotAuthenticated, NotFound
+from rest_framework.exceptions import NotAuthenticated, NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, set_rollback
 
@@ -32,6 +32,9 @@ def custom_exception_handler(exc, context):
         else:
             response = Response({'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         set_rollback()
+
+    if isinstance(exc, ValidationError) and exc.detail["non_field_errors"][0].code == "unique":
+        response = Response({"detail": "The player selected has already signed up or is in the process of signing up"}, status=status.HTTP_409_CONFLICT)
 
     if len(exc.args) > 0 and exc.args[0] == "Invalid token.":
         logger.warning("Detected an invalid token: deleting cookie")

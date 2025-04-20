@@ -66,20 +66,73 @@ def handle_payment_complete(self, payment_intent):
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 3})
-def handle_refund_complete(self, charge):
+def handle_refund_created(self, refund):
     # NOTE: https://support.stripe.com/questions/understanding-fees-for-refunded-payments
     # Refunds are not subject to the Stripe fee, but the original charge fee is not refunded.
-    for refund in charge.refunds.data:
-        try:
-            local_refund = Refund.objects.get(refund_code=refund.stripe_id)
-            local_refund.confirmed = True
-            local_refund.save()
-            logger.info("Refund confirmed by Stripe", refundCode=refund.stripe_id, local=True)
-        except ObjectDoesNotExist:
-            # We get this hook for refunds created in the Stripe UI
-            # so we will have no record to tie together
-            logger.info("Refund confirmed by Stripe", refundCode=refund.stripe_id, local=False)
-            pass
+    refund_id = refund.get("id")
+    payment_intent_id = refund.get("payment_intent")
+    reason = refund.get("reason")
+    amount = refund.get("amount") / 100
+
+    # Ensure we have a payment record
+    try:
+        payment = Payment.objects.get(payment_code=payment_intent_id)
+    except ObjectDoesNotExist:
+        logger.error("Refund created but no payment found", refund_id=refund_id, payment_intent_id=payment_intent_id)
+        return {
+            "message": "Refund created but no payment found",
+            "payment_code": payment_intent_id,
+            "metadata": f"Refund id: {refund_id}, amount: {amount}"
+        }
+
+    # Ensure we have a refund record
+    try:
+        local_refund = Refund.objects.get(refund_code=refund_id)
+        logger.info("Refund found", id=local_refund.id, refund_id=refund_id, payment_intent_id=payment_intent_id)
+        return {
+            "message": "Refund created: initiated by Stripe",
+            "payment_code": payment_intent_id,
+            "metadata": f"Refund id: {refund_id}, amount: {amount}"
+        }
+    except ObjectDoesNotExist:
+        local_refund = Refund(payment=payment,
+                              refund_code=refund_id,
+                              refund_amount=amount,
+                              issuer=None,
+                              notes=reason,
+                              confirmed=False,)
+        local_refund.save()
+        logger.info("Refund created", refund_id=refund_id, payment_intent_id=payment_intent_id)
+        return {
+            "message": "Refund created: initiated by Stripe",
+            "payment_code": payment_intent_id,
+            "metadata": f"Refund id: {refund_id}, amount: {amount}"
+        }
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 3})
+def handle_refund_confirmed(self, refund):
+    refund_id = refund.get("id")
+    payment_intent_id = refund.get("payment_intent")
+    amount = refund.get("amount") / 100
+
+    # Update the refund record
+    try:
+        refund = Refund.objects.get(refund_code=refund_id)
+        refund.confirmed = True
+        refund.save()
+        return {
+            "message": "Refund confirmed",
+            "payment_code": payment_intent_id,
+            "metadata": f"Refund id: {refund_id}, amount: {amount}"
+        }
+    except ObjectDoesNotExist:
+        logger.error("No local refund found", refund_id=refund_id, payment_intent_id=payment_intent_id)
+        return {
+            "message": "Refund updated at Stripe but no local refund record found",
+            "payment_code": payment_intent_id,
+            "metadata": f"Refund id: {refund_id}, amount: {amount}"
+        }
 
 
 @shared_task(bind=True)

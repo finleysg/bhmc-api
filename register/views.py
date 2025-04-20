@@ -15,6 +15,7 @@ from rest_framework.serializers import ValidationError
 
 from documents.models import Document
 from events.models import Event
+from payments.models import Payment
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 from .serializers import (
@@ -24,7 +25,7 @@ from .serializers import (
     SimplePlayerSerializer,
     UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer, PlayerHandicapSerializer,
 )
-from .utils import get_start
+from .utils import get_start, get_target_event_fee
 
 
 @permission_classes((permissions.IsAuthenticated,))
@@ -233,10 +234,27 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         source_event = registration.event
         target_event = Event.objects.get(pk=target_event_id)
 
-        registration.event = target_event_id
+        registration.event = target_event
         registration.slots.all().update(event=target_event_id)
         registration.notes = f"Moved player(s) from {source_event.name} to {target_event.name}. Payment records were not changed."
         registration.save()
+
+        # Find any related payments and move them to the target event
+        payment_ids = []
+        for slot in registration.slots.all():
+            fees = slot.fees.all()
+            for fee in fees:
+                if fee.payment_id not in payment_ids:
+                    payment_ids.append(fee.payment_id)
+                # The fees will be orphaned if we don't assign them to the target event
+                target_event_fee = get_target_event_fee(fee, source_event, target_event)
+                fee.event_fee_id = target_event_fee.id
+                fee.save()
+
+        for payment_id in payment_ids:
+            payment = Payment.objects.get(pk=payment_id)
+            payment.event = target_event
+            payment.save()
 
         return Response(status=204)
 

@@ -265,7 +265,7 @@ def import_low_scores(request):
                 save_low_score(event, course_name, score_type, low_score, sheet, failures)
             else:
                 if low_score < current_low_score.score:
-                    LowScore.objects.delete(season=event.season, course_name=course_name, is_net=score_type == "net")
+                    LowScore.objects.filter(season=event.season, course_name=course_name, is_net=score_type == "net").delete()
                     save_low_score(event, course_name, score_type, low_score, sheet, failures)
                 elif low_score == current_low_score.score:
                     save_low_score(event, course_name, score_type, low_score, sheet, failures)

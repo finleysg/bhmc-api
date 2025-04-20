@@ -17,7 +17,7 @@ def get_starting_time(event, slot):
         minutes = parse_minutes(event.start_time)
         start_date = datetime.combine(event.start_date, datetime.min.time())
         first_time = start_date + timedelta(hours=hours, minutes=minutes)
-        start_time = first_time + timedelta(minutes=(10 * slot.starting_order))
+        start_time = first_time + timedelta(minutes=(event.tee_time_splits * slot.starting_order))
         return "{} {}".format(course_name, start_time.strftime("%-I:%M %p"))
 
     return "Tee times"
@@ -44,3 +44,8 @@ def parse_hours(time_text):
 def parse_minutes(time_text):
     parts = re.split("[ :]", time_text)
     return int(parts[1])
+
+
+def get_target_event_fee(source_fee, source_event, target_event):
+    fee_type_id = source_event.fees.filter(pk=source_fee.event_fee_id)[0].fee_type_id
+    return target_event.fees.filter(fee_type_id=fee_type_id)[0]

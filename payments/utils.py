@@ -230,3 +230,10 @@ def calculate_refund_amount(payment, refund_fees):
         refund_amount += amount_paid
 
     return refund_amount
+
+
+def update_to_unpaid(refund_fees):
+    for fee in refund_fees:
+        registration_fee = RegistrationFee.objects.get(pk=fee.get("fee_id", 0))
+        registration_fee.is_paid = False
+        registration_fee.save()

@@ -4,7 +4,6 @@ import structlog
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
-from kombu.abstract import Object
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes, action
@@ -14,8 +13,9 @@ from rest_framework.response import Response
 from events.models import Event
 from payments.models import Payment, Refund
 from payments.serializers import PaymentSerializer, RefundSerializer
-from payments.tasks import handle_payment_complete, handle_refund_complete
-from payments.utils import calculate_refund_amount, get_amount_due, calculate_payment_amount, round_half_up
+from payments.tasks import handle_payment_complete, handle_refund_created, handle_refund_confirmed
+from payments.utils import calculate_refund_amount, get_amount_due, calculate_payment_amount, round_half_up, \
+    update_to_unpaid
 from register.models import Player, Registration
 
 logger = structlog.getLogger(__name__)
@@ -174,6 +174,7 @@ class RefundViewSet(viewsets.ModelViewSet):
                 payment = Payment.objects.get(pk=refund["payment"])
                 refund_amount = calculate_refund_amount(payment, refund["refund_fees"])
                 result = Refund.objects.create_refund(request.user, payment, refund_amount, refund["notes"])
+                update_to_unpaid(refund["refund_fees"])
                 successful_refunds.append("Refund of {} created for {}".format(result.refund_amount, result.payment.id))
             except Exception as e:
                 message = "Refund failed for {}: {}".format(refund, str(e))
@@ -206,7 +207,8 @@ def payment_complete_acacia(request):
         handlers = {
             "payment_intent.payment_failed": _handle_payment_failed,
             "payment_intent.succeeded": _handle_payment_succeeded,
-            "charge.refunded": _handle_charge_refunded
+            "refund.created": _handle_refund_created,
+            "refund.updated": _handle_refund_updated,
         }
 
         handler = handlers.get(event.type)
@@ -242,6 +244,11 @@ def _handle_payment_succeeded(event):
     handle_payment_complete.delay(payment_intent)
 
 
-def _handle_charge_refunded(event):
-    charge = event.data.object
-    handle_refund_complete.delay(charge)
+def _handle_refund_created(event):
+    refund = event.data.object
+    handle_refund_created.delay(refund)
+
+
+def _handle_refund_updated(event):
+    refund = event.data.object
+    handle_refund_confirmed.delay(refund)

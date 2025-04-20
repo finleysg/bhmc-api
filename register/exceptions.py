@@ -43,6 +43,13 @@ class EventRegistrationNotOpenError(APIException):
         self.detail = "The event is not currently open for registration"
 
 
+class EventRegistrationWaveError(APIException):
+
+    def __init__(self, attempted_wave):
+        self.status_code = 400
+        self.detail = f"Wave {attempted_wave} times are not yet open for registration"
+
+
 class RegistrationConfirmedError(APIException):
 
     def __init__(self):

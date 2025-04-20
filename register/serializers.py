@@ -1,4 +1,9 @@
+import logging
+from datetime import timedelta, datetime
+
+import structlog
 from django.db import IntegrityError
+from django.utils import timezone as tz
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -6,13 +11,16 @@ from django.contrib.auth.models import User
 from courses.models import Course
 from documents.serializers import PhotoSerializer
 from events.serializers import EventFeeSerializer
+from payments.utils import get_offset, DEFAULT_INTERVAL
 from .exceptions import (
     EventFullError,
     EventRegistrationNotOpenError,
     CourseRequiredError,
-    PlayerConflictError,
+    PlayerConflictError, EventRegistrationWaveError,
 )
 from .models import Player, Registration, RegistrationSlot, RegistrationFee, PlayerHandicap
+
+logger = structlog.getLogger(__name__)
 
 
 class SimplePlayerSerializer(serializers.ModelSerializer):
@@ -233,12 +241,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         signed_up_by = user.get_full_name()
 
         if not is_admin:
+            logger.info("Creating a registration")
             validate_registration_is_open(event)
+            validate_wave_is_available(event, slots[0].get("starting_order"))
             validate_event_is_not_full(event)
 
         return Registration.objects.create_and_reserve(user, player, event, course, slots, signed_up_by)
 
     def update(self, instance, validated_data):
+        logger.info("Updating a registration")
         instance.notes = validated_data.get("notes", instance.notes)
         instance.save()
 
@@ -278,3 +289,36 @@ def validate_course_for_event(event, course_id):
         course = Course.objects.get(pk=course_id)
 
     return course
+
+
+def validate_wave_is_available(event, starting_order):
+    if event.registration_window == "priority" and event.can_choose:
+        this_wave = get_starting_wave(event.tee_time_splits, starting_order) # 1-4: wave based on the given starting order
+        current_wave = get_current_wave() # 1-4: wave based on the current time
+        if this_wave > current_wave:
+            raise EventRegistrationWaveError(this_wave)
+
+
+def get_current_wave():
+    current_time = datetime.now()
+    if current_time.minute < 15:
+        return 1
+    elif current_time.minute < 30:
+        return 2
+    elif current_time.minute < 45:
+        return 3
+    else:
+        return 4
+
+
+def get_starting_wave(tee_time_splits, starting_order):
+    intervals = [int(i) for i in tee_time_splits.split(',')] if tee_time_splits is not None else [DEFAULT_INTERVAL]
+    delta = get_offset(int(starting_order), intervals)
+    if delta < 60:
+        return 1
+    elif delta < 120:
+        return 2
+    elif delta < 180:
+        return 3
+    else:
+        return 4

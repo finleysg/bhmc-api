@@ -56,6 +56,7 @@ urlpatterns = [
       path("api/import-champions/", core_views.import_champions),
       path("api/import-low-scores/", core_views.import_low_scores),
       path("api/import-points/", damcup_views.import_points),
+      path("api/import-major-points/", damcup_views.import_major_points),
       path("api/import-scores/", scoring_views.import_scores),
       path("auth/", include("djoser.urls")),
       path("auth/token/login/", core_views.TokenCreateView.as_view(), name="login"),

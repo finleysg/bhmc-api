@@ -1,3 +1,5 @@
+import csv
+
 import structlog
 
 from django.db import connection
@@ -58,7 +60,7 @@ class SeasonLongPointsViewSet(viewsets.ModelViewSet):
     def top_points(self, request):
         season = request.query_params.get("season", current_season())
         category = request.query_params.get("category", "gross")
-        top_n = request.query_params.get("top", 20)
+        top_n = int(request.query_params.get("top", "20"))
 
         if category == "gross":
             return Response(get_top_gross_points(season, top_n), status=200)
@@ -114,5 +116,52 @@ def import_points(request):
                 except Exception as e:
                     failures.append(str(e))
                     logger.error(e)
+
+    return Response(data=failures, status=200)
+
+
+@api_view(("POST",))
+@permission_classes((permissions.IsAuthenticated,))
+def import_major_points(request):
+
+    event_id = request.data.get("event_id", 0)
+    document_id = request.data.get("document_id", 0)
+
+    event = Event.objects.get(pk=event_id)
+    document = Document.objects.get(pk=document_id)
+    players = Player.objects.filter(is_member=True).all()
+    player_map = {player.ghin: player for player in players}
+    failures = []
+
+    with document.file.open("r") as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        next(reader)
+        for row in reader:
+            try:
+                ghin = str(int(row[0]))
+                player = player_map.get(ghin)
+                if player is None:
+                    message = f"GHIN {ghin} not found when importing {event.name} points"
+                    logger.warn(message)
+                    failures.append(message)
+                    continue
+
+                gross_points = int(round_half_up(row[3]))
+                net_points = int(round_half_up(row[4]))
+                points = SeasonLongPoints.objects.filter(event=event, player=player, additional_info=event.name).first()
+                if points is None:
+                    points = SeasonLongPoints(event=event, player=player, additional_info=event.name,
+                                              gross_points=gross_points, net_points=net_points)
+                else:
+                    points.gross_points = gross_points
+                    points.net_points = net_points
+
+                points.save()
+            except Exception as e:
+                failures.append(str(e))
+                logger.error(e)
+
+    document.file.delete()
+    document.delete()
 
     return Response(data=failures, status=200)

@@ -4,8 +4,6 @@ from decimal import Decimal
 
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes, action
@@ -16,6 +14,7 @@ from rest_framework.serializers import ValidationError
 from documents.models import Document
 from events.models import Event
 from payments.models import Payment
+from payments.utils import get_start
 from reporting.views import fetch_all_as_dictionary
 from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
 from .serializers import (
@@ -25,7 +24,7 @@ from .serializers import (
     SimplePlayerSerializer,
     UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer, PlayerHandicapSerializer,
 )
-from .utils import get_start, get_target_event_fee
+from .utils import get_target_event_fee
 
 
 @permission_classes((permissions.IsAuthenticated,))
@@ -55,9 +54,9 @@ class PlayerViewSet(viewsets.ModelViewSet):
         context = super(PlayerViewSet, self).get_serializer_context()
         return context
 
-    @method_decorator(cache_page(60 * 60 * 4))
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+    # @method_decorator(cache_page(60 * 60 * 4))
+    # def list(self, request, *args, **kwargs):
+    #     return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def search(self, request):
@@ -154,6 +153,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         destination_slots = request.data.get("destination_slots", [])
 
         registration = Registration.objects.filter(pk=pk).get()
+        event = registration.event
 
         for index, slot_id in enumerate(source_slots):
             source = registration.slots.get(pk=slot_id)
@@ -161,8 +161,8 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
             user_name = request.user.get_full_name()
             player_name = "{} {}".format(source.player.first_name, source.player.last_name)
-            source_start = get_start(source)
-            destination_start = get_start(destination)
+            source_start = get_start(event, registration, source)
+            destination_start = get_start(event, registration, destination)
             message = "\n{} moved from {} to {} by {}".format(player_name, source_start, destination_start, user_name)
             if registration.notes is None:
                 registration.notes = message
@@ -235,8 +235,8 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         target_event = Event.objects.get(pk=target_event_id)
 
         registration.event = target_event
-        registration.slots.all().update(event=target_event_id)
-        registration.notes = f"Moved player(s) from {source_event.name} to {target_event.name}. Payment records were not changed."
+        registration.slots.all().update(event=target_event)
+        registration.notes = f"Moved player(s) from {source_event.name} to {target_event.name}."
         registration.save()
 
         # Find any related payments and move them to the target event

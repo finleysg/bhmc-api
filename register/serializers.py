@@ -243,7 +243,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
         if not is_admin:
             logger.info("Creating a registration")
             validate_registration_is_open(event)
-            validate_wave_is_available(event, slots[0].get("starting_order"))
+            if event.can_choose and len(slots) > 0:
+                validate_wave_is_available(event, slots[0].get("starting_order"))
             validate_event_is_not_full(event)
 
         return Registration.objects.create_and_reserve(user, player, event, course, slots, signed_up_by)

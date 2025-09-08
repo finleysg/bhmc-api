@@ -50,6 +50,7 @@ router.register(r"tags", content_views.TagViewSet, "tags")
 urlpatterns = [
       path("admin/", admin.site.urls),
       path("api/", include(router.urls)),
+      path("api/accounts/", include("accounts.urls")),
       path("api/celery-check", core_views.ping_celery),
       path("api/contact/", messaging_views.contact_message),
       path("api/hooks/stripe/acacia/", payment_views.payment_complete_acacia),

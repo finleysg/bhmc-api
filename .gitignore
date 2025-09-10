@@ -37,4 +37,4 @@ docker-compose.yml
 # SQL
 sql/
 data/
-
+files/

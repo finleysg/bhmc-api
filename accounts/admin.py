@@ -23,7 +23,7 @@ class SkinTransactionAdmin(admin.ModelAdmin):
 class SkinAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Skin Details", {
-            "fields": ("event", "course", "hole", "player", "skin_type", "skin_amount", "is_team")
+            "fields": ("event", "course", "hole", "player", "skin_type", "skin_amount", "is_team", "details")
         }),
     )
     

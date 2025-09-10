@@ -21,7 +21,7 @@ class SkinSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skin
         fields = ("id", "event", "course", "hole", "player", "skin_type", 
-                 "skin_amount", "is_team")
+                 "skin_amount", "is_team", "details")
 
 class SkinSettingsSerializer(serializers.ModelSerializer):
     player = SimplePlayerSerializer(read_only=True)

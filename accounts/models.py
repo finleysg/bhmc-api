@@ -44,6 +44,7 @@ class Skin(models.Model):
     skin_type = models.CharField(verbose_name="Skin Type", max_length=5, choices=SKIN_TYPE_CHOICES)
     skin_amount = models.DecimalField(verbose_name="Skin Amount", max_digits=8, decimal_places=2)
     is_team = models.BooleanField(verbose_name="Is Team", default=False)
+    details = models.CharField(verbose_name="Details", max_length=120, blank=True, null=True)
 
     class Meta:
         ordering = ['-event__start_date', 'hole__hole_number']

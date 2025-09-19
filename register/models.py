@@ -37,6 +37,7 @@ class Player(models.Model):
     favorites = models.ManyToManyField("self", blank=True)
     is_member = models.BooleanField(verbose_name="Is Member", default=False)
     last_season = models.IntegerField(verbose_name="Most Recent Membership Season", null=True, blank=True)
+    gg_id = models.CharField(verbose_name="Golf Genius id: member_card_id", max_length=22, blank=True, null=True)
 
     history = HistoricalRecords()
 
@@ -71,6 +72,8 @@ class Registration(models.Model):
     starting_order = models.IntegerField(verbose_name="Starting order", default=0)
     notes = models.TextField(verbose_name="Registration notes", blank=True, null=True)
     created_date = models.DateTimeField(verbose_name="Created date", auto_now_add=True)
+    gg_id = models.CharField(verbose_name="Golf Genius id: group_id from the teesheet", max_length=22, blank=True,
+                             null=True)
 
     objects = RegistrationManager()
 
@@ -91,6 +94,8 @@ class RegistrationSlot(models.Model):
     starting_order = models.IntegerField(verbose_name="Starting order", default=0)
     slot = models.IntegerField(verbose_name="Slot number", default=0)
     status = models.CharField(verbose_name="Status", choices=STATUS_CHOICES, max_length=1, default="A")
+    gg_id = models.CharField(verbose_name="Golf Genius id: member_id specific to this event", max_length=22, blank=True,
+                             null=True)
 
     class Meta:
         ordering = ("hole", "slot")

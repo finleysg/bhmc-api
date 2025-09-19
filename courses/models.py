@@ -7,6 +7,7 @@ from courses.managers import CourseManager
 class Course(models.Model):
     name = models.CharField(max_length=100, unique=True)
     number_of_holes = models.IntegerField(default=18)
+    gg_id = models.CharField(verbose_name="Golf Genius id: course_id", max_length=22, blank=True, null=True)
 
     objects = CourseManager()
 

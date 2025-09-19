@@ -96,6 +96,7 @@ class Event(models.Model):
     age_restriction = models.IntegerField(verbose_name="Age restriction", blank=True, null=True)
     age_restriction_type = models.CharField(verbose_name="Age restriction type", max_length=1,
                                             choices=AGE_RESTRICTION_CHOICES, default="N")
+    gg_id = models.CharField(verbose_name="Golf Genius id: event_id", max_length=22, blank=True, null=True)
 
     class Meta:
         constraints = [
@@ -203,3 +204,36 @@ class EventFee(models.Model):
 
     def __str__(self):
         return "{} (${})".format(self.fee_type, self.amount)
+
+
+class Round(models.Model):
+    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_rounds")
+    round_number = models.IntegerField(verbose_name="Round number")
+    round_date = models.DateField(verbose_name="Round date")
+    gg_id = models.CharField(verbose_name="Golf Genius id: round_id", max_length=22)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["event", "round_number"], name="unique_event_roundnumber")
+        ]
+
+    def __str__(self):
+        return "{} - Round {}".format(self.event.name, self.round_number)
+
+
+class Tournament(models.Model):
+    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_tournaments")
+    round = models.ForeignKey(verbose_name="Round", to=Round, on_delete=CASCADE, related_name="gg_rounds")
+    course = models.ForeignKey(verbose_name="Course", to=Course, on_delete=DO_NOTHING)
+    name = models.CharField(verbose_name="Tournament name", max_length=120)
+    format = models.CharField(verbose_name="Format", max_length=20, blank=True, null=True)
+    is_net = models.BooleanField(verbose_name="Is Net", default=False)
+    gg_id = models.CharField(verbose_name="Golf Genius id: tournament_id", max_length=22)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["event", "name"], name="unique_event_tournamentname")
+        ]
+
+    def __str__(self):
+        return "{} - {}".format(self.event.name, self.name)

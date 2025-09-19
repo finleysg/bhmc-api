@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Event, EventFee, FeeType
+from .models import Event, EventFee, FeeType, Round, Tournament
 
 
 class CoursesInline(admin.TabularInline):
@@ -64,5 +64,27 @@ class EventAdmin(admin.ModelAdmin):
     save_on_top = True
 
 
+class RoundAdmin(admin.ModelAdmin):
+    fields = ["event", "round_number", "round_date", "gg_id"]
+    list_display = ["event", "round_number", "round_date", "gg_id"]
+    list_display_links = ("round_number",)
+    list_filter = ("event", "round_date")
+    ordering = ["event", "round_number"]
+    search_fields = ["event__name", "gg_id"]
+    save_on_top = True
+
+
+class TournamentAdmin(admin.ModelAdmin):
+    fields = ["event", "round", "course", "name", "format", "is_net", "gg_id"]
+    list_display = ["event", "round", "name", "course", "format", "is_net", "gg_id"]
+    list_display_links = ("name",)
+    list_filter = ("event", "round", "course", "is_net", "format")
+    ordering = ["event", "round", "name"]
+    search_fields = ["event__name", "name", "gg_id"]
+    save_on_top = True
+
+
 admin.site.register(FeeType, FeeTypeAdmin)
 admin.site.register(Event, EventAdmin)
+admin.site.register(Round, RoundAdmin)
+admin.site.register(Tournament, TournamentAdmin)

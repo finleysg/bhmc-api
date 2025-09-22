@@ -1,0 +1,24 @@
+[
+	{
+		"round": {
+			"index": 1,
+			"name": "Round 1",
+			"date": "2025-08-13",
+			"status": "completed",
+			"pairing_group_size": 5,
+			"id": "11913464338691705344",
+			"event_id": "11913464175751384063",
+			"most_recent": false,
+			"type": "golf",
+			"external_id": null,
+			"playing_divisions": [],
+			"settings": {
+				"allow_handicap_updates": true,
+				"teesheet_released": true,
+				"mobile_score_entry_enabled": false,
+				"attending_by_default": true,
+				"results_released": true
+			}
+		}
+	}
+]

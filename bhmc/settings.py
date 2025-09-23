@@ -116,6 +116,7 @@ INSTALLED_APPS = (
     "register",
     "reporting",
     "scores",
+    "golfgenius",
 )
 
 MIDDLEWARE = (
@@ -247,6 +248,10 @@ LOGGING = {
             "level": "INFO",
         },
         "scores": {
+            "handlers": ["console", "flat_line_file"],
+            "level": "INFO",
+        },
+        "golfgenius": {
             "handlers": ["console", "flat_line_file"],
             "level": "INFO",
         },

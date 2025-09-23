@@ -53,6 +53,7 @@ urlpatterns = [
       path("api/accounts/", include("accounts.urls")),
       path("api/celery-check", core_views.ping_celery),
       path("api/contact/", messaging_views.contact_message),
+      path("api/golfgenius/", include("golfgenius.urls")),
       path("api/hooks/stripe/acacia/", payment_views.payment_complete_acacia),
       path("api/import-champions/", core_views.import_champions),
       path("api/import-low-scores/", core_views.import_low_scores),

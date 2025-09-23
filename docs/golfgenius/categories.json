@@ -1,0 +1,74 @@
+[
+    {
+        "category": {
+            "name": "Archived",
+            "archived": true,
+            "id": "4788194574457686578",
+            "color": "#000",
+            "event_count": 27
+        }
+    },
+    {
+        "category": {
+            "name": "Men's Club",
+            "archived": false,
+            "id": "4788194574457686575",
+            "color": "#66eac1",
+            "event_count": 292
+        }
+    },
+    {
+        "category": {
+            "name": "Senior League",
+            "archived": false,
+            "id": "4788194574457686577",
+            "color": "#245334",
+            "event_count": 54
+        }
+    },
+    {
+        "category": {
+            "name": "Ladies League",
+            "archived": false,
+            "id": "4788194574457686576",
+            "color": "#680492",
+            "event_count": 33
+        }
+    },
+    {
+        "category": {
+            "name": "Tests and Experiments",
+            "archived": false,
+            "id": "4788194574424132142",
+            "color": "#ff0",
+            "event_count": 8
+        }
+    },
+    {
+        "category": {
+            "name": "Events, Leagues, and Trips",
+            "archived": false,
+            "id": "4788194574424132140",
+            "color": "#9400d3",
+            "event_count": 54
+        }
+    },
+    {
+        "category": {
+            "name": "Mens Club Templates",
+            "archived": false,
+            "id": "8686632091493911314",
+            "color": "#417505",
+            "event_count": 6
+        }
+    },
+    {
+        "category": {
+            "name": "Outside Outings",
+            "archived": false,
+            "id": "5180917733369367321",
+            "color": "#417505",
+            "event_count": 312
+        }
+    }
+]

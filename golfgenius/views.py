@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from .services import PlayerSyncService
+from .services import PlayerSyncService, GolfGeniusEventService
 from .client import GolfGeniusAPIClient, GolfGeniusAPIError
 
 logger = structlog.get_logger(__name__)
@@ -285,4 +285,198 @@ def golf_genius_info(request):
             "success": False,
             "message": error_msg,
             "info": None
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def sync_events(request):
+    """
+    Admin-only endpoint to sync BHMC events with Golf Genius events
+    
+    POST /api/golfgenius/sync-events/
+    
+    Body parameters:
+    - season_override (int): Override season detection (optional)
+    - force_update (bool): Whether to update events that already have gg_id (default: False)
+    
+    Returns:
+        JSON response with sync results
+    """
+    try:
+        season_override = request.data.get('season_override')
+        force_update = request.data.get('force_update', False)
+        
+        # Convert season_override to int if provided
+        if season_override is not None:
+            try:
+                season_override = int(season_override)
+            except (ValueError, TypeError):
+                return Response({
+                    "success": False,
+                    "message": "season_override must be a valid integer",
+                    "results": None
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.info("Event sync requested by admin",
+                   user=request.user.username,
+                   season_override=season_override,
+                   force_update=force_update)
+        
+        # Initialize sync service and perform sync
+        sync_service = GolfGeniusEventService()
+        result = sync_service.sync_events(
+            season_override=season_override,
+            force_update=force_update
+        )
+        
+        # Determine response status based on results
+        if len(result.errors) == 0:
+            response_status = status.HTTP_200_OK
+        elif result.updated_events > 0:
+            # Some success, some errors
+            response_status = status.HTTP_207_MULTI_STATUS
+        else:
+            # All errors
+            response_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+        
+        response_data = {
+            "success": True,
+            "message": "Event sync completed",
+            "results": result.to_dict()
+        }
+        
+        logger.info("Event sync completed",
+                   user=request.user.username,
+                   total_bhmc=result.total_bhmc_events,
+                   total_gg=result.total_gg_events,
+                   matched=result.matched_events,
+                   updated=result.updated_events,
+                   errors=len(result.errors))
+        
+        return Response(response_data, status=response_status)
+        
+    except Exception as e:
+        error_msg = f"Event sync failed: {str(e)}"
+        logger.error("Event sync failed",
+                    user=request.user.username,
+                    error=str(e))
+        
+        return Response({
+            "success": False,
+            "message": error_msg,
+            "results": None
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def sync_single_event(request, event_id):
+    """
+    Admin-only endpoint to sync a single BHMC event with Golf Genius events
+    
+    POST /api/golfgenius/sync-event/{event_id}/
+    
+    Body parameters:
+    - force_update (bool): Whether to update event even if it already has Golf Genius ID (default: False)
+    
+    Returns:
+        JSON response with sync result for the single event
+    """
+    try:
+        force_update = request.data.get('force_update', False)
+        
+        # Validate event_id
+        try:
+            event_id = int(event_id)
+        except (ValueError, TypeError):
+            return Response({
+                "success": False,
+                "message": "Invalid event ID",
+                "error": "Event ID must be a valid integer",
+                "results": None
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.info("Single event sync requested",
+                   user=request.user.username,
+                   event_id=event_id,
+                   force_update=force_update)
+        
+        # Initialize sync service and sync single event
+        sync_service = GolfGeniusEventService()
+        result = sync_service.sync_single_event(event_id=event_id, force_update=force_update)
+        
+        # Determine response status based on results
+        if len(result.errors) == 0 and result.updated_events > 0:
+            response_status = status.HTTP_200_OK
+        elif len(result.errors) == 0 and result.skipped_events > 0:
+            response_status = status.HTTP_200_OK
+        elif len(result.errors) == 0 and result.matched_events > 0:
+            response_status = status.HTTP_200_OK
+        else:
+            response_status = status.HTTP_400_BAD_REQUEST
+        
+        response_data = {
+            "success": len(result.errors) == 0,
+            "message": "Single event sync completed",
+            "results": result.to_dict()
+        }
+        
+        logger.info("Single event sync completed",
+                   user=request.user.username,
+                   event_id=event_id,
+                   matched=result.matched_events,
+                   updated=result.updated_events,
+                   skipped=result.skipped_events,
+                   errors=len(result.errors))
+        
+        return Response(response_data, status=response_status)
+        
+    except Exception as e:
+        error_msg = f"Single event sync failed: {str(e)}"
+        logger.error("Single event sync failed",
+                    user=request.user.username,
+                    event_id=event_id,
+                    error=str(e))
+        
+        return Response({
+            "success": False,
+            "message": error_msg,
+            "results": None
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def event_sync_status(request):
+    """
+    Admin-only endpoint to get current event sync status
+    
+    GET /api/golfgenius/event-sync-status/
+    
+    Returns:
+        JSON response with event sync status information
+    """
+    try:
+        logger.info("Event sync status requested", user=request.user.username)
+        
+        sync_service = GolfGeniusEventService()
+        status_info = sync_service.get_sync_status()
+        
+        return Response({
+            "success": True,
+            "message": "Event sync status retrieved",
+            "status": status_info
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        error_msg = f"Failed to get event sync status: {str(e)}"
+        logger.error("Event sync status request failed",
+                    user=request.user.username,
+                    error=str(e))
+        
+        return Response({
+            "success": False,
+            "message": error_msg,
+            "status": None
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

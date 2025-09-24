@@ -6,7 +6,8 @@ from django.db import models, transaction
 from django.core.exceptions import ValidationError
 
 from register.models import Player
-from events.models import Event
+from events.models import Event, Round, Tournament
+from courses.models import Course
 from core.models import SeasonSettings
 from .client import GolfGeniusAPIClient, GolfGeniusAPIError, GolfGeniusRateLimitError
 
@@ -311,7 +312,11 @@ class EventSyncResult:
         self.matched_events = 0
         self.updated_events = 0
         self.skipped_events = 0
+        self.created_rounds = 0
+        self.created_tournaments = 0
         self.errors = []
+        self.round_errors = []
+        self.tournament_errors = []
         self.matches = []
         self.unmatched_bhmc_events = []
         self.unmatched_gg_events = []
@@ -320,6 +325,16 @@ class EventSyncResult:
         """Add an error for a specific event"""
         self.errors.append({"event": event_name, "error": error})
         logger.error("Event sync error", event_name=event_name, error=error)
+    
+    def add_round_error(self, event_name: str, round_info: str, error: str):
+        """Add an error for round creation"""
+        self.round_errors.append({"event": event_name, "round": round_info, "error": error})
+        logger.error("Round creation error", event_name=event_name, round_info=round_info, error=error)
+    
+    def add_tournament_error(self, event_name: str, tournament_info: str, error: str):
+        """Add an error for tournament creation"""
+        self.tournament_errors.append({"event": event_name, "tournament": tournament_info, "error": error})
+        logger.error("Tournament creation error", event_name=event_name, tournament_info=tournament_info, error=error)
     
     def add_match(self, bhmc_event: Event, gg_event: Dict, match_type: str):
         """Record a successful match"""
@@ -373,10 +388,16 @@ class EventSyncResult:
             "matched_events": self.matched_events,
             "updated_events": self.updated_events,
             "skipped_events": self.skipped_events,
+            "created_rounds": self.created_rounds,
+            "created_tournaments": self.created_tournaments,
             "error_count": len(self.errors),
+            "round_error_count": len(self.round_errors),
+            "tournament_error_count": len(self.tournament_errors),
             "unmatched_bhmc_count": len(self.unmatched_bhmc_events),
             "unmatched_gg_count": len(self.unmatched_gg_events),
             "errors": self.errors,
+            "round_errors": self.round_errors,
+            "tournament_errors": self.tournament_errors,
             "matches": self.matches,
             "unmatched_bhmc_events": self.unmatched_bhmc_events,
             "unmatched_gg_events": self.unmatched_gg_events
@@ -808,7 +829,7 @@ class GolfGeniusEventService:
     def _update_event_match(self, bhmc_event: Event, gg_event: Dict,
                            match_type: str, result: EventSyncResult):
         """
-        Update BHMC event with Golf Genius event ID
+        Update BHMC event with Golf Genius event ID and create rounds/tournaments
         
         Args:
             bhmc_event: BHMC Event object
@@ -845,10 +866,333 @@ class GolfGeniusEventService:
                        new_gg_id=gg_id,
                        match_type=match_type)
             
+            # Create rounds and tournaments for this event
+            self._create_rounds_and_tournaments(bhmc_event, gg_id, result)
+            
         except ValidationError as e:
             result.add_error(bhmc_event.name, f"Validation error: {str(e)}")
         except Exception as e:
             result.add_error(bhmc_event.name, f"Update error: {str(e)}")
+    
+    def _create_rounds_and_tournaments(self, bhmc_event: Event, gg_event_id: str, result: EventSyncResult):
+        """
+        Create Round and Tournament records for a synchronized event
+        
+        Args:
+            bhmc_event: BHMC Event object
+            gg_event_id: Golf Genius event ID
+            result: EventSyncResult to update with creation counts and errors
+        """
+        try:
+            logger.info("Creating rounds and tournaments for event",
+                       event_name=bhmc_event.name,
+                       gg_event_id=gg_event_id)
+            
+            # Get rounds from Golf Genius
+            gg_rounds = self.api_client.get_event_rounds(gg_event_id)
+            
+            if not gg_rounds:
+                logger.info("No rounds found for event", event_name=bhmc_event.name)
+                return
+            
+            # Get event courses for tournament mapping
+            event_courses = self._get_event_courses_for_mapping(bhmc_event, gg_event_id, result)
+            
+            for round_data in gg_rounds:
+                round_info = round_data.get('round', round_data)  # Handle both formats
+                self._create_round_and_tournaments(bhmc_event, round_info, event_courses, result)
+                
+        except Exception as e:
+            error_msg = f"Failed to create rounds and tournaments: {str(e)}"
+            result.add_round_error(bhmc_event.name, "General", error_msg)
+            logger.error("Round/tournament creation failed",
+                        event_name=bhmc_event.name,
+                        error=str(e))
+    
+    def _get_event_courses_for_mapping(self, bhmc_event: Event, gg_event_id: str, result: EventSyncResult) -> Dict[str, Course]:
+        """
+        Get course mapping from Golf Genius course names to BHMC Course objects
+        
+        Args:
+            bhmc_event: BHMC Event object
+            gg_event_id: Golf Genius event ID
+            result: EventSyncResult for error logging
+            
+        Returns:
+            Dictionary mapping Golf Genius course names to BHMC Course objects
+        """
+        course_mapping = {}
+        
+        try:
+            # Get Golf Genius courses for this event
+            gg_courses = self.api_client.get_event_courses(gg_event_id)
+            
+            # Get BHMC courses associated with this event
+            bhmc_courses = list(bhmc_event.courses.all())
+            
+            # Try to match Golf Genius courses with BHMC courses by name
+            for gg_course in gg_courses:
+                gg_course_name = gg_course.get('name', '').strip()
+                
+                if not gg_course_name:
+                    continue
+                
+                # Try exact match first (case-insensitive)
+                matched_course = None
+                for bhmc_course in bhmc_courses:
+                    if bhmc_course.name.lower() == gg_course_name.lower():
+                        matched_course = bhmc_course
+                        break
+                
+                if matched_course:
+                    course_mapping[gg_course_name] = matched_course
+                    logger.info("Mapped Golf Genius course to BHMC course",
+                               gg_course=gg_course_name,
+                               bhmc_course=matched_course.name)
+                else:
+                    logger.warning("Could not map Golf Genius course to BHMC course",
+                                 gg_course=gg_course_name,
+                                 available_bhmc_courses=[c.name for c in bhmc_courses])
+            
+            # If we have BHMC courses but no mappings, use first available as fallback
+            if bhmc_courses and not course_mapping:
+                fallback_course = bhmc_courses[0]
+                logger.info("Using fallback course for tournaments",
+                           event_name=bhmc_event.name,
+                           fallback_course=fallback_course.name)
+                course_mapping['__fallback__'] = fallback_course
+                
+        except Exception as e:
+            logger.error("Failed to get course mapping",
+                        event_name=bhmc_event.name,
+                        error=str(e))
+        
+        return course_mapping
+    
+    def _create_round_and_tournaments(self, bhmc_event: Event, round_info: Dict,
+                                    course_mapping: Dict[str, Course], result: EventSyncResult):
+        """
+        Create a Round record and its associated Tournament records
+        
+        Args:
+            bhmc_event: BHMC Event object
+            round_info: Golf Genius round data
+            course_mapping: Dictionary mapping course names to Course objects
+            result: EventSyncResult to update
+        """
+        try:
+            gg_round_id = str(round_info.get('id', ''))
+            round_number = round_info.get('index', 1)
+            round_date_str = round_info.get('date', '')
+            
+            if not gg_round_id:
+                result.add_round_error(bhmc_event.name, f"Round {round_number}", "No round ID found")
+                return
+            
+            # Check if round already exists
+            existing_round = Round.objects.filter(gg_id=gg_round_id).first()
+            if existing_round:
+                logger.info("Round already exists, skipping creation",
+                           event_name=bhmc_event.name,
+                           round_number=round_number,
+                           gg_round_id=gg_round_id)
+                return
+            
+            # Parse round date
+            round_date = None
+            if round_date_str:
+                try:
+                    round_date = datetime.strptime(round_date_str, '%Y-%m-%d').date()
+                except (ValueError, TypeError):
+                    logger.warning("Could not parse round date",
+                                 round_date_str=round_date_str,
+                                 event_name=bhmc_event.name)
+                    round_date = bhmc_event.start_date  # Fallback to event start date
+            else:
+                round_date = bhmc_event.start_date
+            
+            # Create Round record
+            round_obj = Round.objects.create(
+                event=bhmc_event,
+                round_number=round_number,
+                round_date=round_date,
+                gg_id=gg_round_id
+            )
+            result.created_rounds += 1
+            
+            logger.info("Created Round record",
+                       event_name=bhmc_event.name,
+                       round_number=round_number,
+                       round_date=str(round_date),
+                       gg_round_id=gg_round_id)
+            
+            # Create tournaments for this round
+            self._create_tournaments_for_round(bhmc_event, round_obj, gg_round_id, course_mapping, result)
+            
+        except Exception as e:
+            error_msg = f"Failed to create round: {str(e)}"
+            result.add_round_error(bhmc_event.name, f"Round {round_info.get('index', 'unknown')}", error_msg)
+            logger.error("Round creation failed",
+                        event_name=bhmc_event.name,
+                        round_info=round_info,
+                        error=str(e))
+    
+    def _create_tournaments_for_round(self, bhmc_event: Event, round_obj: Round, gg_round_id: str,
+                                    course_mapping: Dict[str, Course], result: EventSyncResult):
+        """
+        Create Tournament records for a specific round
+        
+        Args:
+            bhmc_event: BHMC Event object
+            round_obj: Created Round object
+            gg_round_id: Golf Genius round ID
+            course_mapping: Dictionary mapping course names to Course objects
+            result: EventSyncResult to update
+        """
+        try:
+            # Get tournaments for this round from Golf Genius
+            gg_tournaments = self.api_client.get_round_tournaments(bhmc_event.gg_id, gg_round_id)
+            
+            if not gg_tournaments:
+                logger.info("No tournaments found for round",
+                           event_name=bhmc_event.name,
+                           round_number=round_obj.round_number)
+                return
+            
+            for tournament_data in gg_tournaments:
+                tournament_info = tournament_data.get('event', tournament_data)  # Handle both formats
+                self._create_tournament(bhmc_event, round_obj, tournament_info, course_mapping, result)
+                
+        except Exception as e:
+            error_msg = f"Failed to get tournaments for round: {str(e)}"
+            result.add_round_error(bhmc_event.name, f"Round {round_obj.round_number}", error_msg)
+            logger.error("Tournament retrieval failed",
+                        event_name=bhmc_event.name,
+                        round_number=round_obj.round_number,
+                        error=str(e))
+    
+    def _create_tournament(self, bhmc_event: Event, round_obj: Round, tournament_info: Dict,
+                         course_mapping: Dict[str, Course], result: EventSyncResult) -> Optional[Tournament]:
+        """
+        Create a single Tournament record
+
+        Args:
+            bhmc_event: BHMC Event object
+            round_obj: Round object
+            tournament_info: Golf Genius tournament data
+            course_mapping: Dictionary mapping course names to Course objects
+            result: EventSyncResult to update
+
+        Returns:
+            Created Tournament object or None if creation failed
+        """
+        try:
+            gg_tournament_id = str(tournament_info.get('id', ''))
+            tournament_name = tournament_info.get('name', '').strip()
+            score_format = tournament_info.get('score_format', '')
+            handicap_format = tournament_info.get('handicap_format', '')
+
+            if not gg_tournament_id:
+                result.add_tournament_error(bhmc_event.name, tournament_name or "Unknown", "No tournament ID found")
+                return None
+
+            if not tournament_name:
+                result.add_tournament_error(bhmc_event.name, gg_tournament_id, "No tournament name found")
+                return None
+
+            # Check if tournament already exists
+            existing_tournament = Tournament.objects.filter(gg_id=gg_tournament_id).first()
+            if existing_tournament:
+                logger.info("Tournament already exists, skipping creation",
+                           event_name=bhmc_event.name,
+                           tournament_name=tournament_name,
+                           gg_tournament_id=gg_tournament_id)
+                return existing_tournament
+
+            # Determine if tournament is net based on handicap_format
+            is_net = self._determine_is_net(handicap_format)
+
+            # Get course for tournament - use fallback if no specific mapping
+            course = self._get_tournament_course(course_mapping, tournament_info)
+            if not course:
+                result.add_tournament_error(bhmc_event.name, tournament_name, "No course available for tournament")
+                return None
+
+            # Create Tournament record
+            tournament_obj = Tournament.objects.create(
+                event=bhmc_event,
+                round=round_obj,
+                course=course,
+                name=tournament_name,
+                format=score_format,
+                is_net=is_net,
+                gg_id=gg_tournament_id
+            )
+            result.created_tournaments += 1
+
+            logger.info("Created Tournament record",
+                       event_name=bhmc_event.name,
+                       tournament_name=tournament_name,
+                       round_number=round_obj.round_number,
+                       course=course.name,
+                       format=score_format,
+                       is_net=is_net,
+                       gg_tournament_id=gg_tournament_id)
+
+            return tournament_obj
+
+        except Exception as e:
+            error_msg = f"Failed to create tournament: {str(e)}"
+            tournament_name = tournament_info.get('name', 'Unknown')
+            result.add_tournament_error(bhmc_event.name, tournament_name, error_msg)
+            logger.error("Tournament creation failed",
+                        event_name=bhmc_event.name,
+                        tournament_info=tournament_info,
+                        error=str(e))
+            return None
+    
+    def _determine_is_net(self, handicap_format: str) -> bool:
+        """
+        Determine if a tournament is net based on handicap_format
+        
+        Args:
+            handicap_format: Golf Genius handicap format string
+            
+        Returns:
+            True if tournament is net, False if gross
+        """
+        if not handicap_format:
+            return False
+        
+        handicap_format_lower = handicap_format.lower()
+        
+        # Check for net indicators
+        net_indicators = ['net', 'usga_net']
+        return any(indicator in handicap_format_lower for indicator in net_indicators)
+    
+    def _get_tournament_course(self, course_mapping: Dict[str, Course], tournament_info: Dict) -> Optional[Course]:
+        """
+        Get the course for a tournament from the mapping
+        
+        Args:
+            course_mapping: Dictionary mapping course names to Course objects
+            tournament_info: Golf Genius tournament data
+            
+        Returns:
+            Course object or None if not found
+        """
+        # For now, since the Tournament model requires a course but the Golf Genius API
+        # doesn't directly associate tournaments with specific courses in the tournament data,
+        # we'll use the fallback course if available
+        
+        if '__fallback__' in course_mapping:
+            return course_mapping['__fallback__']
+        
+        # If we have any mapped courses, use the first one
+        if course_mapping:
+            return next(iter(course_mapping.values()))
+        
+        return None
     
     def get_sync_status(self) -> Dict:
         """

@@ -314,3 +314,69 @@ class GolfGeniusAPIClient:
                    page=page)
         
         return response if isinstance(response, list) else []
+    
+    def get_event_rounds(self, event_id: str) -> List[Dict[str, Any]]:
+        """
+        Get rounds for a specific event from Golf Genius
+        
+        Args:
+            event_id: Golf Genius event ID
+            
+        Returns:
+            List of round dictionaries
+        """
+        endpoint = f"/api_v2/{self.api_key}/events/{event_id}/rounds"
+        response = self._make_request("GET", endpoint)
+        
+        logger.info("Retrieved event rounds",
+                   event_id=event_id,
+                   round_count=len(response) if isinstance(response, list) else 0)
+        
+        return response if isinstance(response, list) else []
+    
+    def get_round_tournaments(self, event_id: str, round_id: str) -> List[Dict[str, Any]]:
+        """
+        Get tournaments for a specific round from Golf Genius
+        
+        Args:
+            event_id: Golf Genius event ID
+            round_id: Golf Genius round ID
+            
+        Returns:
+            List of tournament dictionaries
+        """
+        endpoint = f"/api_v2/{self.api_key}/events/{event_id}/rounds/{round_id}/tournaments"
+        response = self._make_request("GET", endpoint)
+        
+        logger.info("Retrieved round tournaments",
+                   event_id=event_id,
+                   round_id=round_id,
+                   tournament_count=len(response) if isinstance(response, list) else 0)
+        
+        return response if isinstance(response, list) else []
+    
+    def get_event_courses(self, event_id: str) -> List[Dict[str, Any]]:
+        """
+        Get courses for a specific event from Golf Genius
+        
+        Args:
+            event_id: Golf Genius event ID
+            
+        Returns:
+            List of course dictionaries
+        """
+        endpoint = f"/api_v2/{self.api_key}/events/{event_id}/courses"
+        response = self._make_request("GET", endpoint)
+        
+        # Extract courses from the response format
+        courses = []
+        if isinstance(response, dict) and 'courses' in response:
+            courses = response['courses']
+        elif isinstance(response, list):
+            courses = response
+            
+        logger.info("Retrieved event courses",
+                   event_id=event_id,
+                   course_count=len(courses))
+        
+        return courses

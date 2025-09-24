@@ -3,7 +3,8 @@ from unittest.mock import Mock, patch, MagicMock
 from django.test import TestCase
 from django.db import transaction
 
-from events.models import Event
+from events.models import Event, Round, Tournament
+from courses.models import Course
 from core.models import SeasonSettings
 from golfgenius.services import GolfGeniusEventService, EventSyncResult
 from golfgenius.client import GolfGeniusAPIClient, GolfGeniusAPIError
@@ -19,10 +20,14 @@ class TestEventSyncResult(TestCase):
         self.assertEqual(result.matched_events, 0)
         self.assertEqual(result.updated_events, 0)
         self.assertEqual(result.skipped_events, 0)
+        self.assertEqual(result.created_rounds, 0)
+        self.assertEqual(result.created_tournaments, 0)
         self.assertEqual(len(result.errors), 0)
         self.assertEqual(len(result.matches), 0)
         self.assertEqual(len(result.unmatched_bhmc_events), 0)
         self.assertEqual(len(result.unmatched_gg_events), 0)
+        self.assertEqual(len(result.round_errors), 0)
+        self.assertEqual(len(result.tournament_errors), 0)
     
     def test_to_dict(self):
         result = EventSyncResult()
@@ -30,6 +35,8 @@ class TestEventSyncResult(TestCase):
         result.total_gg_events = 3
         result.matched_events = 2
         result.updated_events = 1
+        result.created_rounds = 4
+        result.created_tournaments = 8
         
         data = result.to_dict()
         
@@ -37,8 +44,12 @@ class TestEventSyncResult(TestCase):
         self.assertEqual(data['total_gg_events'], 3)
         self.assertEqual(data['matched_events'], 2)
         self.assertEqual(data['updated_events'], 1)
+        self.assertEqual(data['created_rounds'], 4)
+        self.assertEqual(data['created_tournaments'], 8)
         self.assertIn('errors', data)
         self.assertIn('matches', data)
+        self.assertIn('round_errors', data)
+        self.assertIn('tournament_errors', data)
 
 
 class TestGolfGeniusEventService(TestCase):
@@ -48,6 +59,10 @@ class TestGolfGeniusEventService(TestCase):
         self.mock_client = Mock(spec=GolfGeniusAPIClient)
         self.service = GolfGeniusEventService(api_client=self.mock_client)
         
+        # Create test courses
+        self.test_course1 = Course.objects.create(name="Test Course 1", gg_id="course_123")
+        self.test_course2 = Course.objects.create(name="Test Course 2", gg_id="course_456")
+        
         # Create test data
         self.test_event = Event.objects.create(
             name="Test Event",
@@ -56,6 +71,7 @@ class TestGolfGeniusEventService(TestCase):
             season=2024,
             event_type="N"
         )
+        self.test_event.courses.add(self.test_course1)
         
         self.test_season_settings = SeasonSettings.objects.create(
             season=2024,
@@ -282,6 +298,178 @@ class TestGolfGeniusEventService(TestCase):
         self.assertEqual(status['unsynced_events'], 1)
         self.assertEqual(status['sync_percentage'], 50.0)
     
+    def test_determine_is_net_gross(self):
+        """Test is_net determination for gross tournaments"""
+        self.assertFalse(self.service._determine_is_net("gross"))
+        self.assertFalse(self.service._determine_is_net("usga_gross"))
+    
+    def test_determine_is_net_net(self):
+        """Test is_net determination for net tournaments"""
+        self.assertTrue(self.service._determine_is_net("net"))
+        self.assertTrue(self.service._determine_is_net("usga_net"))
+        self.assertTrue(self.service._determine_is_net("net_double_bogey"))
+    
+    def test_determine_is_net_unknown(self):
+        """Test is_net determination for unknown formats"""
+        # Should default to False for unknown formats
+        self.assertFalse(self.service._determine_is_net("unknown_format"))
+        self.assertFalse(self.service._determine_is_net(""))
+        self.assertFalse(self.service._determine_is_net(None))
+    
+    @patch.object(GolfGeniusEventService, '_get_event_courses_for_mapping')
+    def test_create_rounds_and_tournaments_success(self, mock_get_courses):
+        """Test successful round and tournament creation"""
+        # Mock Golf Genius API calls
+        self.mock_client.get_event_rounds.return_value = [
+            {
+                "round": {
+                    "id": "round_123",
+                    "index": 1,
+                    "name": "Round 1",
+                    "date": "2024-06-15"
+                }
+            }
+        ]
+
+        self.mock_client.get_round_tournaments.return_value = [
+            {
+                "event": {
+                    "id": "tournament_456",
+                    "name": "Individual Net",
+                    "score_format": "stroke",
+                    "handicap_format": "usga_net"
+                }
+            }
+        ]
+
+        # Mock course mapping
+        mock_get_courses.return_value = {"Test Course": self.test_course1}
+
+        result = EventSyncResult()
+
+        # Mock _create_tournament to simulate successful creation
+        with patch.object(self.service, '_create_tournament') as mock_create_tournament:
+            # Mock the tournament creation to increment the result counter
+            def mock_create_side_effect(*args, **kwargs):
+                result.created_tournaments += 1
+                return Mock(spec=Tournament)
+
+            mock_create_tournament.side_effect = mock_create_side_effect
+
+            self.service._create_rounds_and_tournaments(self.test_event, "gg_event_789", result)
+
+        # Verify API calls were made
+        self.mock_client.get_event_rounds.assert_called_once_with("gg_event_789")
+        self.mock_client.get_round_tournaments.assert_called_once_with(None, "round_123")
+
+        # Verify round was created
+        self.assertEqual(Round.objects.filter(event=self.test_event).count(), 1)
+        round_obj = Round.objects.get(event=self.test_event)
+        self.assertEqual(round_obj.gg_id, "round_123")
+        self.assertEqual(round_obj.round_number, 1)
+        self.assertEqual(round_obj.round_date, date(2024, 6, 15))
+
+        # Verify tournament creation was attempted
+        mock_create_tournament.assert_called_once()
+
+        # Verify result tracking
+        self.assertEqual(result.created_rounds, 1)
+        self.assertEqual(result.created_tournaments, 1)
+    
+    @patch.object(GolfGeniusEventService, '_get_event_courses_for_mapping')
+    def test_create_rounds_and_tournaments_api_error(self, mock_get_courses):
+        """Test handling of API errors during round/tournament creation"""
+        # Mock API error
+        self.mock_client.get_event_rounds.side_effect = GolfGeniusAPIError("API Error")
+
+        result = EventSyncResult()
+        self.service._create_rounds_and_tournaments(self.test_event, "gg_event_789", result)
+
+        # Verify error was recorded (API errors go to round_errors)
+        self.assertEqual(len(result.round_errors), 1)
+        self.assertIn("API Error", result.round_errors[0]["error"])
+    
+    def test_create_tournament_success(self):
+        """Test successful tournament creation"""
+        # Create a round first
+        round_obj = Round.objects.create(
+            event=self.test_event,
+            round_number=1,
+            round_date=date(2024, 6, 15),
+            gg_id="round_123"
+        )
+        
+        gg_tournament = {
+            "id": "tournament_456",
+            "name": "Individual Net",
+            "score_format": "stroke",
+            "handicap_format": "usga_net"
+        }
+        
+        result = EventSyncResult()
+        course_mapping = {"Test Course 1": self.test_course1}
+        tournament = self.service._create_tournament(
+            self.test_event, round_obj, gg_tournament, course_mapping, result
+        )
+        
+        # Verify tournament was created
+        self.assertIsNotNone(tournament)
+        self.assertEqual(tournament.event, self.test_event)
+        self.assertEqual(tournament.round, round_obj)
+        self.assertEqual(tournament.course, self.test_course1)
+        self.assertEqual(tournament.name, "Individual Net")
+        self.assertEqual(tournament.format, "stroke")
+        self.assertTrue(tournament.is_net)  # usga_net should be net
+        self.assertEqual(tournament.gg_id, "tournament_456")
+        
+        # Verify it was saved to database
+        self.assertTrue(Tournament.objects.filter(gg_id="tournament_456").exists())
+    
+    def test_get_event_courses_for_mapping_success(self):
+        """Test successful course mapping retrieval"""
+        # Mock Golf Genius API response (client returns list directly)
+        self.mock_client.get_event_courses.return_value = [
+            {
+                "id": "gg_course_123",
+                "name": "Test Course 1"
+            },
+            {
+                "id": "gg_course_456",
+                "name": "Different Course"
+            }
+        ]
+
+        result = EventSyncResult()
+        mapping = self.service._get_event_courses_for_mapping(self.test_event, "gg_event_789", result)
+
+        # Verify API was called
+        self.mock_client.get_event_courses.assert_called_once_with("gg_event_789")
+
+        # Verify mapping includes matching course
+        self.assertIn("Test Course 1", mapping)
+        self.assertEqual(mapping["Test Course 1"], self.test_course1)
+
+        # Verify non-matching course is not included
+        self.assertNotIn("Different Course", mapping)
+    
+    def test_get_event_courses_for_mapping_no_matches(self):
+        """Test course mapping when no courses match"""
+        # Mock Golf Genius API response with no matching courses (client returns list directly)
+        self.mock_client.get_event_courses.return_value = [
+            {
+                "id": "gg_course_999",
+                "name": "Nonexistent Course"
+            }
+        ]
+
+        result = EventSyncResult()
+        mapping = self.service._get_event_courses_for_mapping(self.test_event, "gg_event_789", result)
+
+        # Verify fallback mapping is created when no courses match
+        self.assertEqual(len(mapping), 1)
+        self.assertIn('__fallback__', mapping)
+        self.assertEqual(mapping['__fallback__'], self.test_course1)
+    
     @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
     @patch.object(GolfGeniusEventService, '_get_bhmc_events')
     @patch.object(GolfGeniusEventService, '_get_target_season')
@@ -346,6 +534,10 @@ class TestEventSyncIntegration(TestCase):
     def setUp(self):
         self.service = GolfGeniusEventService()
         
+        # Create test courses
+        self.course1 = Course.objects.create(name="Spring Valley Golf Club")
+        self.course2 = Course.objects.create(name="Summer Hills Country Club")
+        
         # Create test events
         self.event1 = Event.objects.create(
             name="Spring Tournament",
@@ -354,6 +546,7 @@ class TestEventSyncIntegration(TestCase):
             season=2024,
             event_type="W"
         )
+        self.event1.courses.add(self.course1)
         
         self.event2 = Event.objects.create(
             name="Summer Championship",
@@ -362,6 +555,7 @@ class TestEventSyncIntegration(TestCase):
             season=2024,
             event_type="W"
         )
+        self.event2.courses.add(self.course2)
         
         self.event3 = Event.objects.create(
             name="Already Synced Event",
@@ -410,6 +604,9 @@ class TestSingleEventSync(TestCase):
     def setUp(self):
         self.service = GolfGeniusEventService()
         
+        # Create test course
+        self.test_course = Course.objects.create(name="Test Course", gg_id="course_123")
+        
         # Create test event
         self.test_event = Event.objects.create(
             name="Test Event",
@@ -417,6 +614,7 @@ class TestSingleEventSync(TestCase):
             rounds=1,
             season=2024
         )
+        self.test_event.courses.add(self.test_course)
     
     @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
     def test_sync_single_event_success(self, mock_get_gg_events):
@@ -553,3 +751,323 @@ class TestSingleEventSync(TestCase):
         self.assertEqual(result.total_gg_events, 0)
         self.assertEqual(result.matched_events, 0)
         self.assertEqual(len(result.unmatched_bhmc_events), 1)
+    
+    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(GolfGeniusEventService, '_create_rounds_and_tournaments')
+    def test_sync_single_event_with_rounds_and_tournaments(self, mock_create_rt, mock_get_gg_events):
+        """Test single event sync with Round and Tournament creation"""
+        # Mock Golf Genius events
+        mock_get_gg_events.return_value = [
+            {
+                "id": "789",
+                "name": "Test GG Event",
+                "start_date": "2024-06-15",
+                "end_date": "2024-06-15"
+            }
+        ]
+        
+        result = self.service.sync_single_event(self.test_event.id)
+        
+        # Verify Round and Tournament creation was attempted
+        mock_create_rt.assert_called_once_with(self.test_event, "789", result)
+        
+        # Verify event was updated
+        self.test_event.refresh_from_db()
+        self.assertEqual(self.test_event.gg_id, "789")
+    
+    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    def test_sync_single_event_rounds_tournaments_success(self, mock_get_gg_events):
+        """Test single event sync with successful Round and Tournament creation (integration)"""
+        # Mock Golf Genius events
+        mock_get_gg_events.return_value = [
+            {
+                "id": "789",
+                "name": "Test GG Event",
+                "start_date": "2024-06-15",
+                "end_date": "2024-06-15"
+            }
+        ]
+        
+        # Mock the API client methods for the service
+        with patch.object(self.service, 'api_client') as mock_client:
+            # Mock rounds API response
+            mock_client.get_event_rounds.return_value = [
+                {
+                    "round": {
+                        "id": "round_123",
+                        "index": 1,
+                        "name": "Round 1",
+                        "date": "2024-06-15"
+                    }
+                }
+            ]
+            
+            # Mock tournaments API response
+            mock_client.get_round_tournaments.return_value = [
+                {
+                    "event": {
+                        "id": "tournament_456",
+                        "name": "Individual Net",
+                        "score_format": "stroke",
+                        "handicap_format": "usga_net"
+                    }
+                }
+            ]
+            
+            # Mock courses API response (client returns list directly)
+            mock_client.get_event_courses.return_value = [
+                {
+                    "id": "gg_course_123",
+                    "name": "Test Course"
+                }
+            ]
+            
+            result = self.service.sync_single_event(self.test_event.id)
+        
+        # Verify event was synced
+        self.assertEqual(result.matched_events, 1)
+        self.assertEqual(result.updated_events, 1)
+        
+        # Verify Round and Tournament creation counts
+        self.assertEqual(result.created_rounds, 1)
+        self.assertEqual(result.created_tournaments, 1)
+        
+        # Verify Round was created in database
+        self.assertEqual(Round.objects.filter(event=self.test_event).count(), 1)
+        round_obj = Round.objects.get(event=self.test_event)
+        self.assertEqual(round_obj.gg_id, "round_123")
+        self.assertEqual(round_obj.round_number, 1)
+        self.assertEqual(round_obj.round_date, date(2024, 6, 15))
+        
+        # Verify Tournament was created in database
+        self.assertEqual(Tournament.objects.filter(event=self.test_event).count(), 1)
+        tournament_obj = Tournament.objects.get(event=self.test_event)
+        self.assertEqual(tournament_obj.gg_id, "tournament_456")
+        self.assertEqual(tournament_obj.name, "Individual Net")
+        self.assertEqual(tournament_obj.format, "stroke")
+        self.assertTrue(tournament_obj.is_net)
+        self.assertEqual(tournament_obj.course, self.test_course)
+        self.assertEqual(tournament_obj.round, round_obj)
+    
+    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    def test_sync_single_event_rounds_tournaments_errors(self, mock_get_gg_events):
+        """Test single event sync with Round and Tournament creation errors"""
+        # Mock Golf Genius events
+        mock_get_gg_events.return_value = [
+            {
+                "id": "789",
+                "name": "Test GG Event",
+                "start_date": "2024-06-15",
+                "end_date": "2024-06-15"
+            }
+        ]
+        
+        # Mock API client with error
+        with patch.object(self.service, 'api_client') as mock_client:
+            mock_client.get_event_rounds.side_effect = GolfGeniusAPIError("Rounds API Error")
+            
+            result = self.service.sync_single_event(self.test_event.id)
+        
+        # Verify event was still synced
+        self.assertEqual(result.matched_events, 1)
+        self.assertEqual(result.updated_events, 1)
+        
+        # Verify error was recorded but didn't prevent event sync
+        self.assertEqual(len(result.round_errors), 1)
+        self.assertIn("Rounds API Error", result.round_errors[0]["error"])
+        
+        # Verify no Round or Tournament objects were created
+        self.assertEqual(Round.objects.filter(event=self.test_event).count(), 0)
+        self.assertEqual(Tournament.objects.filter(event=self.test_event).count(), 0)
+
+
+class TestRoundTournamentCreationIntegration(TestCase):
+    """Integration tests specifically for Round and Tournament creation during event sync"""
+    
+    def setUp(self):
+        self.service = GolfGeniusEventService()
+        
+        # Create test courses
+        self.course1 = Course.objects.create(name="Pine Valley Golf Club")
+        self.course2 = Course.objects.create(name="Oak Hill Country Club")
+        
+        # Create test event
+        self.test_event = Event.objects.create(
+            name="Championship Event",
+            start_date=date(2024, 6, 15),
+            rounds=2,
+            season=2024,
+            event_type="W"
+        )
+        self.test_event.courses.add(self.course1, self.course2)
+    
+    def test_multiple_rounds_multiple_courses_creation(self):
+        """Test creation of multiple rounds with tournaments on multiple courses"""
+        with patch.object(self.service, 'api_client') as mock_client:
+            # Mock rounds API response - 2 rounds
+            mock_client.get_event_rounds.return_value = [
+                {
+                    "round": {
+                        "id": "round_1",
+                        "index": 1,
+                        "name": "Round 1",
+                        "date": "2024-06-15"
+                    }
+                },
+                {
+                    "round": {
+                        "id": "round_2",
+                        "index": 2,
+                        "name": "Round 2",
+                        "date": "2024-06-16"
+                    }
+                }
+            ]
+            
+            # Mock tournaments for each round (2 tournaments per round)
+            mock_client.get_round_tournaments.side_effect = [
+                # Round 1 tournaments
+                [
+                    {
+                        "event": {
+                            "id": "tournament_1",
+                            "name": "Gross Individual",
+                            "score_format": "stroke",
+                            "handicap_format": "gross"
+                        }
+                    },
+                    {
+                        "event": {
+                            "id": "tournament_2",
+                            "name": "Net Individual",
+                            "score_format": "stroke",
+                            "handicap_format": "usga_net"
+                        }
+                    }
+                ],
+                # Round 2 tournaments
+                [
+                    {
+                        "event": {
+                            "id": "tournament_3",
+                            "name": "Gross Team",
+                            "score_format": "stroke",
+                            "handicap_format": "gross"
+                        }
+                    },
+                    {
+                        "event": {
+                            "id": "tournament_4",
+                            "name": "Net Team",
+                            "score_format": "stroke",
+                            "handicap_format": "usga_net"
+                        }
+                    }
+                ]
+            ]
+            
+            # Mock courses API response (client returns list directly)
+            mock_client.get_event_courses.return_value = [
+                {
+                    "id": "gg_course_1",
+                    "name": "Pine Valley Golf Club"
+                },
+                {
+                    "id": "gg_course_2",
+                    "name": "Oak Hill Country Club"
+                }
+            ]
+            
+            result = EventSyncResult()
+            self.service._create_rounds_and_tournaments(self.test_event, "gg_event_123", result)
+        
+        # Verify round creation counts
+        self.assertEqual(result.created_rounds, 2)
+        self.assertEqual(result.created_tournaments, 4)
+        self.assertEqual(len(result.round_errors), 0)
+        self.assertEqual(len(result.tournament_errors), 0)
+        
+        # Verify Round objects in database
+        rounds = Round.objects.filter(event=self.test_event).order_by('round_number')
+        self.assertEqual(len(rounds), 2)
+        
+        round1 = rounds[0]
+        self.assertEqual(round1.gg_id, "round_1")
+        self.assertEqual(round1.round_number, 1)
+        self.assertEqual(round1.round_date, date(2024, 6, 15))
+        
+        round2 = rounds[1]
+        self.assertEqual(round2.gg_id, "round_2")
+        self.assertEqual(round2.round_number, 2)
+        self.assertEqual(round2.round_date, date(2024, 6, 16))
+        
+        # Verify Tournament objects in database
+        tournaments = Tournament.objects.filter(event=self.test_event).order_by('gg_id')
+        self.assertEqual(len(tournaments), 4)
+        
+        # Verify tournament details
+        gross_individual = tournaments[0]  # tournament_1
+        self.assertEqual(gross_individual.name, "Gross Individual")
+        self.assertFalse(gross_individual.is_net)
+        self.assertEqual(gross_individual.round, round1)
+        
+        net_individual = tournaments[1]  # tournament_2
+        self.assertEqual(net_individual.name, "Net Individual")
+        self.assertTrue(net_individual.is_net)
+        self.assertEqual(net_individual.round, round1)
+        
+        gross_team = tournaments[2]  # tournament_3
+        self.assertEqual(gross_team.name, "Gross Team")
+        self.assertFalse(gross_team.is_net)
+        self.assertEqual(gross_team.round, round2)
+        
+        net_team = tournaments[3]  # tournament_4
+        self.assertEqual(net_team.name, "Net Team")
+        self.assertTrue(net_team.is_net)
+        self.assertEqual(net_team.round, round2)
+    
+    def test_course_mapping_fallback_strategy(self):
+        """Test fallback course selection when exact course names don't match"""
+        with patch.object(self.service, 'api_client') as mock_client:
+            # Mock rounds and tournaments
+            mock_client.get_event_rounds.return_value = [
+                {
+                    "round": {
+                        "id": "round_1",
+                        "index": 1,
+                        "name": "Round 1",
+                        "date": "2024-06-15"
+                    }
+                }
+            ]
+            
+            mock_client.get_round_tournaments.return_value = [
+                {
+                    "event": {
+                        "id": "tournament_1",
+                        "name": "Test Tournament",
+                        "score_format": "stroke",
+                        "handicap_format": "gross"
+                    }
+                }
+            ]
+            
+            # Mock courses API response with NO matching course names (client returns list directly)
+            mock_client.get_event_courses.return_value = [
+                {
+                    "id": "gg_course_999",
+                    "name": "Completely Different Golf Course"
+                }
+            ]
+            
+            result = EventSyncResult()
+            self.service._create_rounds_and_tournaments(self.test_event, "gg_event_123", result)
+        
+        # Verify round was created
+        self.assertEqual(result.created_rounds, 1)
+        
+        # Verify tournament was created with fallback course (first course in event)
+        self.assertEqual(result.created_tournaments, 1)
+        
+        tournament = Tournament.objects.get(event=self.test_event)
+        self.assertEqual(tournament.course, self.course1)  # First course should be used as fallback

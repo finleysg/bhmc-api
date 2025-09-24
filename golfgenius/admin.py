@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 
 from register.models import Player
 from events.models import Event
-from .services import PlayerSyncService, GolfGeniusEventService
+from .services import PlayerSyncService, GolfGeniusEventService, EventSyncResult
 from .client import GolfGeniusAPIClient, GolfGeniusAPIError
 
 
@@ -141,13 +141,8 @@ def sync_selected_events_with_golf_genius(modeladmin, request, queryset):
         
         # Process each season separately
         for season, events in events_by_season.items():
-            # Create a temporary result for this season
-            class TempResult:
-                def __init__(self):
-                    self.updated_events = 0
-                    self.errors = []
-            
-            temp_result = TempResult()
+            # Create a proper result object for this season
+            temp_result = EventSyncResult()
             
             # Get all events for this season to match against
             season_events = list(Event.objects.filter(season=season))
@@ -276,5 +271,3 @@ try:
 except ImportError:
     # Events app might not be available during initial setup
     pass
-
-

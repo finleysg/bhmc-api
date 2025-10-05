@@ -376,21 +376,19 @@ class RosterService:
         self.api_client = api_client or GolfGeniusAPIClient()
         self.api_delay = 0.5  # Delay between API calls in seconds to prevent rate limiting
 
-    def export_roster(self, event_id: int, round_id: Optional[str] = None) -> RosterExportResult:
+    def export_roster(self, event_id: int) -> RosterExportResult:
         """
         Export roster for a BHMC event to Golf Genius by creating member registrations
 
         Args:
             event_id: BHMC Event database ID
-            round_id: Optional Golf Genius round ID to register players for. If omitted, the single
-                      round ID will be taken from the event's related Round (event.gg_rounds).
 
         Returns:
             RosterExportResult with operation details
         """
         result = RosterExportResult()
 
-        logger.info("Starting roster export operation", event_id=event_id, round_id=round_id)
+        logger.info("Starting roster export operation", event_id=event_id)
 
         try:
             # Get the BHMC event
@@ -409,13 +407,11 @@ class RosterService:
                 result.add_error("SYSTEM", f"BHMC event '{event.name}' has no Golf Genius ID")
                 return result
 
-            # Determine round_id: use provided round_id or assume single round on event.gg_rounds
-            if not round_id:
-                round_obj = event.gg_rounds.first()
-                if not round_obj or not getattr(round_obj, "gg_id", None):
-                    result.add_error("SYSTEM", f"No round_id provided and event {event.name} has no rounds")
-                    return result
-                round_id = str(round_obj.gg_id)
+            # Grab and validate rounds
+            if not event.gg_rounds.exists():
+               result.add_error("SYSTEM", f"Event {event.name} has no rounds")
+               return result
+            rounds = list(event.gg_rounds.values_list('gg_id', flat=True))
 
             # Get all registration slots for the event with players
             registration_slots = RegistrationSlot.objects.filter(
@@ -453,7 +449,7 @@ class RosterService:
             # Process each player (use roster_map to decide create vs update)
             for slot in registration_slots:
                 result.processed_players += 1
-                self._export_player(slot, round_id, result, roster_map)
+                self._export_player(slot, rounds, result, roster_map)
 
             logger.info("Roster export operation completed",
                        event_name=event.name,
@@ -469,21 +465,20 @@ class RosterService:
             result.add_error("SYSTEM", f"Roster export failed: {str(e)}")
             return result
 
-    def export_single_player(self, event_id: int, player_id: int, round_id: Optional[str] = None) -> RosterExportResult:
+    def export_single_player(self, event_id: int, player_id: int) -> RosterExportResult:
         """
         Export a single player (by player_id) for a BHMC event to Golf Genius.
 
         Args:
             event_id: BHMC Event database ID
             player_id: Player database ID
-            round_id: Optional Golf Genius round ID. If omitted, uses event.gg_rounds.
 
         Returns:
             RosterExportResult containing the outcome for this single player
         """
         result = RosterExportResult()
 
-        logger.info("Starting single player export", event_id=event_id, player_id=player_id, round_id=round_id)
+        logger.info("Starting single player export", event_id=event_id, player_id=player_id)
 
         try:
             # Get the BHMC event
@@ -502,13 +497,11 @@ class RosterService:
                 result.add_error("SYSTEM", f"BHMC event '{event.name}' has no Golf Genius ID")
                 return result
 
-            # Determine round_id: use provided round_id or assume single round on event.gg_rounds
-            if not round_id:
-                round_obj = event.gg_rounds.first()
-                if not round_obj or not getattr(round_obj, "gg_id", None):
-                    result.add_error("SYSTEM", f"No round_id provided and event {event.name} has no rounds")
-                    return result
-                round_id = str(round_obj.gg_id)
+            # Grab and validate rounds
+            if not event.gg_rounds.exists():
+               result.add_error("SYSTEM", f"Event {event.name} has no rounds")
+               return result
+            rounds = list(event.gg_rounds.values_list('gg_id', flat=True))
 
             # Find registration slot for player
             slot = RegistrationSlot.objects.filter(
@@ -538,7 +531,7 @@ class RosterService:
             # Perform the single export
             result.total_players = 1
             result.processed_players = 1
-            self._export_player(slot, round_id, result, roster_map)
+            self._export_player(slot, rounds, result, roster_map)
 
             logger.info("Single player export operation completed",
                        event_id=event_id,
@@ -553,7 +546,7 @@ class RosterService:
             result.add_error("SYSTEM", f"Single player export failed: {str(e)}")
             return result
 
-    def _export_player(self, slot: RegistrationSlot, round_id: str, result: RosterExportResult, roster_map: Optional[Dict[str, str]] = None):
+    def _export_player(self, slot: RegistrationSlot, rounds: List[str], result: RosterExportResult, roster_map: Optional[Dict[str, str]] = None):
         """
         Export a single player to Golf Genius. Uses roster_map to decide between creating
         a new member registration or updating an existing one to make exports idempotent.
@@ -578,7 +571,7 @@ class RosterService:
                 return
 
             # Build member registration data
-            member_data = self._build_member_data(slot, round_id)
+            member_data = self._build_member_data(slot, rounds)
 
             # Add delay between API calls
             if result.processed_players > 1:
@@ -604,7 +597,7 @@ class RosterService:
         except Exception as e:
             result.add_error(player_name, f"Export failed: {str(e)}")
 
-    def _build_member_data(self, slot: RegistrationSlot, round_id: str) -> Dict[str, Any]:
+    def _build_member_data(self, slot: RegistrationSlot, rounds: List[str]) -> Dict[str, Any]:
         """
         Build the member registration data for Golf Genius API
 
@@ -617,8 +610,8 @@ class RosterService:
         """
         player = slot.player
 
-        # Calculate start time
-        start_time = self._calculate_start_time(slot)
+        # Calculate team ID
+        team_id = self._calculate_group(slot)
 
         # Get skins amounts
         gross_skins, net_skins = self._get_skins_amounts(slot)
@@ -627,9 +620,8 @@ class RosterService:
         custom_fields = {
             "Tee": player.tee or "Club",
             "Date of Birth": player.birth_date.strftime('%Y-%m-%d') if player.birth_date else "",
-            "Team Id": f"{slot.registration.course.name if slot.registration.course else 'Unknown'}-{start_time}",
+            "Team Id": team_id,
             "Entry Number": str(slot.id),
-            "Start": start_time,
             "Course": slot.registration.course.name if slot.registration.course else "Unknown",
             "Full Name": player.player_name(),
             "Gross Skins": str(gross_skins),
@@ -643,24 +635,23 @@ class RosterService:
             "email": player.email,
             "gender": "M",  # Always "M" as specified
             "handicap_network_id": player.ghin,
-            "rounds": [{"round_id": round_id}],
+            "rounds": rounds,
             "custom_fields": custom_fields
         }
 
-    def _calculate_start_time(self, slot: RegistrationSlot) -> str:
+    def _calculate_group(self, slot: RegistrationSlot) -> str:
         """
-        Calculate the start time for a registration slot
+        Calculate the group for a registration slot
 
         Args:
             slot: RegistrationSlot object
 
         Returns:
-            Start time as string (e.g., "5:10 PM")
+            Group as string (e.g., "East 5:10 PM")
         """
         try:
             # Use the get_start utility function from payments.utils
-            start_datetime = get_start(slot.event, slot.registration, slot)
-            return start_datetime.strftime('%-I:%M %p')  # 12-hour format without leading zero
+            return get_start(slot.event, slot.registration, slot)
         except Exception as e:
             logger.warning("Failed to calculate start time, using default",
                           slot_id=slot.id,

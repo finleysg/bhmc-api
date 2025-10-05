@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 
 from register.models import Player
 from events.models import Event
-from .services import PlayerSyncService, GolfGeniusEventService, EventSyncResult
+from .services import PlayerSyncService, EventSyncService, EventSyncResult
 from .client import GolfGeniusAPIClient, GolfGeniusAPIError
 
 
@@ -127,7 +127,7 @@ class GolfGeniusIntegrationAdmin:
 def sync_selected_events_with_golf_genius(modeladmin, request, queryset):
     """Admin action to sync selected events with Golf Genius"""
     try:
-        sync_service = GolfGeniusEventService()
+        sync_service = EventSyncService()
         total_updated = 0
         total_errors = 0
         
@@ -192,7 +192,7 @@ sync_selected_events_with_golf_genius.short_description = "Sync selected events 
 def sync_season_events_with_golf_genius(modeladmin, request, queryset):
     """Admin action to sync all events in the same season(s) as selected events"""
     try:
-        sync_service = GolfGeniusEventService()
+        sync_service = EventSyncService()
         
         # Get unique seasons from selected events
         seasons = set(event.season for event in queryset if event.season)

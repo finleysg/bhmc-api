@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib import messages
 
 from .models import Event, EventFee, FeeType, Round, Tournament
 
@@ -50,6 +51,51 @@ class EventAdmin(admin.ModelAdmin):
         }),
     )
     inlines = [EventFeesInline, ]
+    actions = ['export_roster_to_golf_genius']
+
+    def export_roster_to_golf_genius(self, request, queryset):
+        """Admin action to export roster to Golf Genius"""
+        from golfgenius.services import RosterService
+        
+        service = RosterService()
+        total_exported = 0
+        total_errors = 0
+        
+        for event in queryset:
+            try:
+                result = service.export_roster(event.id)
+                total_exported += result.exported_players
+                total_errors += len(result.errors)
+                
+                if result.errors:
+                    messages.warning(
+                        request,
+                        f'Event "{event.name}": Exported {result.exported_players} players, '
+                        f'{len(result.errors)} errors'
+                    )
+                else:
+                    messages.success(
+                        request,
+                        f'Event "{event.name}": Successfully exported {result.exported_players} players'
+                    )
+                    
+            except Exception as e:
+                messages.error(request, f'Event "{event.name}": Export failed - {str(e)}')
+                total_errors += 1
+        
+        if total_exported > 0:
+            messages.success(
+                request,
+                f'Total: Exported {total_exported} players across {queryset.count()} events'
+            )
+        
+        if total_errors > 0:
+            messages.warning(
+                request,
+                f'Completed with {total_errors} errors'
+            )
+    
+    export_roster_to_golf_genius.short_description = "Export roster to Golf Genius"
 
     def event_type_display(self, obj):
         return obj.get_event_type_display()

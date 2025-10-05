@@ -6,7 +6,7 @@ from django.db import transaction
 from events.models import Event, Round, Tournament
 from courses.models import Course
 from core.models import SeasonSettings
-from golfgenius.services import GolfGeniusEventService, EventSyncResult
+from golfgenius.services import EventSyncService, EventSyncResult
 from golfgenius.client import GolfGeniusAPIClient, GolfGeniusAPIError
 
 
@@ -57,7 +57,7 @@ class TestGolfGeniusEventService(TestCase):
     
     def setUp(self):
         self.mock_client = Mock(spec=GolfGeniusAPIClient)
-        self.service = GolfGeniusEventService(api_client=self.mock_client)
+        self.service = EventSyncService(api_client=self.mock_client)
         
         # Create test courses
         self.test_course1 = Course.objects.create(name="Test Course 1", gg_id="course_123")
@@ -316,7 +316,7 @@ class TestGolfGeniusEventService(TestCase):
         self.assertFalse(self.service._determine_is_net(""))
         self.assertFalse(self.service._determine_is_net(None))
     
-    @patch.object(GolfGeniusEventService, '_get_event_courses_for_mapping')
+    @patch.object(EventSyncService, '_get_event_courses_for_mapping')
     def test_create_rounds_and_tournaments_success(self, mock_get_courses):
         """Test successful round and tournament creation"""
         # Mock Golf Genius API calls
@@ -376,7 +376,7 @@ class TestGolfGeniusEventService(TestCase):
         self.assertEqual(result.created_rounds, 1)
         self.assertEqual(result.created_tournaments, 1)
     
-    @patch.object(GolfGeniusEventService, '_get_event_courses_for_mapping')
+    @patch.object(EventSyncService, '_get_event_courses_for_mapping')
     def test_create_rounds_and_tournaments_api_error(self, mock_get_courses):
         """Test handling of API errors during round/tournament creation"""
         # Mock API error
@@ -470,9 +470,9 @@ class TestGolfGeniusEventService(TestCase):
         self.assertIn('__fallback__', mapping)
         self.assertEqual(mapping['__fallback__'], self.test_course1)
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
-    @patch.object(GolfGeniusEventService, '_get_bhmc_events')
-    @patch.object(GolfGeniusEventService, '_get_target_season')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_bhmc_events')
+    @patch.object(EventSyncService, '_get_target_season')
     def test_sync_events_success(self, mock_get_season, mock_get_bhmc, mock_get_gg):
         """Test successful event synchronization"""
         # Setup mocks
@@ -488,7 +488,7 @@ class TestGolfGeniusEventService(TestCase):
         self.assertEqual(result.total_gg_events, 1)
         self.assertTrue(result.matched_events > 0 or len(result.unmatched_bhmc_events) > 0)
     
-    @patch.object(GolfGeniusEventService, '_get_target_season')
+    @patch.object(EventSyncService, '_get_target_season')
     def test_sync_events_no_season(self, mock_get_season):
         """Test sync when no season can be determined"""
         mock_get_season.return_value = None
@@ -498,9 +498,9 @@ class TestGolfGeniusEventService(TestCase):
         self.assertEqual(len(result.errors), 1)
         self.assertIn("Could not determine target season", result.errors[0]["error"])
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
-    @patch.object(GolfGeniusEventService, '_get_bhmc_events')
-    @patch.object(GolfGeniusEventService, '_get_target_season')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_bhmc_events')
+    @patch.object(EventSyncService, '_get_target_season')
     def test_sync_events_no_bhmc_events(self, mock_get_season, mock_get_bhmc, mock_get_gg):
         """Test sync when no BHMC events are found"""
         mock_get_season.return_value = 2024
@@ -512,9 +512,9 @@ class TestGolfGeniusEventService(TestCase):
         # Should return early without calling Golf Genius API
         mock_get_gg.assert_not_called()
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
-    @patch.object(GolfGeniusEventService, '_get_bhmc_events')
-    @patch.object(GolfGeniusEventService, '_get_target_season')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_bhmc_events')
+    @patch.object(EventSyncService, '_get_target_season')
     def test_sync_events_no_gg_events(self, mock_get_season, mock_get_bhmc, mock_get_gg):
         """Test sync when no Golf Genius events are found"""
         mock_get_season.return_value = 2024
@@ -532,7 +532,7 @@ class TestEventSyncIntegration(TestCase):
     """Integration tests for event synchronization"""
     
     def setUp(self):
-        self.service = GolfGeniusEventService()
+        self.service = EventSyncService()
         
         # Create test courses
         self.course1 = Course.objects.create(name="Spring Valley Golf Club")
@@ -602,7 +602,7 @@ class TestSingleEventSync(TestCase):
     """Test single event sync functionality"""
 
     def setUp(self):
-        self.service = GolfGeniusEventService()
+        self.service = EventSyncService()
         
         # Create test course
         self.test_course = Course.objects.create(name="Test Course", gg_id="course_123")
@@ -616,7 +616,7 @@ class TestSingleEventSync(TestCase):
         )
         self.test_event.courses.add(self.test_course)
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
     def test_sync_single_event_success(self, mock_get_gg_events):
         """Test successful single event sync"""
         # Mock Golf Genius events
@@ -690,7 +690,7 @@ class TestSingleEventSync(TestCase):
         self.assertEqual(result.skipped_events, 1)
         self.assertEqual(len(result.errors), 0)
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
     def test_sync_single_event_force_update(self, mock_get_gg_events):
         """Test single event sync with force update"""
         # Mock Golf Genius events
@@ -718,7 +718,7 @@ class TestSingleEventSync(TestCase):
         self.test_event.refresh_from_db()
         self.assertEqual(self.test_event.gg_id, "new_789")
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
     def test_sync_single_event_no_match(self, mock_get_gg_events):
         """Test single event sync when no Golf Genius events match"""
         # Mock Golf Genius events with different dates
@@ -739,7 +739,7 @@ class TestSingleEventSync(TestCase):
         self.assertEqual(len(result.unmatched_bhmc_events), 1)
         self.assertEqual(len(result.errors), 0)
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
     def test_sync_single_event_no_gg_events(self, mock_get_gg_events):
         """Test single event sync when no Golf Genius events found"""
         # Mock no Golf Genius events
@@ -752,8 +752,8 @@ class TestSingleEventSync(TestCase):
         self.assertEqual(result.matched_events, 0)
         self.assertEqual(len(result.unmatched_bhmc_events), 1)
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
-    @patch.object(GolfGeniusEventService, '_create_rounds_and_tournaments')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_create_rounds_and_tournaments')
     def test_sync_single_event_with_rounds_and_tournaments(self, mock_create_rt, mock_get_gg_events):
         """Test single event sync with Round and Tournament creation"""
         # Mock Golf Genius events
@@ -775,7 +775,7 @@ class TestSingleEventSync(TestCase):
         self.test_event.refresh_from_db()
         self.assertEqual(self.test_event.gg_id, "789")
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
     def test_sync_single_event_rounds_tournaments_success(self, mock_get_gg_events):
         """Test single event sync with successful Round and Tournament creation (integration)"""
         # Mock Golf Genius events
@@ -849,7 +849,7 @@ class TestSingleEventSync(TestCase):
         self.assertEqual(tournament_obj.course, self.test_course)
         self.assertEqual(tournament_obj.round, round_obj)
     
-    @patch.object(GolfGeniusEventService, '_get_golf_genius_events')
+    @patch.object(EventSyncService, '_get_golf_genius_events')
     def test_sync_single_event_rounds_tournaments_errors(self, mock_get_gg_events):
         """Test single event sync with Round and Tournament creation errors"""
         # Mock Golf Genius events
@@ -885,7 +885,7 @@ class TestRoundTournamentCreationIntegration(TestCase):
     """Integration tests specifically for Round and Tournament creation during event sync"""
     
     def setUp(self):
-        self.service = GolfGeniusEventService()
+        self.service = EventSyncService()
         
         # Create test courses
         self.course1 = Course.objects.create(name="Pine Valley Golf Club")

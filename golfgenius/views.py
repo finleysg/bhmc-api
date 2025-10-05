@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from .services import PlayerSyncService, GolfGeniusEventService
+from .services import PlayerSyncService, EventSyncService
 from .client import GolfGeniusAPIClient, GolfGeniusAPIError
 
 logger = structlog.get_logger(__name__)
@@ -324,7 +324,7 @@ def sync_events(request):
                    force_update=force_update)
         
         # Initialize sync service and perform sync
-        sync_service = GolfGeniusEventService()
+        sync_service = EventSyncService()
         result = sync_service.sync_events(
             season_override=season_override,
             force_update=force_update
@@ -403,7 +403,7 @@ def sync_single_event(request, event_id):
                    force_update=force_update)
         
         # Initialize sync service and sync single event
-        sync_service = GolfGeniusEventService()
+        sync_service = EventSyncService()
         result = sync_service.sync_single_event(event_id=event_id, force_update=force_update)
         
         # Determine response status based on results
@@ -460,7 +460,7 @@ def event_sync_status(request):
     try:
         logger.info("Event sync status requested", user=request.user.username)
         
-        sync_service = GolfGeniusEventService()
+        sync_service = EventSyncService()
         status_info = sync_service.get_sync_status()
         
         return Response({

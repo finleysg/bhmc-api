@@ -378,5 +378,99 @@ class GolfGeniusAPIClient:
         logger.info("Retrieved event courses",
                    event_id=event_id,
                    course_count=len(courses))
-        
+
         return courses
+
+    def create_member_registration(self, event_id: str, member_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create a member registration for an event in Golf Genius
+
+        Args:
+            event_id: Golf Genius event ID
+            member_data: Member registration data
+
+        Returns:
+            API response data
+        """
+        endpoint = f"/api_v2/events/{event_id}/members"
+        response = self._make_request("POST", endpoint, json_data=member_data)
+
+        logger.info("Created member registration",
+                   event_id=event_id,
+                   external_id=member_data.get('external_id'),
+                   email=member_data.get('email'))
+
+        return response
+
+    def get_event_roster(self, event_id: str, photo: bool = False) -> List[Dict[str, Any]]:
+        """
+        Get the full event roster from Golf Genius, handling pagination.
+
+        Args:
+            event_id: Golf Genius event ID
+            photo: Include profile pictures
+
+        Returns:
+            List of member dictionaries (flattened)
+        """
+        members: List[Dict[str, Any]] = []
+        page = 1
+
+        while True:
+            params = {"page": page}
+            if photo:
+                params["photo"] = "true"
+
+            endpoint = f"/api_v2/{self.api_key}/events/{event_id}/roster"
+            try:
+                response = self._make_request("GET", endpoint, params=params)
+            except GolfGeniusAPIError:
+                # Bubble up error to caller
+                raise
+
+            # Response may be a list of {"member": {...}} or a list of member dicts
+            if not response:
+                break
+
+            if isinstance(response, list):
+                for item in response:
+                    if isinstance(item, dict) and "member" in item:
+                        members.append(item["member"])
+                    else:
+                        members.append(item)
+            else:
+                break
+
+            # If less than page size (100) then we are done; otherwise increment page
+            if len(response) < 100:
+                break
+
+            page += 1
+
+        logger.info("Retrieved event roster",
+                   event_id=event_id,
+                   member_count=len(members))
+        return members
+
+    def update_member_registration(self, event_id: str, member_id: str, member_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update an existing member registration for an event in Golf Genius.
+
+        Args:
+            event_id: Golf Genius event ID
+            member_id: Golf Genius member ID
+            member_data: Member registration data to update
+
+        Returns:
+            API response data
+        """
+        endpoint = f"/api_v2/events/{event_id}/members/{member_id}"
+        response = self._make_request("PUT", endpoint, json_data=member_data)
+
+        logger.info("Updated member registration",
+                   event_id=event_id,
+                   member_id=member_id,
+                   external_id=member_data.get('external_id'),
+                   email=member_data.get('email'))
+
+        return response

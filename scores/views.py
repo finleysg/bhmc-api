@@ -88,7 +88,7 @@ def save_scores(event, course, player, score_map, is_net):
     if len(scores) == 0:
         new_scores = []
         for hole in course.holes.all():
-            new_scores.append(EventScore(event=event, player=player, hole=hole, score=score_map[hole.hole_number], is_net=is_net))
+            new_scores.append(EventScore(event=event, player=player, course=course, hole=hole, score=score_map[hole.hole_number], is_net=is_net))
         EventScore.objects.bulk_create(new_scores)
     else:
         for hole in course.holes.all():

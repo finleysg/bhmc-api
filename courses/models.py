@@ -27,3 +27,17 @@ class Hole(models.Model):
 
     def __str__(self):
         return "{} Hole {}".format(self.course.name, self.hole_number)
+
+
+class Tee(models.Model):
+    course = models.ForeignKey(Course, related_name='tees', on_delete=CASCADE)
+    name = models.CharField(max_length=20)
+    gg_id = models.CharField(verbose_name="Golf Genius id: tee_id", max_length=22, blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["course", "name"], name="unique_course_tee")
+        ]
+
+    def __str__(self):
+        return "{} - {}".format(self.course.name, self.name)

@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import UniqueConstraint, CASCADE
 
-from courses.models import Hole
+from courses.models import Hole, Course, Tee
 from events.models import Event
 from register.models import Player
 
@@ -9,6 +9,8 @@ from register.models import Player
 class EventScore(models.Model):
     event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE)
     player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=CASCADE)
+    course = models.ForeignKey(verbose_name="Course", to=Course, null=True, blank=True, on_delete=CASCADE)
+    tee = models.ForeignKey(verbose_name="Tee", to=Tee, null=True, blank=True, on_delete=CASCADE)
     hole = models.ForeignKey(verbose_name="Hole", to=Hole, on_delete=CASCADE)
     score = models.IntegerField(verbose_name="Score")
     is_net = models.BooleanField(verbose_name="Is Net?", default=False)

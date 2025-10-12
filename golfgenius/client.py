@@ -515,3 +515,33 @@ class GolfGeniusAPIClient:
         )
 
         return response
+
+    def get_round_tee_sheet(
+        self, event_id: str, round_id: str, include_all_custom_fields: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        Get round tee sheet and scores from Golf Genius
+
+        Args:
+            event_id: Golf Genius event ID
+            round_id: Golf Genius round ID
+            include_all_custom_fields: Include all custom fields
+
+        Returns:
+            List of pairing group dictionaries with player scores
+        """
+        params = {}
+        if include_all_custom_fields:
+            params["include_all_custom_fields"] = "true"
+
+        endpoint = f"/api_v2/{self.api_key}/events/{event_id}/rounds/{round_id}/tee_sheet"
+        response = self._make_request("GET", endpoint, params=params)
+
+        logger.info(
+            "Retrieved round tee sheet",
+            event_id=event_id,
+            round_id=round_id,
+            pairing_count=len(response) if isinstance(response, list) else 0,
+        )
+
+        return response if isinstance(response, list) else []

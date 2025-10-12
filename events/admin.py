@@ -164,6 +164,51 @@ class RoundAdmin(admin.ModelAdmin):
     ordering = ["event", "round_number"]
     search_fields = ["event__name", "gg_id"]
     save_on_top = True
+    actions = ['import_scores_from_golf_genius']
+
+    def import_scores_from_golf_genius(self, request, queryset):
+        """Admin action to import scores from Golf Genius"""
+        from golfgenius.score_import_service import ScoreImportService
+
+        service = ScoreImportService()
+        total_success = 0
+        total_errors = 0
+
+        for round_obj in queryset:
+            try:
+                result = service.import_scores(round_obj.event.id, round_obj.id)
+
+                if result.errors:
+                    total_errors += len(result.errors)
+                    for player_name, error in result.errors.items():
+                        messages.warning(
+                            request,
+                            f'Round "{round_obj}": {player_name} - {error}'
+                        )
+                else:
+                    total_success += result.success_count
+                    messages.success(
+                        request,
+                        f'Round "{round_obj}": Successfully imported {result.success_count} scores'
+                    )
+
+            except Exception as e:
+                messages.error(request, f'Round "{round_obj}": Import failed - {str(e)}')
+                total_errors += 1
+
+        if total_success > 0:
+            messages.success(
+                request,
+                f'Total: Imported {total_success} scores across {queryset.count()} rounds'
+            )
+
+        if total_errors > 0:
+            messages.warning(
+                request,
+                f'Completed with {total_errors} errors'
+            )
+
+    import_scores_from_golf_genius.short_description = "Import scores from Golf Genius"
 
 
 class TournamentAdmin(admin.ModelAdmin):

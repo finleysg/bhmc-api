@@ -224,7 +224,6 @@ class Round(models.Model):
 class Tournament(models.Model):
     event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_tournaments")
     round = models.ForeignKey(verbose_name="Round", to=Round, on_delete=CASCADE, related_name="gg_rounds")
-    course = models.ForeignKey(verbose_name="Course", to=Course, on_delete=DO_NOTHING)
     name = models.CharField(verbose_name="Tournament name", max_length=120)
     format = models.CharField(verbose_name="Format", max_length=20, blank=True, null=True)
     is_net = models.BooleanField(verbose_name="Is Net", default=False)

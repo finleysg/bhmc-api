@@ -1,1 +1,0 @@
-"""Golf Genius integration tests."""

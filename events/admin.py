@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib import messages
 
+from register.admin import CurrentSeasonFilter
+
 from .models import Event, EventFee, FeeType, Round, Tournament
 
 
@@ -51,11 +53,11 @@ class EventAdmin(admin.ModelAdmin):
         }),
     )
     inlines = [EventFeesInline, ]
-    actions = ['export_roster_to_golf_genius']
+    actions = ['export_roster_to_golf_genius', 'sync_event_with_golf_genius']
 
     def export_roster_to_golf_genius(self, request, queryset):
         """Admin action to export roster to Golf Genius"""
-        from golfgenius.services import RosterService
+        from golfgenius.roster_export_service import RosterService
         
         service = RosterService()
         total_exported = 0
@@ -97,12 +99,56 @@ class EventAdmin(admin.ModelAdmin):
     
     export_roster_to_golf_genius.short_description = "Export roster to Golf Genius"
 
+    def sync_event_with_golf_genius(self, request, queryset):
+        """Admin action to sync event with Golf Genius"""
+        from golfgenius.event_sync_service import EventSyncService
+        
+        service = EventSyncService()
+        total_synced = 0
+        total_errors = 0
+        
+        for event in queryset:
+            try:
+                result = service.sync_event(event.id)
+                
+                if result.errors:
+                    total_errors += len(result.errors)
+                    for error in result.errors:
+                        messages.warning(
+                            request,
+                            f'Event "{event.name}": {error}'
+                        )
+                else:
+                    total_synced += 1
+                    messages.success(
+                        request,
+                        f'Event "{event.name}": Successfully synced with Golf Genius'
+                    )
+                    
+            except Exception as e:
+                messages.error(request, f'Event "{event.name}": Sync failed - {str(e)}')
+                total_errors += 1
+        
+        if total_synced > 0:
+            messages.success(
+                request,
+                f'Total: Synced {total_synced} events with Golf Genius'
+            )
+        
+        if total_errors > 0:
+            messages.warning(
+                request,
+                f'Completed with {total_errors} errors'
+            )
+    
+    sync_event_with_golf_genius.short_description = "Sync event with Golf Genius"
+
     def event_type_display(self, obj):
         return obj.get_event_type_display()
 
     event_type_display.short_description = "Event Type"
     date_hierarchy = "start_date"
-    list_display = ["season", "name", "start_date", "event_type_display", ]
+    list_display = ["season", "name", "start_date", "event_type_display", "gg_id", ]
     list_display_links = ("name",)
     list_filter = ("season", "event_type",)
     ordering = ["start_date", ]
@@ -114,17 +160,17 @@ class RoundAdmin(admin.ModelAdmin):
     fields = ["event", "round_number", "round_date", "gg_id"]
     list_display = ["event", "round_number", "round_date", "gg_id"]
     list_display_links = ("round_number",)
-    list_filter = ("event", "round_date")
+    list_filter = (CurrentSeasonFilter, "round_date")
     ordering = ["event", "round_number"]
     search_fields = ["event__name", "gg_id"]
     save_on_top = True
 
 
 class TournamentAdmin(admin.ModelAdmin):
-    fields = ["event", "round", "course", "name", "format", "is_net", "gg_id"]
-    list_display = ["event", "round", "name", "course", "format", "is_net", "gg_id"]
+    fields = ["event", "round", "name", "format", "is_net", "gg_id"]
+    list_display = ["event", "round", "name", "format", "is_net", "gg_id"]
     list_display_links = ("name",)
-    list_filter = ("event", "round", "course", "is_net", "format")
+    list_filter = (CurrentSeasonFilter, "is_net", "format")
     ordering = ["event", "round", "name"]
     search_fields = ["event__name", "name", "gg_id"]
     save_on_top = True

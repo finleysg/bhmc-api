@@ -3,7 +3,7 @@ from django.contrib import messages
 
 from register.admin import CurrentSeasonFilter
 
-from .models import Event, EventFee, FeeType, Round, Tournament
+from .models import Event, EventFee, FeeType, Round, Tournament, TournamentResult
 
 
 class CoursesInline(admin.TabularInline):
@@ -221,7 +221,18 @@ class TournamentAdmin(admin.ModelAdmin):
     save_on_top = True
 
 
+class TournamentResultAdmin(admin.ModelAdmin):
+    fields = ["tournament", "player", "position", "score", "points", "amount", "details"]
+    list_display = ["tournament", "player", "position", "score", "points", "amount"]
+    list_display_links = ("tournament",)
+    list_filter = ("tournament", "position")
+    ordering = ["tournament", "position"]
+    search_fields = ["tournament__name", "player__first_name", "player__last_name"]
+    save_on_top = True
+
+
 admin.site.register(FeeType, FeeTypeAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Round, RoundAdmin)
 admin.site.register(Tournament, TournamentAdmin)
+admin.site.register(TournamentResult, TournamentResultAdmin)

@@ -1,6 +1,3 @@
-import pytz
-from datetime import datetime
-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import CASCADE, DO_NOTHING, UniqueConstraint
@@ -236,3 +233,25 @@ class Tournament(models.Model):
 
     def __str__(self):
         return "{} - {}".format(self.event.name, self.name)
+
+
+class TournamentResult(models.Model):
+    tournament = models.ForeignKey(verbose_name="Tournament", to=Tournament, on_delete=CASCADE,
+                                   related_name="tournament_results")
+    flight = models.CharField(verbose_name="Flight", max_length=20, blank=True, null=True)
+    player = models.ForeignKey(verbose_name="Player", to="register.Player", on_delete=CASCADE,
+                               related_name="tournament_results")
+    position = models.IntegerField(verbose_name="Position")
+    score = models.IntegerField(verbose_name="Score", blank=True, null=True)
+    points = models.IntegerField(verbose_name="Points", blank=True, null=True)
+    amount = models.DecimalField(verbose_name="Amount won", max_digits=6, decimal_places=2)
+    details = models.CharField(verbose_name="Details", max_length=120, blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["tournament", "player"], name="unique_tournament_player")
+        ]
+        ordering = ["tournament", "flight", "position"]
+
+    def __str__(self):
+        return "{} - {} ({})".format(self.tournament.name, self.player.player_name, self.position)

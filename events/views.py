@@ -3,6 +3,8 @@ from datetime import timedelta, date
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -12,8 +14,8 @@ from rest_framework.response import Response
 from payments.utils import create_admin_payment
 from register.models import RegistrationSlot, Player, Registration
 from register.serializers import RegistrationSlotSerializer, RegistrationSerializer
-from .models import Event, FeeType
-from .serializers import EventSerializer, FeeTypeSerializer
+from .models import Event, EventFee, FeeType, TournamentResult
+from .serializers import EventSerializer, EventFeeSerializer, FeeTypeSerializer, TournamentResultSerializer
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -119,3 +121,10 @@ class EventViewSet(viewsets.ModelViewSet):
 class FeeTypeViewSet(viewsets.ModelViewSet):
     queryset = FeeType.objects.all()
     serializer_class = FeeTypeSerializer
+
+
+class TournamentResultViewSet(viewsets.ModelViewSet):
+
+    queryset = TournamentResult.objects.all()
+    serializer_class = TournamentResultSerializer
+

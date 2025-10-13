@@ -263,6 +263,32 @@ class GolfGeniusAPIClient:
 
         return response if isinstance(response, list) else []
 
+    def get_tournament_results(
+        self, event_id: str, round_id: str, tournament_id: str
+    ) -> Dict[str, Any]:
+        """
+        Get tournament results from Golf Genius
+
+        Args:
+            event_id: Golf Genius event ID
+            round_id: Golf Genius round ID
+            tournament_id: Golf Genius tournament ID
+
+        Returns:
+            Tournament results data
+        """
+        endpoint = f"/api_v2/{self.api_key}/events/{event_id}/rounds/{round_id}/tournaments/{tournament_id}.json"
+        response = self._make_request("GET", endpoint)
+
+        logger.info(
+            "Retrieved tournament results",
+            event_id=event_id,
+            round_id=round_id,
+            tournament_id=tournament_id,
+        )
+
+        return response if isinstance(response, dict) else {}
+
     def get_master_roster_member(self, email: str) -> Optional[Dict[str, Any]]:
         """
         Get specific member from master roster by email

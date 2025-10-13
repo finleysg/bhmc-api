@@ -1,9 +1,54 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin import SimpleListFilter
 
+from core.util import current_season
 from register.admin import CurrentSeasonFilter
 
 from .models import Event, EventFee, FeeType, Round, Tournament, TournamentResult
+
+
+class TournamentResultEventFilter(SimpleListFilter):
+    """Filter tournament results by current season events"""
+    title = "current season event"
+    parameter_name = "event"
+
+    def lookups(self, request, model_admin):
+        # Get current season events that have tournaments with results
+        current_season_year = current_season()
+        events = []
+        
+        try:
+            # Get events from current season that have tournaments with results
+            events_with_results = Event.objects.filter(
+                season=current_season_year,
+                gg_tournaments__tournament_results__isnull=False
+            ).distinct().order_by('start_date', 'name')
+            
+            for event in events_with_results:
+                display_name = f"{event.start_date} - {event.name}"
+                events.append((event.id, display_name))
+                
+        except Exception:
+            # Handle case where TournamentResult table doesn't exist yet
+            # Fall back to showing all current season events
+            try:
+                all_current_events = Event.objects.filter(
+                    season=current_season_year
+                ).order_by('start_date', 'name')
+                
+                for event in all_current_events:
+                    display_name = f"{event.start_date} - {event.name}"
+                    events.append((event.id, display_name))
+            except Exception:
+                pass
+        
+        return events
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(tournament__event__id=self.value())
+        return queryset
 
 
 class CoursesInline(admin.TabularInline):
@@ -53,7 +98,7 @@ class EventAdmin(admin.ModelAdmin):
         }),
     )
     inlines = [EventFeesInline, ]
-    actions = ['export_roster_to_golf_genius', 'sync_event_with_golf_genius']
+    actions = ['export_roster_to_golf_genius', 'sync_event_with_golf_genius', 'import_tournament_results']
 
     def export_roster_to_golf_genius(self, request, queryset):
         """Admin action to export roster to Golf Genius"""
@@ -143,6 +188,89 @@ class EventAdmin(admin.ModelAdmin):
     
     sync_event_with_golf_genius.short_description = "Sync event with Golf Genius"
 
+    def import_tournament_results(self, request, queryset):
+        """Import tournament results from Golf Genius for selected events"""
+        from golfgenius.results_import_service import ResultsImportService
+        
+        if queryset.count() > 5:
+            self.message_user(
+                request,
+                "Please select 5 or fewer events at a time to avoid timeout issues.",
+                level=messages.ERROR
+            )
+            return
+
+        results_service = ResultsImportService()
+        total_imported = 0
+        errors_occurred = False
+
+        for event in queryset:
+            try:
+                # Import results for this event
+                results = results_service.import_stroke_play_results(event.id)
+                
+                if not results:
+                    self.message_user(
+                        request,
+                        f"No stroke play tournaments found for event '{event.name}'.",
+                        level=messages.WARNING
+                    )
+                    continue
+                
+                event_imported = 0
+                for tournament_result in results:
+                    event_imported += tournament_result.results_imported
+                    
+                    if tournament_result.errors:
+                        errors_occurred = True
+                        for error in tournament_result.errors:
+                            self.message_user(
+                                request,
+                                f"{event.name} - {tournament_result.tournament_name}: {error}",
+                                level=messages.ERROR
+                            )
+                    else:
+                        if tournament_result.results_imported > 0:
+                            self.message_user(
+                                request,
+                                f"Successfully imported {tournament_result.results_imported} results for {tournament_result.tournament_name}.",
+                                level=messages.SUCCESS
+                            )
+
+                total_imported += event_imported
+                
+                if event_imported > 0:
+                    self.message_user(
+                        request,
+                        f"Event '{event.name}': Total {event_imported} results imported across all tournaments.",
+                        level=messages.SUCCESS
+                    )
+
+            except Exception as e:
+                errors_occurred = True
+                self.message_user(
+                    request,
+                    f"Error importing results for event '{event.name}': {str(e)}",
+                    level=messages.ERROR
+                )
+
+        # Summary message
+        if total_imported > 0:
+            level = messages.WARNING if errors_occurred else messages.SUCCESS
+            self.message_user(
+                request,
+                f"Import completed. Total results imported across all events: {total_imported}",
+                level=level
+            )
+        elif not errors_occurred:
+            self.message_user(
+                request,
+                "No results were imported. Check that tournaments have prize money > $0.00 and format = 'stroke'.",
+                level=messages.INFO
+            )
+
+    import_tournament_results.short_description = "Import tournament results from Golf Genius"
+
     def event_type_display(self, obj):
         return obj.get_event_type_display()
 
@@ -222,10 +350,10 @@ class TournamentAdmin(admin.ModelAdmin):
 
 
 class TournamentResultAdmin(admin.ModelAdmin):
-    fields = ["tournament", "player", "position", "score", "points", "amount", "details"]
-    list_display = ["tournament", "player", "position", "score", "points", "amount"]
+    fields = ["tournament", "flight", "player", "position", "score", "points", "amount", "details"]
+    list_display = ["tournament", "flight", "player", "position", "score", "points", "amount"]
     list_display_links = ("tournament",)
-    list_filter = ("tournament", "position")
+    list_filter = (TournamentResultEventFilter, "flight")
     ordering = ["tournament", "position"]
     search_fields = ["tournament__name", "player__first_name", "player__last_name"]
     save_on_top = True

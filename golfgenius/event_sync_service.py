@@ -1,4 +1,3 @@
-import os
 import structlog
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional

@@ -13,6 +13,7 @@ logger = structlog.get_logger(__name__)
 
 class ScoreImportError(Exception):
     """Custom exception for score import errors"""
+
     pass
 
 
@@ -28,10 +29,7 @@ class ScoreImportResult:
         self.success_count += 1
 
     def to_dict(self):
-        return {
-            "success_count": self.success_count,
-            "errors": self.errors
-        }
+        return {"success_count": self.success_count, "errors": self.errors}
 
 
 class ScoreImportService:
@@ -69,7 +67,9 @@ class ScoreImportService:
                 players = pairing_group.get("pairing_group", {}).get("players", [])
                 for player_data in players:
                     try:
-                        self._process_player_scores(event, round_obj, player_data, holes)
+                        self._process_player_scores(
+                            event, round_obj, player_data, holes
+                        )
                         result.add_success()
                     except Exception as e:
                         player_name = player_data.get("name", "Unknown Player")
@@ -79,7 +79,7 @@ class ScoreImportService:
                             player_name=player_name,
                             error=str(e),
                             event_id=event_id,
-                            round_id=round_id
+                            round_id=round_id,
                         )
 
             # Debug logging if no scores were processed
@@ -89,7 +89,7 @@ class ScoreImportService:
                     event_id=event_id,
                     round_id=round_id,
                     pairing_count=len(tee_sheet_data),
-                    sample_data=tee_sheet_data[:1] if tee_sheet_data else None
+                    sample_data=tee_sheet_data[:1] if tee_sheet_data else None,
                 )
 
             logger.info(
@@ -97,7 +97,7 @@ class ScoreImportService:
                 event_id=event_id,
                 round_id=round_id,
                 success_count=result.success_count,
-                error_count=len(result.errors)
+                error_count=len(result.errors),
             )
 
         except Exception as e:
@@ -105,7 +105,7 @@ class ScoreImportService:
                 "Score import failed",
                 event_id=event_id,
                 round_id=round_id,
-                error=str(e)
+                error=str(e),
             )
             raise ScoreImportError(f"Failed to import scores: {str(e)}")
 
@@ -119,12 +119,16 @@ class ScoreImportService:
             raise ScoreImportError("Event not found")
 
         if not event.gg_id:
-            raise ScoreImportError("You must first run the Event Sync process to sync this event with Golf Genius")
+            raise ScoreImportError(
+                "You must first run the Event Sync process to sync this event with Golf Genius"
+            )
 
         try:
             round_obj = Round.objects.get(event=event, id=round_id)
         except ObjectDoesNotExist:
-            raise ScoreImportError("You must first run the Event Sync process to sync this round with Golf Genius")
+            raise ScoreImportError(
+                "You must first run the Event Sync process to sync this round with Golf Genius"
+            )
 
         return event, round_obj
 
@@ -138,11 +142,19 @@ class ScoreImportService:
             holes[course.id] = course_holes
         return holes
 
-    def _get_tee_sheet_data(self, event_gg_id: str, round_gg_id: str) -> List[Dict[str, Any]]:
+    def _get_tee_sheet_data(
+        self, event_gg_id: str, round_gg_id: str
+    ) -> List[Dict[str, Any]]:
         """Fetch tee sheet data from Golf Genius API"""
         return self.api_client.get_round_tee_sheet(event_gg_id, round_gg_id)
 
-    def _process_player_scores(self, event: Event, round_obj: Round, player_data: Dict[str, Any], holes: Dict[int, Dict[int, Hole]]):
+    def _process_player_scores(
+        self,
+        event: Event,
+        round_obj: Round,
+        player_data: Dict[str, Any],
+        holes: Dict[int, Dict[int, Hole]],
+    ):
         """Process individual player's gross and net scores"""
         # Find player by external_id
         external_id = player_data.get("external_id")
@@ -156,7 +168,9 @@ class ScoreImportService:
         except (ValueError, TypeError):
             raise ValueError(f"Invalid external_id format: {external_id}")
         except ObjectDoesNotExist:
-            raise ValueError(f"Player with external_id {external_id} not found in system")
+            raise ValueError(
+                f"Player with external_id {external_id} not found in system"
+            )
 
         # Find course and tee for this player
         course = self._find_player_course(player_data)
@@ -174,30 +188,36 @@ class ScoreImportService:
             course_name=course.name if course else None,
             tee_name=tee.name if tee else None,
             gross_scores_count=len(gross_scores) if gross_scores else 0,
-            has_gross_scores=bool(gross_scores)
+            has_gross_scores=bool(gross_scores),
         )
 
         if gross_scores:
-            self._import_scores_for_holes(event, player, course, tee, gross_scores, False, holes)
+            self._import_scores_for_holes(
+                event, player, course, tee, gross_scores, False, holes
+            )
 
         # Process net scores
         handicap_dots = player_data.get("handicap_dots_by_hole", [])
         if handicap_dots and gross_scores:
             net_scores = self._calculate_net_scores(gross_scores, handicap_dots)
-            self._import_scores_for_holes(event, player, course, tee, net_scores, True, holes)
+            self._import_scores_for_holes(
+                event, player, course, tee, net_scores, True, holes
+            )
 
-    def _delete_existing_scores(self, event: Event, player: Player, holes: Dict[int, Dict[int, Hole]]):
+    def _delete_existing_scores(
+        self, event: Event, player: Player, holes: Dict[int, Dict[int, Hole]]
+    ):
         """Delete existing scores for the player in this event"""
         hole_ids = []
         for course_holes in holes.values():
             hole_ids.extend([hole.id for hole in course_holes.values()])
         EventScore.objects.filter(
-            event=event,
-            player=player,
-            hole_id__in=hole_ids
+            event=event, player=player, hole_id__in=hole_ids
         ).delete()
 
-    def _calculate_net_scores(self, gross_scores: List[int], handicap_dots: List[int]) -> List[int]:
+    def _calculate_net_scores(
+        self, gross_scores: List[int], handicap_dots: List[int]
+    ) -> List[int]:
         """Calculate net scores using handicap dots"""
         net_scores = []
         for gross, dots in zip(gross_scores, handicap_dots):
@@ -218,11 +238,13 @@ class ScoreImportService:
                 logger.warning(
                     "Course not found for gg_id",
                     gg_id=course_id,
-                    player_name=player_data.get("name", "Unknown")
+                    player_name=player_data.get("name", "Unknown"),
                 )
         return None
 
-    def _find_player_tee(self, player_data: Dict[str, Any], course: Optional[Course]) -> Optional[Tee]:
+    def _find_player_tee(
+        self, player_data: Dict[str, Any], course: Optional[Course]
+    ) -> Optional[Tee]:
         """Find the tee for a player using Golf Genius tee_id"""
         tee_data = player_data.get("tee", {})
         tee_id = tee_data.get("id")
@@ -237,18 +259,27 @@ class ScoreImportService:
                         tee_gg_id=tee_id,
                         tee_course=tee.course.name,
                         player_course=course.name if course else None,
-                        player_name=player_data.get("name", "Unknown")
+                        player_name=player_data.get("name", "Unknown"),
                     )
                 return tee
             except ObjectDoesNotExist:
                 logger.warning(
                     "Tee not found for gg_id",
                     gg_id=tee_id,
-                    player_name=player_data.get("name", "Unknown")
+                    player_name=player_data.get("name", "Unknown"),
                 )
         return None
 
-    def _import_scores_for_holes(self, event: Event, player: Player, course: Optional[Course], tee: Optional[Tee], scores: List[Optional[int]], is_net: bool, holes: Dict[int, Dict[int, Hole]]):
+    def _import_scores_for_holes(
+        self,
+        event: Event,
+        player: Player,
+        course: Optional[Course],
+        tee: Optional[Tee],
+        scores: List[Optional[int]],
+        is_net: bool,
+        holes: Dict[int, Dict[int, Hole]],
+    ):
         """Import scores for all holes"""
         score_objects = []
 
@@ -260,15 +291,17 @@ class ScoreImportService:
         for hole_number, score in enumerate(scores, 1):
             if score is not None and hole_number in course_holes:
                 hole = course_holes[hole_number]
-                score_objects.append(EventScore(
-                    event=event,
-                    player=player,
-                    course=course,
-                    tee=tee,
-                    hole=hole,
-                    score=score,
-                    is_net=is_net
-                ))
+                score_objects.append(
+                    EventScore(
+                        event=event,
+                        player=player,
+                        course=course,
+                        tee=tee,
+                        hole=hole,
+                        score=score,
+                        is_net=is_net,
+                    )
+                )
 
         # Bulk create scores
         if score_objects:

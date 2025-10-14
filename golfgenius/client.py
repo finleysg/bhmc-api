@@ -560,7 +560,9 @@ class GolfGeniusAPIClient:
         if include_all_custom_fields:
             params["include_all_custom_fields"] = "true"
 
-        endpoint = f"/api_v2/{self.api_key}/events/{event_id}/rounds/{round_id}/tee_sheet"
+        endpoint = (
+            f"/api_v2/{self.api_key}/events/{event_id}/rounds/{round_id}/tee_sheet"
+        )
         response = self._make_request("GET", endpoint, params=params)
 
         logger.info(

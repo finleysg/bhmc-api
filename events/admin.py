@@ -98,7 +98,7 @@ class EventAdmin(admin.ModelAdmin):
         }),
     )
     inlines = [EventFeesInline, ]
-    actions = ['export_roster_to_golf_genius', 'sync_event_with_golf_genius', 'import_tournament_results']
+    actions = ['export_roster_to_golf_genius', 'sync_event_with_golf_genius', 'import_tournament_results', 'import_points_from_golf_genius']
 
     def export_roster_to_golf_genius(self, request, queryset):
         """Admin action to export roster to Golf Genius"""
@@ -270,6 +270,89 @@ class EventAdmin(admin.ModelAdmin):
             )
 
     import_tournament_results.short_description = "Import tournament results from Golf Genius"
+
+    def import_points_from_golf_genius(self, request, queryset):
+        """Import points tournament results from Golf Genius for selected events"""
+        from golfgenius.results_import_service import ResultsImportService
+        
+        if queryset.count() > 5:
+            self.message_user(
+                request,
+                "Please select 5 or fewer events at a time to avoid timeout issues.",
+                level=messages.ERROR
+            )
+            return
+
+        results_service = ResultsImportService()
+        total_imported = 0
+        errors_occurred = False
+
+        for event in queryset:
+            try:
+                # Import points results for this event
+                results = results_service.import_points(event.id)
+                
+                if not results:
+                    self.message_user(
+                        request,
+                        f"No points tournaments found for event '{event.name}'.",
+                        level=messages.WARNING
+                    )
+                    continue
+                
+                event_imported = 0
+                for tournament_result in results:
+                    event_imported += tournament_result.results_imported
+                    
+                    if tournament_result.errors:
+                        errors_occurred = True
+                        for error in tournament_result.errors:
+                            self.message_user(
+                                request,
+                                f"{event.name} - {tournament_result.tournament_name}: {error}",
+                                level=messages.ERROR
+                            )
+                    else:
+                        if tournament_result.results_imported > 0:
+                            self.message_user(
+                                request,
+                                f"Successfully imported {tournament_result.results_imported} points for {tournament_result.tournament_name}.",
+                                level=messages.SUCCESS
+                            )
+
+                total_imported += event_imported
+                
+                if event_imported > 0:
+                    self.message_user(
+                        request,
+                        f"Event '{event.name}': Total {event_imported} points imported across all tournaments.",
+                        level=messages.SUCCESS
+                    )
+
+            except Exception as e:
+                errors_occurred = True
+                self.message_user(
+                    request,
+                    f"Error importing points for event '{event.name}': {str(e)}",
+                    level=messages.ERROR
+                )
+
+        # Summary message
+        if total_imported > 0:
+            level = messages.WARNING if errors_occurred else messages.SUCCESS
+            self.message_user(
+                request,
+                f"Points import completed. Total points imported across all events: {total_imported}",
+                level=level
+            )
+        elif not errors_occurred:
+            self.message_user(
+                request,
+                "No points were imported. Check that tournaments have points > 0 and format = 'points'.",
+                level=messages.INFO
+            )
+
+    import_points_from_golf_genius.short_description = "Import points from Golf Genius"
 
     def event_type_display(self, obj):
         return obj.get_event_type_display()

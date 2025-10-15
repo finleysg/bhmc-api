@@ -180,7 +180,7 @@ class GolfGeniusAPIClient:
                         error_data = response.json()
                         if "errors" in error_data:
                             error_msg += f": {error_data['errors']}"
-                    except:
+                    except Exception:
                         error_msg += f": {response.text}"
 
                     raise GolfGeniusAPIError(error_msg)

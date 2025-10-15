@@ -369,6 +369,7 @@ class TournamentResult(models.Model):
         on_delete=CASCADE,
         related_name="tournament_results",
     )
+    team_id = models.IntegerField(verbose_name="Team id", blank=True, null=True)
     position = models.IntegerField(verbose_name="Position")
     score = models.IntegerField(verbose_name="Score", blank=True, null=True)
     points = models.IntegerField(verbose_name="Points", blank=True, null=True)

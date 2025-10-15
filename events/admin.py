@@ -1,58 +1,127 @@
+import structlog
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
+from django.db.models import QuerySet
+from django.http import HttpRequest
 
 from core.util import current_season
+from golfgenius.event_sync_service import EventSyncService
+from golfgenius.results_import_service import ResultsImportService
+from golfgenius.roster_export_service import RosterService
+from golfgenius.score_import_service import ScoreImportService
 from register.admin import CurrentSeasonFilter
 
 from .models import Event, EventFee, FeeType, Round, Tournament, TournamentResult
 
+logger = structlog.get_logger(__name__)
+
+# Constants
+MAX_EVENTS_PER_ACTION = 1
+SINGLE_EVENT_WARNING = "Please select exactly one event for this action."
+
+# Service instances
+event_sync_service = EventSyncService()
+results_import_service = ResultsImportService()
+roster_service = RosterService()
+score_import_service = ScoreImportService()
+
 
 class TournamentResultEventFilter(SimpleListFilter):
-    """Filter tournament results by current season events"""
+    """
+    Filter tournament results by current season events.
+
+    Shows events from the current season that have tournaments with results.
+    Falls back to all current season events if TournamentResult table doesn't exist.
+    """
 
     title = "current season event"
     parameter_name = "event"
 
+    def _get_events_with_results(self, current_season_year: int) -> QuerySet[Event]:
+        """Get events from current season that have tournament results"""
+        return (
+            Event.objects.filter(
+                season=current_season_year,
+                gg_tournaments__tournament_results__isnull=False,
+            )
+            .distinct()
+            .order_by("start_date", "name")
+        )
+
+    def _get_all_current_season_events(
+        self, current_season_year: int
+    ) -> QuerySet[Event]:
+        """Get all events from current season as fallback"""
+        return Event.objects.filter(season=current_season_year).order_by(
+            "start_date", "name"
+        )
+
     def lookups(self, request, model_admin):
-        # Get current season events that have tournaments with results
         current_season_year = current_season()
         events = []
 
         try:
-            # Get events from current season that have tournaments with results
-            events_with_results = (
-                Event.objects.filter(
-                    season=current_season_year,
-                    gg_tournaments__tournament_results__isnull=False,
-                )
-                .distinct()
-                .order_by("start_date", "name")
-            )
-
-            for event in events_with_results:
-                display_name = f"{event.start_date} - {event.name}"
-                events.append((event.id, display_name))
-
-        except Exception:
-            # Handle case where TournamentResult table doesn't exist yet
-            # Fall back to showing all current season events
+            events_qs = self._get_events_with_results(current_season_year)
+        except Exception as e:
+            logger.warning("Failed to get events with results", exc_info=e)
             try:
-                all_current_events = Event.objects.filter(
-                    season=current_season_year
-                ).order_by("start_date", "name")
+                events_qs = self._get_all_current_season_events(current_season_year)
+            except Exception as e:
+                logger.error("Failed to get current season events", exc_info=e)
+                return []
 
-                for event in all_current_events:
-                    display_name = f"{event.start_date} - {event.name}"
-                    events.append((event.id, display_name))
-            except Exception:
-                pass
+        for event in events_qs:
+            display_name = f"{event.start_date} - {event.name}"
+            events.append((event.id, display_name))
 
         return events
 
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(tournament__event__id=self.value())
+        return queryset
+
+
+class TournamentByEventFilter(SimpleListFilter):
+    """
+    Filter tournaments by the event selected in TournamentResultEventFilter.
+
+    Reads the selected 'event' GET parameter and shows only tournaments
+    belonging to that event. Shows no choices if no event is selected.
+    """
+
+    title = "tournament"
+    parameter_name = "tournament"
+
+    def lookups(self, request, model_admin):
+        event_id = request.GET.get("event")
+        if not event_id:
+            return []
+
+        try:
+            tournaments = (
+                Tournament.objects.filter(event_id=event_id)
+                .select_related("round")
+                .order_by("round__round_date", "name")
+            )
+        except Exception as e:
+            logger.error(
+                "Failed to get tournaments for event", event_id=event_id, exc_info=e
+            )
+            return []
+
+        choices = []
+        for tournament in tournaments:
+            round_display = str(tournament.round) if tournament.round else "No Round"
+            display = f"{round_display} - {tournament.name}"
+            choices.append((str(tournament.id), display))
+
+        return choices
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(tournament__id=self.value())
         return queryset
 
 
@@ -184,417 +253,308 @@ class EventAdmin(admin.ModelAdmin):
         "import_user_scored_from_golf_genius",
     ]
 
-    def export_roster_to_golf_genius(self, request, queryset):
-        """Admin action to export roster to Golf Genius"""
-        from golfgenius.roster_export_service import RosterService
+    def _validate_single_event_selection(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> bool:
+        """Validate that exactly one event is selected for an action.
 
-        service = RosterService()
-        total_exported = 0
-        total_errors = 0
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances
 
-        for event in queryset:
-            try:
-                result = service.export_roster(event.id)
-                total_exported += result.exported_players
-                total_errors += len(result.errors)
+        Returns:
+            True if exactly one event is selected, False otherwise
+        """
+        if queryset.count() != MAX_EVENTS_PER_ACTION:
+            logger.warning(
+                "invalid_event_selection_count",
+                expected=MAX_EVENTS_PER_ACTION,
+                actual=queryset.count(),
+            )
+            messages.error(request, SINGLE_EVENT_WARNING)
+            return False
+        return True
 
-                if result.errors:
-                    messages.warning(
-                        request,
-                        f'Event "{event.name}": Exported {result.exported_players} players, '
-                        f"{len(result.errors)} errors",
+    def _import_results_base(
+        self,
+        request: HttpRequest,
+        queryset: QuerySet[Event],
+        import_method,
+        format_name: str,
+        success_message_template: str,
+        no_results_message: str,
+    ) -> None:
+        """Base helper method for importing tournament results.
+
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+            import_method: The import method to call (e.g., import_stroke_play_results)
+            format_name: Name of the format being imported (for logging)
+            success_message_template: Template for success message with {count} and {tournament}
+            no_results_message: Message to show when no results are found
+        """
+        if not self._validate_single_event_selection(request, queryset):
+            return
+
+        event = queryset.first()
+        logger.info(
+            "importing_tournament_results",
+            event_id=event.id,
+            event_name=event.name,
+            format=format_name,
+        )
+
+        try:
+            results = import_method(event.id)
+
+            if not results:
+                logger.info(
+                    "no_tournaments_found",
+                    event_id=event.id,
+                    format=format_name,
+                )
+                messages.warning(request, f'Event "{event.name}": {no_results_message}')
+                return
+
+            total_imported = 0
+            errors_occurred = False
+
+            for tournament_result in results:
+                total_imported += tournament_result.results_imported
+
+                if tournament_result.errors:
+                    errors_occurred = True
+                    logger.warning(
+                        "tournament_import_errors",
+                        event_id=event.id,
+                        tournament=tournament_result.tournament_name,
+                        error_count=len(tournament_result.errors),
                     )
-                else:
+                    for error in tournament_result.errors:
+                        messages.error(
+                            request,
+                            f"{event.name} - {tournament_result.tournament_name}: {error}",
+                        )
+                elif tournament_result.results_imported > 0:
+                    logger.info(
+                        "tournament_import_successful",
+                        event_id=event.id,
+                        tournament=tournament_result.tournament_name,
+                        count=tournament_result.results_imported,
+                    )
                     messages.success(
                         request,
-                        f'Event "{event.name}": Successfully exported {result.exported_players} players',
+                        success_message_template.format(
+                            count=tournament_result.results_imported,
+                            tournament=tournament_result.tournament_name,
+                        ),
                     )
 
-            except Exception as e:
-                messages.error(
-                    request, f'Event "{event.name}": Export failed - {str(e)}'
+            if total_imported > 0:
+                level = messages.WARNING if errors_occurred else messages.SUCCESS
+                logger.info(
+                    "import_completed",
+                    event_id=event.id,
+                    format=format_name,
+                    total_imported=total_imported,
+                    had_errors=errors_occurred,
                 )
-                total_errors += 1
+                messages.add_message(
+                    request,
+                    level,
+                    f'Event "{event.name}": Imported {total_imported} {format_name} results across all tournaments',
+                )
 
-        if total_exported > 0:
-            messages.success(
+        except Exception as e:
+            logger.error(
+                "import_failed",
+                event_id=event.id,
+                format=format_name,
+                error=str(e),
+                exc_info=True,
+            )
+            messages.error(
                 request,
-                f"Total: Exported {total_exported} players across {queryset.count()} events",
+                f'Event "{event.name}": Import failed - {str(e)}',
             )
 
-        if total_errors > 0:
-            messages.warning(request, f"Completed with {total_errors} errors")
+    def export_roster_to_golf_genius(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> None:
+        """Admin action to export roster to Golf Genius.
+
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+        """
+        if not self._validate_single_event_selection(request, queryset):
+            return
+
+        event = queryset.first()
+        logger.info(
+            "exporting_roster_to_golf_genius", event_id=event.id, event_name=event.name
+        )
+
+        try:
+            result = roster_service.export_roster(event.id)
+
+            if result.errors:
+                logger.warning(
+                    "roster_export_completed_with_errors",
+                    event_id=event.id,
+                    exported_count=result.exported_players,
+                    error_count=len(result.errors),
+                )
+                messages.warning(
+                    request,
+                    f'Event "{event.name}": Exported {result.exported_players} players with {len(result.errors)} errors',
+                )
+            else:
+                logger.info(
+                    "roster_export_successful",
+                    event_id=event.id,
+                    exported_count=result.exported_players,
+                )
+                messages.success(
+                    request,
+                    f'Event "{event.name}": Successfully exported {result.exported_players} players',
+                )
+
+        except Exception as e:
+            logger.error(
+                "roster_export_failed", event_id=event.id, error=str(e), exc_info=True
+            )
+            messages.error(request, f'Event "{event.name}": Export failed - {str(e)}')
 
     export_roster_to_golf_genius.short_description = "Export roster to Golf Genius"
 
-    def sync_event_with_golf_genius(self, request, queryset):
-        """Admin action to sync event with Golf Genius"""
-        from golfgenius.event_sync_service import EventSyncService
+    def sync_event_with_golf_genius(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> None:
+        """Admin action to sync event with Golf Genius.
 
-        service = EventSyncService()
-        total_synced = 0
-        total_errors = 0
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+        """
+        if not self._validate_single_event_selection(request, queryset):
+            return
 
-        for event in queryset:
-            try:
-                result = service.sync_event(event.id)
+        event = queryset.first()
+        logger.info(
+            "syncing_event_with_golf_genius", event_id=event.id, event_name=event.name
+        )
 
-                if result.errors:
-                    total_errors += len(result.errors)
-                    for error in result.errors:
-                        messages.warning(request, f'Event "{event.name}": {error}')
-                else:
-                    total_synced += 1
-                    messages.success(
-                        request,
-                        f'Event "{event.name}": Successfully synced with Golf Genius',
-                    )
+        try:
+            result = event_sync_service.sync_event(event.id)
 
-            except Exception as e:
-                messages.error(request, f'Event "{event.name}": Sync failed - {str(e)}')
-                total_errors += 1
+            if result.errors:
+                logger.warning(
+                    "event_sync_completed_with_errors",
+                    event_id=event.id,
+                    error_count=len(result.errors),
+                )
+                for error in result.errors:
+                    messages.warning(request, f'Event "{event.name}": {error}')
+            else:
+                logger.info("event_sync_successful", event_id=event.id)
+                messages.success(
+                    request,
+                    f'Event "{event.name}": Successfully synced with Golf Genius',
+                )
 
-        if total_synced > 0:
-            messages.success(
-                request, f"Total: Synced {total_synced} events with Golf Genius"
+        except Exception as e:
+            logger.error(
+                "event_sync_failed", event_id=event.id, error=str(e), exc_info=True
             )
-
-        if total_errors > 0:
-            messages.warning(request, f"Completed with {total_errors} errors")
+            messages.error(request, f'Event "{event.name}": Sync failed - {str(e)}')
 
     sync_event_with_golf_genius.short_description = "Sync event with Golf Genius"
 
-    def import_tournament_results(self, request, queryset):
-        """Import tournament results from Golf Genius for selected events"""
-        from golfgenius.results_import_service import ResultsImportService
+    def import_tournament_results(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> None:
+        """Import stroke play tournament results from Golf Genius for selected event.
 
-        if queryset.count() > 5:
-            self.message_user(
-                request,
-                "Please select 5 or fewer events at a time to avoid timeout issues.",
-                level=messages.ERROR,
-            )
-            return
-
-        results_service = ResultsImportService()
-        total_imported = 0
-        errors_occurred = False
-
-        for event in queryset:
-            try:
-                # Import results for this event
-                results = results_service.import_stroke_play_results(event.id)
-
-                if not results:
-                    self.message_user(
-                        request,
-                        f"No stroke play tournaments found for event '{event.name}'.",
-                        level=messages.WARNING,
-                    )
-                    continue
-
-                event_imported = 0
-                for tournament_result in results:
-                    event_imported += tournament_result.results_imported
-
-                    if tournament_result.errors:
-                        errors_occurred = True
-                        for error in tournament_result.errors:
-                            self.message_user(
-                                request,
-                                f"{event.name} - {tournament_result.tournament_name}: {error}",
-                                level=messages.ERROR,
-                            )
-                    else:
-                        if tournament_result.results_imported > 0:
-                            self.message_user(
-                                request,
-                                f"Successfully imported {tournament_result.results_imported} results for {tournament_result.tournament_name}.",
-                                level=messages.SUCCESS,
-                            )
-
-                total_imported += event_imported
-
-                if event_imported > 0:
-                    self.message_user(
-                        request,
-                        f"Event '{event.name}': Total {event_imported} results imported across all tournaments.",
-                        level=messages.SUCCESS,
-                    )
-
-            except Exception as e:
-                errors_occurred = True
-                self.message_user(
-                    request,
-                    f"Error importing results for event '{event.name}': {str(e)}",
-                    level=messages.ERROR,
-                )
-
-        # Summary message
-        if total_imported > 0:
-            level = messages.WARNING if errors_occurred else messages.SUCCESS
-            self.message_user(
-                request,
-                f"Import completed. Total results imported across all events: {total_imported}",
-                level=level,
-            )
-        elif not errors_occurred:
-            self.message_user(
-                request,
-                "No results were imported. Check that tournaments have prize money > $0.00 and format = 'stroke'.",
-                level=messages.INFO,
-            )
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+        """
+        self._import_results_base(
+            request=request,
+            queryset=queryset,
+            import_method=results_import_service.import_stroke_play_results,
+            format_name="stroke play",
+            success_message_template="Successfully imported {count} results for {tournament}",
+            no_results_message="No stroke play tournaments found (must have prize money > $0.00 and format = 'stroke')",
+        )
 
     import_tournament_results.short_description = (
         "Import tournament results from Golf Genius"
     )
 
-    def import_points_from_golf_genius(self, request, queryset):
-        """Import points tournament results from Golf Genius for selected events"""
-        from golfgenius.results_import_service import ResultsImportService
+    def import_points_from_golf_genius(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> None:
+        """Import points tournament results from Golf Genius for selected event.
 
-        if queryset.count() > 5:
-            self.message_user(
-                request,
-                "Please select 5 or fewer events at a time to avoid timeout issues.",
-                level=messages.ERROR,
-            )
-            return
-
-        results_service = ResultsImportService()
-        total_imported = 0
-        errors_occurred = False
-
-        for event in queryset:
-            try:
-                # Import points results for this event
-                results = results_service.import_points(event.id)
-
-                if not results:
-                    self.message_user(
-                        request,
-                        f"No points tournaments found for event '{event.name}'.",
-                        level=messages.WARNING,
-                    )
-                    continue
-
-                event_imported = 0
-                for tournament_result in results:
-                    event_imported += tournament_result.results_imported
-
-                    if tournament_result.errors:
-                        errors_occurred = True
-                        for error in tournament_result.errors:
-                            self.message_user(
-                                request,
-                                f"{event.name} - {tournament_result.tournament_name}: {error}",
-                                level=messages.ERROR,
-                            )
-                    else:
-                        if tournament_result.results_imported > 0:
-                            self.message_user(
-                                request,
-                                f"Successfully imported {tournament_result.results_imported} points for {tournament_result.tournament_name}.",
-                                level=messages.SUCCESS,
-                            )
-
-                total_imported += event_imported
-
-                if event_imported > 0:
-                    self.message_user(
-                        request,
-                        f"Event '{event.name}': Total {event_imported} points imported across all tournaments.",
-                        level=messages.SUCCESS,
-                    )
-
-            except Exception as e:
-                errors_occurred = True
-                self.message_user(
-                    request,
-                    f"Error importing points for event '{event.name}': {str(e)}",
-                    level=messages.ERROR,
-                )
-
-        # Summary message
-        if total_imported > 0:
-            level = messages.WARNING if errors_occurred else messages.SUCCESS
-            self.message_user(
-                request,
-                f"Points import completed. Total points imported across all events: {total_imported}",
-                level=level,
-            )
-        elif not errors_occurred:
-            self.message_user(
-                request,
-                "No points were imported. Check that tournaments have points > 0 and format = 'points'.",
-                level=messages.INFO,
-            )
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+        """
+        self._import_results_base(
+            request=request,
+            queryset=queryset,
+            import_method=results_import_service.import_points,
+            format_name="points",
+            success_message_template="Successfully imported {count} points for {tournament}",
+            no_results_message="No points tournaments found (must have points > 0 and format = 'points')",
+        )
 
     import_points_from_golf_genius.short_description = "Import points from Golf Genius"
 
-    def import_skins_from_golf_genius(self, request, queryset):
-        """Import skins tournament results from Golf Genius for selected events"""
-        from golfgenius.results_import_service import ResultsImportService
+    def import_skins_from_golf_genius(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> None:
+        """Import skins tournament results from Golf Genius for selected event.
 
-        if queryset.count() > 5:
-            self.message_user(
-                request,
-                "Please select 5 or fewer events at a time to avoid timeout issues.",
-                level=messages.ERROR,
-            )
-            return
-
-        results_service = ResultsImportService()
-        total_imported = 0
-        errors_occurred = False
-
-        for event in queryset:
-            try:
-                # Import skins results for this event
-                results = results_service.import_skins(event.id)
-
-                if not results:
-                    self.message_user(
-                        request,
-                        f"No skins tournaments found for event '{event.name}'.",
-                        level=messages.WARNING,
-                    )
-                    continue
-
-                event_imported = 0
-                for tournament_result in results:
-                    event_imported += tournament_result.results_imported
-
-                    if tournament_result.errors:
-                        errors_occurred = True
-                        for error in tournament_result.errors:
-                            self.message_user(
-                                request,
-                                f"{event.name} - {tournament_result.tournament_name}: {error}",
-                                level=messages.ERROR,
-                            )
-                    else:
-                        if tournament_result.results_imported > 0:
-                            self.message_user(
-                                request,
-                                f"Successfully imported {tournament_result.results_imported} skins results for {tournament_result.tournament_name}.",
-                                level=messages.SUCCESS,
-                            )
-
-                total_imported += event_imported
-
-                if event_imported > 0:
-                    self.message_user(
-                        request,
-                        f"Event '{event.name}': Total {event_imported} skins results imported across all tournaments.",
-                        level=messages.SUCCESS,
-                    )
-
-            except Exception as e:
-                errors_occurred = True
-                self.message_user(
-                    request,
-                    f"Error importing skins for event '{event.name}': {str(e)}",
-                    level=messages.ERROR,
-                )
-
-        # Summary message
-        if total_imported > 0:
-            level = messages.WARNING if errors_occurred else messages.SUCCESS
-            self.message_user(
-                request,
-                f"Skins import completed. Total skins results imported across all events: {total_imported}",
-                level=level,
-            )
-        elif not errors_occurred:
-            self.message_user(
-                request,
-                "No skins results were imported. Check that tournaments have purse > $0.00 and format = 'skins'.",
-                level=messages.INFO,
-            )
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+        """
+        self._import_results_base(
+            request=request,
+            queryset=queryset,
+            import_method=results_import_service.import_skins,
+            format_name="skins",
+            success_message_template="Successfully imported {count} skins results for {tournament}",
+            no_results_message="No skins tournaments found (must have purse > $0.00 and format = 'skins')",
+        )
 
     import_skins_from_golf_genius.short_description = "Import skins from Golf Genius"
 
-    def import_user_scored_from_golf_genius(self, request, queryset):
-        """Import user-scored tournament results from Golf Genius for selected events"""
-        from golfgenius.results_import_service import ResultsImportService
+    def import_user_scored_from_golf_genius(
+        self, request: HttpRequest, queryset: QuerySet[Event]
+    ) -> None:
+        """Import user-scored tournament results from Golf Genius for selected event.
 
-        if queryset.count() > 5:
-            self.message_user(
-                request,
-                "Please select 5 or fewer events at a time to avoid timeout issues.",
-                level=messages.ERROR,
-            )
-            return
+        Args:
+            request: The HTTP request object
+            queryset: Selected Event instances (must be exactly 1)
+        """
+        self._import_results_base(
+            request=request,
+            queryset=queryset,
+            import_method=results_import_service.import_user_scored_results,
+            format_name="user_scored",
+            success_message_template="Successfully imported {count} results for {tournament}",
+            no_results_message="No user_scored tournaments found for this event",
+        )
 
-        results_service = ResultsImportService()
-        total_imported = 0
-        errors_occurred = False
-
-        for event in queryset:
-            try:
-                # Import user-scored results for this event
-                results = results_service.import_user_scored_results(event.id)
-
-                if not results:
-                    self.message_user(
-                        request,
-                        f"No user_scored tournaments found for event '{event.name}'.",
-                        level=messages.WARNING,
-                    )
-                    continue
-
-                event_imported = 0
-                for tournament_result in results:
-                    event_imported += tournament_result.results_imported
-
-                    if tournament_result.errors:
-                        errors_occurred = True
-                        for error in tournament_result.errors:
-                            self.message_user(
-                                request,
-                                f"{event.name} - {tournament_result.tournament_name}: {error}",
-                                level=messages.ERROR,
-                            )
-                    else:
-                        if tournament_result.results_imported > 0:
-                            self.message_user(
-                                request,
-                                f"Successfully imported {tournament_result.results_imported} results for {tournament_result.tournament_name}.",
-                                level=messages.SUCCESS,
-                            )
-
-                total_imported += event_imported
-
-                if event_imported > 0:
-                    self.message_user(
-                        request,
-                        f"Event '{event.name}': Total {event_imported} results imported across all tournaments.",
-                        level=messages.SUCCESS,
-                    )
-
-            except Exception as e:
-                errors_occurred = True
-                self.message_user(
-                    request,
-                    f"Error importing user_scored results for event '{event.name}': {str(e)}",
-                    level=messages.ERROR,
-                )
-
-        # Summary message
-        if total_imported > 0:
-            level = messages.WARNING if errors_occurred else messages.SUCCESS
-            self.message_user(
-                request,
-                f"Import completed. Total results imported across all events: {total_imported}",
-                level=level,
-            )
-        elif not errors_occurred:
-            self.message_user(
-                request,
-                "No results were imported. Check that tournaments have prize money > $0.00 and format = 'user_scored'.",
-                level=messages.INFO,
-            )
+    import_user_scored_from_golf_genius.short_description = (
+        "Import user-scored results from Golf Genius"
+    )
 
     import_user_scored_from_golf_genius.short_description = (
         "Import user-scored results from Golf Genius"
@@ -695,6 +655,7 @@ class TournamentResultAdmin(admin.ModelAdmin):
         "tournament",
         "flight",
         "player",
+        "team_id",
         "position",
         "score",
         "points",
@@ -711,7 +672,7 @@ class TournamentResultAdmin(admin.ModelAdmin):
         "amount",
     ]
     list_display_links = ("tournament",)
-    list_filter = (TournamentResultEventFilter, "flight")
+    list_filter = (TournamentResultEventFilter, TournamentByEventFilter, "flight")
     ordering = ["tournament", "position"]
     search_fields = ["tournament__name", "player__first_name", "player__last_name"]
     save_on_top = True

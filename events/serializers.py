@@ -11,6 +11,7 @@ class TournamentResultSerializer(serializers.ModelSerializer):
             "id",
             "tournament",
             "player",
+            "team_id",
             "position",
             "score",
             "points",

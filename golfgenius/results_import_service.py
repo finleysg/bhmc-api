@@ -36,6 +36,193 @@ class ResultsImportResult:
         }
 
 
+class GolfGeniusResultsParser:
+    """
+    Base parser for Golf Genius tournament results API responses.
+
+    Handles common structure extraction (event -> scopes -> aggregates -> member_cards).
+    Provides validation and safe access to nested response data.
+    """
+
+    @staticmethod
+    def validate_response(gg_results: Dict[str, Any]) -> Optional[str]:
+        """
+        Validate Golf Genius results response structure.
+
+        Args:
+            gg_results: Raw API response
+
+        Returns:
+            Error message if invalid, None if valid
+        """
+        if not gg_results or "event" not in gg_results:
+            return "Invalid or empty results data from Golf Genius"
+
+        event_data = gg_results.get("event", {})
+        if "scopes" not in event_data:
+            return "No scopes found in results data"
+
+        return None
+
+    @staticmethod
+    def extract_scopes(gg_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Extract scopes (flights) from Golf Genius results.
+
+        Args:
+            gg_results: Raw API response
+
+        Returns:
+            List of scope dictionaries
+        """
+        return gg_results.get("event", {}).get("scopes", [])
+
+    @staticmethod
+    def extract_aggregates(scope: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Extract aggregates (player results) from a scope.
+
+        Args:
+            scope: Scope dictionary from API response
+
+        Returns:
+            List of aggregate dictionaries
+        """
+        return scope.get("aggregates", [])
+
+    @staticmethod
+    def extract_member_cards(aggregate: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Extract member cards from an aggregate.
+
+        Args:
+            aggregate: Aggregate dictionary from API response
+
+        Returns:
+            List of member card dictionaries
+        """
+        return aggregate.get("member_cards", [])
+
+    @staticmethod
+    def extract_flight_name(scope: Dict[str, Any], default: str = "N/A") -> str:
+        """
+        Extract flight name from scope with fallback.
+
+        Args:
+            scope: Scope dictionary from API response
+            default: Default value if name is missing or empty
+
+        Returns:
+            Flight name or default
+        """
+        name = scope.get("name")
+        return name if name else default
+
+
+class StrokePlayResultParser(GolfGeniusResultsParser):
+    """Parser for stroke play tournament results"""
+
+    @staticmethod
+    def parse_player_data(
+        aggregate: Dict[str, Any], member_card: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Extract stroke play specific data from aggregate and member card.
+
+        Args:
+            aggregate: Player aggregate from API
+            member_card: First member card from aggregate
+
+        Returns:
+            Dictionary with parsed stroke play data
+        """
+        return {
+            "purse": aggregate.get("purse", "$0.00"),
+            "position_str": aggregate.get("position", ""),
+            "total_str": aggregate.get("total", ""),
+            "member_card_id": str(member_card.get("member_card_id", "")),
+            "player_name": aggregate.get("name", "Unknown"),
+        }
+
+
+class PointsResultParser(GolfGeniusResultsParser):
+    """Parser for points tournament results"""
+
+    @staticmethod
+    def parse_player_data(
+        aggregate: Dict[str, Any], member_card: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Extract points specific data from aggregate and member card.
+
+        Args:
+            aggregate: Player aggregate from API
+            member_card: First member card from aggregate
+
+        Returns:
+            Dictionary with parsed points data
+        """
+        return {
+            "rank_str": aggregate.get("rank", ""),
+            "points_str": aggregate.get("points", ""),
+            "position_text": aggregate.get("position", ""),
+            "total_str": aggregate.get("total", ""),
+            "member_card_id": str(member_card.get("member_card_id", "")),
+            "player_name": aggregate.get("name", "Unknown"),
+        }
+
+
+class SkinsResultParser(GolfGeniusResultsParser):
+    """Parser for skins tournament results"""
+
+    @staticmethod
+    def parse_player_data(
+        aggregate: Dict[str, Any], member_card: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Extract skins specific data from aggregate and member card.
+
+        Args:
+            aggregate: Player aggregate from API
+            member_card: First member card from aggregate
+
+        Returns:
+            Dictionary with parsed skins data
+        """
+        return {
+            "purse": aggregate.get("purse", "$0.00"),
+            "total_str": aggregate.get("total", ""),
+            "details": aggregate.get("details"),
+            "member_card_id": str(member_card.get("member_card_id", "")),
+            "player_name": aggregate.get("name", "Unknown"),
+        }
+
+
+class UserScoredResultParser(GolfGeniusResultsParser):
+    """Parser for user-scored tournament results"""
+
+    @staticmethod
+    def parse_player_data(
+        aggregate: Dict[str, Any], member_card: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Extract user-scored specific data from aggregate and member card.
+
+        Args:
+            aggregate: Player aggregate from API
+            member_card: First member card from aggregate
+
+        Returns:
+            Dictionary with parsed user-scored data
+        """
+        return {
+            "purse": aggregate.get("purse", "$0.00"),
+            "rank_str": aggregate.get("rank", ""),
+            "member_card_id": str(member_card.get("member_card_id", "")),
+            "player_name": aggregate.get("name", "Unknown"),
+        }
+
+
 class ResultsImportService:
     """
     Service for importing tournament results from Golf Genius
@@ -357,24 +544,22 @@ class ResultsImportService:
             gg_results: Raw results data from Golf Genius API
             result: ResultsImportResult to track errors and success count
         """
-        if not gg_results or "event" not in gg_results:
-            result.add_error("Invalid or empty results data from Golf Genius")
+        # Validate response structure using parser
+        error = UserScoredResultParser.validate_response(gg_results)
+        if error:
+            result.add_error(error)
             return
 
-        event_data = gg_results["event"]
-        if "scopes" not in event_data:
-            result.add_error("No scopes found in results data")
-            return
+        # Extract scopes (flights) using parser
+        scopes = UserScoredResultParser.extract_scopes(gg_results)
 
         # Process each scope (flight)
-        for scope in event_data["scopes"]:
-            flight_name = scope.get("name", "N/A") if scope.get("name") else "N/A"
-
-            if "aggregates" not in scope:
-                continue
+        for scope in scopes:
+            flight_name = UserScoredResultParser.extract_flight_name(scope)
+            aggregates = UserScoredResultParser.extract_aggregates(scope)
 
             # Process each aggregate (player result)
-            for aggregate in scope["aggregates"]:
+            for aggregate in aggregates:
                 try:
                     self._process_user_scored_player_result(
                         tournament, aggregate, flight_name, result
@@ -410,25 +595,37 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
+        # Extract member cards and get first member card
+        member_cards = UserScoredResultParser.extract_member_cards(aggregate)
+        if not member_cards:
+            result.add_error(
+                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
+            )
+            return
+
+        # Parse player data using parser
+        player_data = UserScoredResultParser.parse_player_data(
+            aggregate, member_cards[0]
+        )
+
         # Extract purse amount using helper - skip if $0.00 or less
         purse_amount = self._parse_purse_amount(
-            aggregate.get("purse", "$0.00"),
+            player_data["purse"],
             {
                 "tournament_id": tournament.id,
-                "player_name": aggregate.get("name", "Unknown"),
+                "player_name": player_data["player_name"],
             },
         )
         if not purse_amount:
             return
 
         # Resolve player using helper
-        member_cards = aggregate.get("member_cards", [])
         player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
         if not player:
             return
 
         # Extract position from rank attribute
-        rank_str = aggregate.get("rank", "")
+        rank_str = player_data["rank_str"]
         try:
             position = int(rank_str) if rank_str.isdigit() else 0
         except (ValueError, TypeError):
@@ -588,24 +785,22 @@ class ResultsImportService:
             gg_results: Raw results data from Golf Genius API
             result: ResultsImportResult to track errors and success count
         """
-        if not gg_results or "event" not in gg_results:
-            result.add_error("Invalid or empty results data from Golf Genius")
+        # Validate response structure using parser
+        error = SkinsResultParser.validate_response(gg_results)
+        if error:
+            result.add_error(error)
             return
 
-        event_data = gg_results["event"]
-        if "scopes" not in event_data:
-            result.add_error("No scopes found in results data")
-            return
+        # Extract scopes (flights) using parser
+        scopes = SkinsResultParser.extract_scopes(gg_results)
 
         # Process each scope (flight)
-        for scope in event_data["scopes"]:
-            flight_name = scope.get("name", "N/A") if scope.get("name") else "N/A"
-
-            if "aggregates" not in scope:
-                continue
+        for scope in scopes:
+            flight_name = SkinsResultParser.extract_flight_name(scope)
+            aggregates = SkinsResultParser.extract_aggregates(scope)
 
             # Process each aggregate (player result)
-            for aggregate in scope["aggregates"]:
+            for aggregate in aggregates:
                 try:
                     self._process_skins_player_result(
                         tournament, aggregate, flight_name, result
@@ -639,32 +834,42 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
+        # Extract member cards and get first member card
+        member_cards = SkinsResultParser.extract_member_cards(aggregate)
+        if not member_cards:
+            result.add_error(
+                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
+            )
+            return
+
+        # Parse player data using parser
+        player_data = SkinsResultParser.parse_player_data(aggregate, member_cards[0])
+
         # Extract purse amount using helper - skip if $0.00 or less
         purse_amount = self._parse_purse_amount(
-            aggregate.get("purse", "$0.00"),
+            player_data["purse"],
             {
                 "tournament_id": tournament.id,
-                "player_name": aggregate.get("name", "Unknown"),
+                "player_name": player_data["player_name"],
             },
         )
         if not purse_amount:
             return
 
         # Resolve player using helper
-        member_cards = aggregate.get("member_cards", [])
         player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
         if not player:
             return
 
         # Extract position from total attribute (number of skins won)
-        total_str = aggregate.get("total", "")
+        total_str = player_data["total_str"]
         try:
             position = int(total_str) if total_str.isdigit() else 0
         except (ValueError, TypeError):
             position = 0
 
         # Details copied from details attribute
-        details = aggregate.get("details")
+        details = player_data["details"]
 
         # Create new tournament result (points and score NULL)
         TournamentResult.objects.create(
@@ -701,24 +906,22 @@ class ResultsImportService:
             gg_results: Raw results data from Golf Genius API
             result: ResultsImportResult to track errors and success count
         """
-        if not gg_results or "event" not in gg_results:
-            result.add_error("Invalid or empty results data from Golf Genius")
+        # Validate response structure using parser
+        error = StrokePlayResultParser.validate_response(gg_results)
+        if error:
+            result.add_error(error)
             return
 
-        event_data = gg_results["event"]
-        if "scopes" not in event_data:
-            result.add_error("No scopes found in results data")
-            return
+        # Extract scopes (flights) using parser
+        scopes = StrokePlayResultParser.extract_scopes(gg_results)
 
         # Process each scope (flight)
-        for scope in event_data["scopes"]:
-            flight_name = scope.get("name", "")
-
-            if "aggregates" not in scope:
-                continue
+        for scope in scopes:
+            flight_name = StrokePlayResultParser.extract_flight_name(scope, default="")
+            aggregates = StrokePlayResultParser.extract_aggregates(scope)
 
             # Process each aggregate (player result)
-            for aggregate in scope["aggregates"]:
+            for aggregate in aggregates:
                 try:
                     self._process_player_result(
                         tournament, aggregate, flight_name, result
@@ -743,24 +946,22 @@ class ResultsImportService:
             gg_results: Raw results data from Golf Genius API
             result: ResultsImportResult to track errors and success count
         """
-        if not gg_results or "event" not in gg_results:
-            result.add_error("Invalid or empty results data from Golf Genius")
+        # Validate response structure using parser
+        error = PointsResultParser.validate_response(gg_results)
+        if error:
+            result.add_error(error)
             return
 
-        event_data = gg_results["event"]
-        if "scopes" not in event_data:
-            result.add_error("No scopes found in results data")
-            return
+        # Extract scopes (flights) using parser
+        scopes = PointsResultParser.extract_scopes(gg_results)
 
         # Process each scope (flight)
-        for scope in event_data["scopes"]:
-            flight_name = scope.get("name", "N/A") if scope.get("name") else "N/A"
-
-            if "aggregates" not in scope:
-                continue
+        for scope in scopes:
+            flight_name = PointsResultParser.extract_flight_name(scope)
+            aggregates = PointsResultParser.extract_aggregates(scope)
 
             # Process each aggregate (player result)
-            for aggregate in scope["aggregates"]:
+            for aggregate in aggregates:
                 try:
                     self._process_points_player_result(
                         tournament, aggregate, flight_name, result
@@ -787,32 +988,44 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
+        # Extract member cards and get first member card
+        member_cards = StrokePlayResultParser.extract_member_cards(aggregate)
+        if not member_cards:
+            result.add_error(
+                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
+            )
+            return
+
+        # Parse player data using parser
+        player_data = StrokePlayResultParser.parse_player_data(
+            aggregate, member_cards[0]
+        )
+
         # Extract purse amount using helper - skip if $0.00 or less
         purse_amount = self._parse_purse_amount(
-            aggregate.get("purse", "$0.00"),
+            player_data["purse"],
             {
                 "tournament_id": tournament.id,
-                "player_name": aggregate.get("name", "Unknown"),
+                "player_name": player_data["player_name"],
             },
         )
         if not purse_amount:
             return
 
         # Resolve player using helper
-        member_cards = aggregate.get("member_cards", [])
         player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
         if not player:
             return
 
         # Extract result data
-        position_str = aggregate.get("position", "")
+        position_str = player_data["position_str"]
         try:
             position = int(position_str) if position_str.isdigit() else 0
         except (ValueError, TypeError):
             position = 0
 
         # Parse score (total strokes)
-        total_str = aggregate.get("total", "")
+        total_str = player_data["total_str"]
         try:
             score = int(total_str) if total_str.isdigit() else None
         except (ValueError, TypeError):
@@ -855,21 +1068,31 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
+        # Extract member cards and get first member card
+        member_cards = PointsResultParser.extract_member_cards(aggregate)
+        if not member_cards:
+            result.add_error(
+                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
+            )
+            return
+
+        # Parse player data using parser
+        player_data = PointsResultParser.parse_player_data(aggregate, member_cards[0])
+
         # Resolve player using helper
-        member_cards = aggregate.get("member_cards", [])
         player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
         if not player:
             return
 
         # Extract position from rank attribute
-        rank_str = aggregate.get("rank", "")
+        rank_str = player_data["rank_str"]
         try:
             position = int(rank_str) if rank_str.isdigit() else 0
         except (ValueError, TypeError):
             position = 0
 
         # Parse points and convert to whole number with proper rounding
-        points_str = aggregate.get("points", "")
+        points_str = player_data["points_str"]
         points = None
         details = None
 
@@ -886,17 +1109,17 @@ class ResultsImportService:
                     "Failed to parse points",
                     tournament_id=tournament.id,
                     points_str=points_str,
-                    player_name=aggregate.get("name", "Unknown"),
+                    player_name=player_data["player_name"],
                 )
                 points = None
 
         # Convert position to details text if not already set
         if details is None:
-            position_text = aggregate.get("position", "")
+            position_text = player_data["position_text"]
             details = self._format_position_details(position_text)
 
         # Parse score (total strokes) if available
-        total_str = aggregate.get("total", "")
+        total_str = player_data["total_str"]
         try:
             score = int(total_str) if total_str.isdigit() else None
         except (ValueError, TypeError):

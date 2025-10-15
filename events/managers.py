@@ -2,9 +2,10 @@ from django.db import models
 
 
 class EventManager(models.Manager):
-
     def get_queryset(self):
-        return super().get_queryset().prefetch_related("courses").prefetch_related("fees")
+        return (
+            super().get_queryset().prefetch_related("courses").prefetch_related("fees")
+        )
 
     def clone(self, original, start_date):
         copy = self.get(pk=original.id)
@@ -20,7 +21,9 @@ class EventManager(models.Manager):
             if original.payments_end is not None:
                 copy.payments_end = original.payments_end + start_delta
             if original.priority_signup_start is not None:
-                copy.priority_signup_start = original.priority_signup_start + start_delta
+                copy.priority_signup_start = (
+                    original.priority_signup_start + start_delta
+                )
 
         # remove url values
         copy.portal_url = None
@@ -47,6 +50,5 @@ class EventManager(models.Manager):
 
 
 class EventFeeManager(models.Manager):
-
     def get_queryset(self):
         return super().get_queryset().select_related("fee_type")

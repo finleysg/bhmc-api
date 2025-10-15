@@ -4,33 +4,94 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0011_event_priority_signup_start_and_more'),
+        ("events", "0011_event_priority_signup_start_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EventFeeOverride',
+            name="EventFeeOverride",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=5, verbose_name='Amount')),
-                ('restriction', models.CharField(choices=[('Members', 'Members'), ('Returning Members', 'Returning Members'), ('New Members', 'New Members'), ('Seniors', 'Seniors'), ('Non-Seniors', 'Non-Seniors'), ('Non-Members', 'Non-Members'), ('None', 'None')], default='Members', max_length=20, verbose_name='Restrict to')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=5, verbose_name="Amount"
+                    ),
+                ),
+                (
+                    "restriction",
+                    models.CharField(
+                        choices=[
+                            ("Members", "Members"),
+                            ("Returning Members", "Returning Members"),
+                            ("New Members", "New Members"),
+                            ("Seniors", "Seniors"),
+                            ("Non-Seniors", "Non-Seniors"),
+                            ("Non-Members", "Non-Members"),
+                            ("None", "None"),
+                        ],
+                        default="Members",
+                        max_length=20,
+                        verbose_name="Restrict to",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='eventfee',
-            name='override_amount',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, verbose_name='Override Amount'),
+            model_name="eventfee",
+            name="override_amount",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=5,
+                null=True,
+                verbose_name="Override Amount",
+            ),
         ),
         migrations.AddField(
-            model_name='eventfee',
-            name='override_restriction',
-            field=models.CharField(blank=True, choices=[('Members', 'Members'), ('Returning Members', 'Returning Members'), ('New Members', 'New Members'), ('Seniors', 'Seniors'), ('Non-Seniors', 'Non-Seniors'), ('Non-Members', 'Non-Members'), ('None', 'None')], max_length=20, null=True, verbose_name='Override Restriction'),
+            model_name="eventfee",
+            name="override_restriction",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("Members", "Members"),
+                    ("Returning Members", "Returning Members"),
+                    ("New Members", "New Members"),
+                    ("Seniors", "Seniors"),
+                    ("Non-Seniors", "Non-Seniors"),
+                    ("Non-Members", "Non-Members"),
+                    ("None", "None"),
+                ],
+                max_length=20,
+                null=True,
+                verbose_name="Override Restriction",
+            ),
         ),
         migrations.AlterField(
-            model_name='feetype',
-            name='restriction',
-            field=models.CharField(choices=[('Members', 'Members'), ('Returning Members', 'Returning Members'), ('New Members', 'New Members'), ('Seniors', 'Seniors'), ('Non-Seniors', 'Non-Seniors'), ('Non-Members', 'Non-Members'), ('None', 'None')], default='None', max_length=20, verbose_name='Restrict to'),
+            model_name="feetype",
+            name="restriction",
+            field=models.CharField(
+                choices=[
+                    ("Members", "Members"),
+                    ("Returning Members", "Returning Members"),
+                    ("New Members", "New Members"),
+                    ("Seniors", "Seniors"),
+                    ("Non-Seniors", "Non-Seniors"),
+                    ("Non-Members", "Non-Members"),
+                    ("None", "None"),
+                ],
+                default="None",
+                max_length=20,
+                verbose_name="Restrict to",
+            ),
         ),
     ]

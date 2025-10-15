@@ -4,19 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0006_event_starter_time_interval_and_more'),
+        ("events", "0006_event_starter_time_interval_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='historicalevent',
-            options={'get_latest_by': ('history_date', 'history_id'), 'ordering': ('-history_date', '-history_id'), 'verbose_name': 'historical event', 'verbose_name_plural': 'historical events'},
+            name="historicalevent",
+            options={
+                "get_latest_by": ("history_date", "history_id"),
+                "ordering": ("-history_date", "-history_id"),
+                "verbose_name": "historical event",
+                "verbose_name_plural": "historical events",
+            },
         ),
         migrations.AlterField(
-            model_name='historicalevent',
-            name='history_date',
+            model_name="historicalevent",
+            name="history_date",
             field=models.DateTimeField(db_index=True),
         ),
     ]

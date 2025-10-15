@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0004_auto_20211121_1127'),
+        ("events", "0004_auto_20211121_1127"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='eventfee',
-            options={'ordering': ['display_order']},
+            name="eventfee",
+            options={"ordering": ["display_order"]},
         ),
     ]

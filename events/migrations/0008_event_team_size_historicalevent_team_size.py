@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0007_alter_historicalevent_options_and_more'),
+        ("events", "0007_alter_historicalevent_options_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='team_size',
-            field=models.IntegerField(default=1, verbose_name='Team size'),
+            model_name="event",
+            name="team_size",
+            field=models.IntegerField(default=1, verbose_name="Team size"),
         ),
         migrations.AddField(
-            model_name='historicalevent',
-            name='team_size',
-            field=models.IntegerField(default=1, verbose_name='Team size'),
+            model_name="historicalevent",
+            name="team_size",
+            field=models.IntegerField(default=1, verbose_name="Team size"),
         ),
     ]

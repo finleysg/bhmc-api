@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0005_alter_eventfee_options'),
+        ("events", "0005_alter_eventfee_options"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='starter_time_interval',
-            field=models.IntegerField(default=0, verbose_name='Starter time interval'),
+            model_name="event",
+            name="starter_time_interval",
+            field=models.IntegerField(default=0, verbose_name="Starter time interval"),
         ),
         migrations.AddField(
-            model_name='historicalevent',
-            name='starter_time_interval',
-            field=models.IntegerField(default=0, verbose_name='Starter time interval'),
+            model_name="historicalevent",
+            name="starter_time_interval",
+            field=models.IntegerField(default=0, verbose_name="Starter time interval"),
         ),
     ]

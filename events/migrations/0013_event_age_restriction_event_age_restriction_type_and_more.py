@@ -4,30 +4,43 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0012_eventfeeoverride_eventfee_override_amount_and_more'),
+        ("events", "0012_eventfeeoverride_eventfee_override_amount_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='age_restriction',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Age restriction'),
+            model_name="event",
+            name="age_restriction",
+            field=models.IntegerField(
+                blank=True, null=True, verbose_name="Age restriction"
+            ),
         ),
         migrations.AddField(
-            model_name='event',
-            name='age_restriction_type',
-            field=models.CharField(choices=[('O', 'Over'), ('U', 'Under'), ('N', 'None')], default='N', max_length=1, verbose_name='Age restriction type'),
+            model_name="event",
+            name="age_restriction_type",
+            field=models.CharField(
+                choices=[("O", "Over"), ("U", "Under"), ("N", "None")],
+                default="N",
+                max_length=1,
+                verbose_name="Age restriction type",
+            ),
         ),
         migrations.AddField(
-            model_name='historicalevent',
-            name='age_restriction',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Age restriction'),
+            model_name="historicalevent",
+            name="age_restriction",
+            field=models.IntegerField(
+                blank=True, null=True, verbose_name="Age restriction"
+            ),
         ),
         migrations.AddField(
-            model_name='historicalevent',
-            name='age_restriction_type',
-            field=models.CharField(choices=[('O', 'Over'), ('U', 'Under'), ('N', 'None')], default='N', max_length=1, verbose_name='Age restriction type'),
+            model_name="historicalevent",
+            name="age_restriction_type",
+            field=models.CharField(
+                choices=[("O", "Over"), ("U", "Under"), ("N", "None")],
+                default="N",
+                max_length=1,
+                verbose_name="Age restriction type",
+            ),
         ),
     ]

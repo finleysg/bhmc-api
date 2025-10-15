@@ -56,48 +56,107 @@ AGE_RESTRICTION_CHOICES = (
     ("N", "None"),
 )
 
+
 class Event(models.Model):
-    event_type = models.CharField(verbose_name="Event type", choices=EVENT_TYPE_CHOICES, max_length=1, default="N")
+    event_type = models.CharField(
+        verbose_name="Event type", choices=EVENT_TYPE_CHOICES, max_length=1, default="N"
+    )
     name = models.CharField(verbose_name="Event title", max_length=100)
     rounds = models.IntegerField(verbose_name="Number of rounds", blank=True, null=True)
-    registration_type = models.CharField(verbose_name="Registration type", max_length=1, default="M",
-                                         choices=REGISTRATION_CHOICES)
-    skins_type = models.CharField(verbose_name="Skins type", max_length=1, choices=SKIN_TYPE_CHOICES,
-                                  blank=True, null=True)
-    minimum_signup_group_size = models.IntegerField(verbose_name="Minimum sign-up group size", blank=True, null=True)
-    maximum_signup_group_size = models.IntegerField(verbose_name="Maximum sign-up group size", blank=True, null=True)
+    registration_type = models.CharField(
+        verbose_name="Registration type",
+        max_length=1,
+        default="M",
+        choices=REGISTRATION_CHOICES,
+    )
+    skins_type = models.CharField(
+        verbose_name="Skins type",
+        max_length=1,
+        choices=SKIN_TYPE_CHOICES,
+        blank=True,
+        null=True,
+    )
+    minimum_signup_group_size = models.IntegerField(
+        verbose_name="Minimum sign-up group size", blank=True, null=True
+    )
+    maximum_signup_group_size = models.IntegerField(
+        verbose_name="Maximum sign-up group size", blank=True, null=True
+    )
     group_size = models.IntegerField(verbose_name="Group size", blank=True, null=True)
-    total_groups = models.IntegerField(verbose_name="Groups per course (tee times)", blank=True, null=True)
-    start_type = models.CharField(verbose_name="Start type", choices=START_TYPE_CHOICES, max_length=2,
-                                  blank=True, null=True)
-    can_choose = models.BooleanField(verbose_name="Player can choose starting hole or tee time", default=False)
+    total_groups = models.IntegerField(
+        verbose_name="Groups per course (tee times)", blank=True, null=True
+    )
+    start_type = models.CharField(
+        verbose_name="Start type",
+        choices=START_TYPE_CHOICES,
+        max_length=2,
+        blank=True,
+        null=True,
+    )
+    can_choose = models.BooleanField(
+        verbose_name="Player can choose starting hole or tee time", default=False
+    )
     ghin_required = models.BooleanField(verbose_name="GHIN required", default=False)
-    season_points = models.IntegerField(verbose_name="Season long points available", blank=True, null=True)
+    season_points = models.IntegerField(
+        verbose_name="Season long points available", blank=True, null=True
+    )
     notes = models.TextField(blank=True, null=True)
     start_date = models.DateField(verbose_name="Start date")
-    start_time = models.CharField(verbose_name="Starting time", max_length=40, blank=True, null=True)
-    priority_signup_start = models.DateTimeField(verbose_name="Priority signup start", blank=True, null=True)
-    signup_start = models.DateTimeField(verbose_name="Signup start", blank=True, null=True)
+    start_time = models.CharField(
+        verbose_name="Starting time", max_length=40, blank=True, null=True
+    )
+    priority_signup_start = models.DateTimeField(
+        verbose_name="Priority signup start", blank=True, null=True
+    )
+    signup_start = models.DateTimeField(
+        verbose_name="Signup start", blank=True, null=True
+    )
     signup_end = models.DateTimeField(verbose_name="Signup end", blank=True, null=True)
-    payments_end = models.DateTimeField(verbose_name="Online payments deadline", blank=True, null=True)
-    registration_maximum = models.IntegerField(verbose_name="Signup maximum", blank=True, null=True)
-    portal_url = models.CharField(verbose_name="Golf Genius Portal", max_length=240, blank=True, null=True)
+    payments_end = models.DateTimeField(
+        verbose_name="Online payments deadline", blank=True, null=True
+    )
+    registration_maximum = models.IntegerField(
+        verbose_name="Signup maximum", blank=True, null=True
+    )
+    portal_url = models.CharField(
+        verbose_name="Golf Genius Portal", max_length=240, blank=True, null=True
+    )
     courses = models.ManyToManyField(verbose_name="Course(s)", to=Course, blank=True)
-    external_url = models.CharField(verbose_name="External url", max_length=255, blank=True, null=True)
-    status = models.CharField(verbose_name="Status", max_length=1, choices=EVENT_STATUS_CHOICES, default="S")
+    external_url = models.CharField(
+        verbose_name="External url", max_length=255, blank=True, null=True
+    )
+    status = models.CharField(
+        verbose_name="Status", max_length=1, choices=EVENT_STATUS_CHOICES, default="S"
+    )
     season = models.IntegerField(verbose_name="Season", default=0)
-    tee_time_splits = models.CharField(verbose_name="Tee time splits", max_length=10, blank=True, null=True)
-    default_tag = models.ForeignKey(verbose_name="Default tag", to=Tag, on_delete=DO_NOTHING, blank=True, null=True)
-    starter_time_interval = models.IntegerField(verbose_name="Starter time interval", default=0)
+    tee_time_splits = models.CharField(
+        verbose_name="Tee time splits", max_length=10, blank=True, null=True
+    )
+    default_tag = models.ForeignKey(
+        verbose_name="Default tag", to=Tag, on_delete=DO_NOTHING, blank=True, null=True
+    )
+    starter_time_interval = models.IntegerField(
+        verbose_name="Starter time interval", default=0
+    )
     team_size = models.IntegerField(verbose_name="Team size", default=1)
-    age_restriction = models.IntegerField(verbose_name="Age restriction", blank=True, null=True)
-    age_restriction_type = models.CharField(verbose_name="Age restriction type", max_length=1,
-                                            choices=AGE_RESTRICTION_CHOICES, default="N")
-    gg_id = models.CharField(verbose_name="Golf Genius id: event_id", max_length=22, blank=True, null=True)
+    age_restriction = models.IntegerField(
+        verbose_name="Age restriction", blank=True, null=True
+    )
+    age_restriction_type = models.CharField(
+        verbose_name="Age restriction type",
+        max_length=1,
+        choices=AGE_RESTRICTION_CHOICES,
+        default="N",
+    )
+    gg_id = models.CharField(
+        verbose_name="Golf Genius id: event_id", max_length=22, blank=True, null=True
+    )
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["name", "start_date"], name="unique_name_startdate")
+            UniqueConstraint(
+                fields=["name", "start_date"], name="unique_name_startdate"
+            )
         ]
 
     history = HistoricalRecords()
@@ -112,7 +171,10 @@ class Event(models.Model):
         if self.registration_type != "N":
             state = "past"
             right_now = timezone.now()
-            if self.priority_signup_start is not None and self.priority_signup_start < right_now < self.signup_start:
+            if (
+                self.priority_signup_start is not None
+                and self.priority_signup_start < right_now < self.signup_start
+            ):
                 state = "priority"
             elif self.signup_start < right_now < self.signup_end:
                 state = "registration"
@@ -126,29 +188,47 @@ class Event(models.Model):
     def validate_registration_window(self):
         if self.registration_type != "N":
             if self.signup_start is None or self.signup_end is None:
-                raise ValidationError('When an event requires registration, both signup start and signup end are '
-                                      'required')
+                raise ValidationError(
+                    "When an event requires registration, both signup start and signup end are "
+                    "required"
+                )
             if self.signup_start > self.signup_end:
-                raise ValidationError('The signup start must be earlier than signup end')
+                raise ValidationError(
+                    "The signup start must be earlier than signup end"
+                )
 
     def validate_groups_size(self):
         if self.can_choose and (self.group_size is None or self.group_size == 0):
-            raise ValidationError('A group size is required if players are choosing their starting hole or tee time')
+            raise ValidationError(
+                "A group size is required if players are choosing their starting hole or tee time"
+            )
 
     def validate_signup_size(self):
         if self.registration_type != "N":
-            if self.minimum_signup_group_size is None or self.minimum_signup_group_size == 0:
-                raise ValidationError('You must have a minimum and maximum signup group size when an event '
-                                      'includes registration')
-            if self.maximum_signup_group_size is None or self.maximum_signup_group_size == 0:
-                raise ValidationError('You must have a minimum and maximum signup group size when an event '
-                                      'includes registration')
+            if (
+                self.minimum_signup_group_size is None
+                or self.minimum_signup_group_size == 0
+            ):
+                raise ValidationError(
+                    "You must have a minimum and maximum signup group size when an event "
+                    "includes registration"
+                )
+            if (
+                self.maximum_signup_group_size is None
+                or self.maximum_signup_group_size == 0
+            ):
+                raise ValidationError(
+                    "You must have a minimum and maximum signup group size when an event "
+                    "includes registration"
+                )
 
     def validate_total_groups(self):
         if self.can_choose and self.start_type == "TT":
             if self.total_groups is None or self.total_groups == 0:
-                raise ValidationError('You must include the number of groups per course when players are choosing '
-                                      'their own tee times')
+                raise ValidationError(
+                    "You must include the number of groups per course when players are choosing "
+                    "their own tee times"
+                )
 
     def clean(self):
         self.validate_groups_size()
@@ -158,14 +238,18 @@ class Event(models.Model):
 
     @staticmethod
     def autocomplete_search_fields():
-        return ("name__icontains", )
+        return ("name__icontains",)
 
 
 class FeeType(models.Model):
     name = models.CharField(verbose_name="Fee Name", max_length=30, unique=True)
     code = models.CharField(verbose_name="Fee Code", max_length=3, default="X")
-    restriction = models.CharField(verbose_name="Restrict to", max_length=20, choices=FEE_RESTRICTION_CHOICES,
-                                   default="None")
+    restriction = models.CharField(
+        verbose_name="Restrict to",
+        max_length=20,
+        choices=FEE_RESTRICTION_CHOICES,
+        default="None",
+    )
 
     def __str__(self):
         return self.name
@@ -173,21 +257,39 @@ class FeeType(models.Model):
 
 class EventFeeOverride(models.Model):
     amount = models.DecimalField(verbose_name="Amount", max_digits=5, decimal_places=2)
-    restriction = models.CharField(verbose_name="Restrict to", max_length=20, choices=FEE_RESTRICTION_CHOICES,
-                                   default="Members")
+    restriction = models.CharField(
+        verbose_name="Restrict to",
+        max_length=20,
+        choices=FEE_RESTRICTION_CHOICES,
+        default="Members",
+    )
 
     def __str__(self):
         return "{} (${})".format(self.restriction, self.amount)
 
 
 class EventFee(models.Model):
-    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="fees")
-    fee_type = models.ForeignKey(verbose_name="Fee Type", to=FeeType, on_delete=DO_NOTHING)
+    event = models.ForeignKey(
+        verbose_name="Event", to=Event, on_delete=CASCADE, related_name="fees"
+    )
+    fee_type = models.ForeignKey(
+        verbose_name="Fee Type", to=FeeType, on_delete=DO_NOTHING
+    )
     amount = models.DecimalField(verbose_name="Amount", max_digits=5, decimal_places=2)
-    override_amount = models.DecimalField(verbose_name="Override Amount", max_digits=5, decimal_places=2,
-                                          blank=True, null=True)
-    override_restriction = models.CharField(verbose_name="Override Restriction", max_length=20,
-                                            choices=FEE_RESTRICTION_CHOICES, blank=True, null=True)
+    override_amount = models.DecimalField(
+        verbose_name="Override Amount",
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    override_restriction = models.CharField(
+        verbose_name="Override Restriction",
+        max_length=20,
+        choices=FEE_RESTRICTION_CHOICES,
+        blank=True,
+        null=True,
+    )
     is_required = models.BooleanField(verbose_name="Required", default=False)
     display_order = models.IntegerField(verbose_name="Display Order")
 
@@ -195,7 +297,9 @@ class EventFee(models.Model):
         constraints = [
             UniqueConstraint(fields=["event", "fee_type"], name="unique_event_feetype")
         ]
-        ordering = ["display_order", ]
+        ordering = [
+            "display_order",
+        ]
 
     objects = EventFeeManager()
 
@@ -204,14 +308,18 @@ class EventFee(models.Model):
 
 
 class Round(models.Model):
-    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_rounds")
+    event = models.ForeignKey(
+        verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_rounds"
+    )
     round_number = models.IntegerField(verbose_name="Round number")
     round_date = models.DateField(verbose_name="Round date")
     gg_id = models.CharField(verbose_name="Golf Genius id: round_id", max_length=22)
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["event", "round_number"], name="unique_event_roundnumber")
+            UniqueConstraint(
+                fields=["event", "round_number"], name="unique_event_roundnumber"
+            )
         ]
 
     def __str__(self):
@@ -219,16 +327,26 @@ class Round(models.Model):
 
 
 class Tournament(models.Model):
-    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_tournaments")
-    round = models.ForeignKey(verbose_name="Round", to=Round, on_delete=CASCADE, related_name="gg_rounds")
+    event = models.ForeignKey(
+        verbose_name="Event", to=Event, on_delete=CASCADE, related_name="gg_tournaments"
+    )
+    round = models.ForeignKey(
+        verbose_name="Round", to=Round, on_delete=CASCADE, related_name="gg_rounds"
+    )
     name = models.CharField(verbose_name="Tournament name", max_length=120)
-    format = models.CharField(verbose_name="Format", max_length=20, blank=True, null=True)
+    format = models.CharField(
+        verbose_name="Format", max_length=20, blank=True, null=True
+    )
     is_net = models.BooleanField(verbose_name="Is Net", default=False)
-    gg_id = models.CharField(verbose_name="Golf Genius id: tournament_id", max_length=22)
+    gg_id = models.CharField(
+        verbose_name="Golf Genius id: tournament_id", max_length=22
+    )
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["event", "name"], name="unique_event_tournamentname")
+            UniqueConstraint(
+                fields=["event", "name"], name="unique_event_tournamentname"
+            )
         ]
 
     def __str__(self):
@@ -236,22 +354,40 @@ class Tournament(models.Model):
 
 
 class TournamentResult(models.Model):
-    tournament = models.ForeignKey(verbose_name="Tournament", to=Tournament, on_delete=CASCADE,
-                                   related_name="tournament_results")
-    flight = models.CharField(verbose_name="Flight", max_length=20, blank=True, null=True)
-    player = models.ForeignKey(verbose_name="Player", to="register.Player", on_delete=CASCADE,
-                               related_name="tournament_results")
+    tournament = models.ForeignKey(
+        verbose_name="Tournament",
+        to=Tournament,
+        on_delete=CASCADE,
+        related_name="tournament_results",
+    )
+    flight = models.CharField(
+        verbose_name="Flight", max_length=20, blank=True, null=True
+    )
+    player = models.ForeignKey(
+        verbose_name="Player",
+        to="register.Player",
+        on_delete=CASCADE,
+        related_name="tournament_results",
+    )
     position = models.IntegerField(verbose_name="Position")
     score = models.IntegerField(verbose_name="Score", blank=True, null=True)
     points = models.IntegerField(verbose_name="Points", blank=True, null=True)
-    amount = models.DecimalField(verbose_name="Amount won", max_digits=6, decimal_places=2)
-    details = models.CharField(verbose_name="Details", max_length=120, blank=True, null=True)
+    amount = models.DecimalField(
+        verbose_name="Amount won", max_digits=6, decimal_places=2
+    )
+    details = models.CharField(
+        verbose_name="Details", max_length=120, blank=True, null=True
+    )
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["tournament", "player"], name="unique_tournament_player")
+            UniqueConstraint(
+                fields=["tournament", "player"], name="unique_tournament_player"
+            )
         ]
         ordering = ["tournament", "flight", "position"]
 
     def __str__(self):
-        return "{} - {} ({})".format(self.tournament.name, self.player.player_name, self.position)
+        return "{} - {} ({})".format(
+            self.tournament.name, self.player.player_name, self.position
+        )

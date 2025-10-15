@@ -5,21 +5,34 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('content', '0002_tag'),
-        ('events', '0003_auto_20210307_0914'),
+        ("content", "0002_tag"),
+        ("events", "0003_auto_20210307_0914"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='default_tag',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='content.tag', verbose_name='Default tag'),
+            model_name="event",
+            name="default_tag",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                to="content.tag",
+                verbose_name="Default tag",
+            ),
         ),
         migrations.AddField(
-            model_name='historicalevent',
-            name='default_tag',
-            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='content.tag', verbose_name='Default tag'),
+            model_name="historicalevent",
+            name="default_tag",
+            field=models.ForeignKey(
+                blank=True,
+                db_constraint=False,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="+",
+                to="content.tag",
+                verbose_name="Default tag",
+            ),
         ),
     ]

@@ -5,29 +5,77 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0015_remove_tournament_course'),
-        ('register', '0014_historicalplayer_gg_id_player_gg_id_and_more'),
+        ("events", "0015_remove_tournament_course"),
+        ("register", "0014_historicalplayer_gg_id_player_gg_id_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TournamentResult',
+            name="TournamentResult",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('flight', models.CharField(blank=True, max_length=20, null=True, verbose_name='Flight')),
-                ('position', models.IntegerField(verbose_name='Position')),
-                ('score', models.IntegerField(blank=True, null=True, verbose_name='Score')),
-                ('points', models.IntegerField(blank=True, null=True, verbose_name='Points')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=6, verbose_name='Amount won')),
-                ('details', models.CharField(blank=True, max_length=120, null=True, verbose_name='Details')),
-                ('player', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tournament_results', to='register.player', verbose_name='Player')),
-                ('tournament', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tournament_results', to='events.tournament', verbose_name='Tournament')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "flight",
+                    models.CharField(
+                        blank=True, max_length=20, null=True, verbose_name="Flight"
+                    ),
+                ),
+                ("position", models.IntegerField(verbose_name="Position")),
+                (
+                    "score",
+                    models.IntegerField(blank=True, null=True, verbose_name="Score"),
+                ),
+                (
+                    "points",
+                    models.IntegerField(blank=True, null=True, verbose_name="Points"),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=6, verbose_name="Amount won"
+                    ),
+                ),
+                (
+                    "details",
+                    models.CharField(
+                        blank=True, max_length=120, null=True, verbose_name="Details"
+                    ),
+                ),
+                (
+                    "player",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tournament_results",
+                        to="register.player",
+                        verbose_name="Player",
+                    ),
+                ),
+                (
+                    "tournament",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tournament_results",
+                        to="events.tournament",
+                        verbose_name="Tournament",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['tournament', 'flight', 'position'],
-                'constraints': [models.UniqueConstraint(fields=('tournament', 'player'), name='unique_tournament_player')],
+                "ordering": ["tournament", "flight", "position"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("tournament", "player"), name="unique_tournament_player"
+                    )
+                ],
             },
         ),
     ]

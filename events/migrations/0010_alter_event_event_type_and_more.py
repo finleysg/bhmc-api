@@ -4,20 +4,49 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0009_alter_event_event_type_and_more'),
+        ("events", "0009_alter_event_event_type_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='event',
-            name='event_type',
-            field=models.CharField(choices=[('N', 'Weeknight Event'), ('W', 'Weekend Major'), ('M', 'Meeting'), ('O', 'Other'), ('E', 'External Event'), ('R', 'Season Registration'), ('D', 'Deadline'), ('P', 'Open Event'), ('S', 'Season Long Match Play')], default='N', max_length=1, verbose_name='Event type'),
+            model_name="event",
+            name="event_type",
+            field=models.CharField(
+                choices=[
+                    ("N", "Weeknight Event"),
+                    ("W", "Weekend Major"),
+                    ("M", "Meeting"),
+                    ("O", "Other"),
+                    ("E", "External Event"),
+                    ("R", "Season Registration"),
+                    ("D", "Deadline"),
+                    ("P", "Open Event"),
+                    ("S", "Season Long Match Play"),
+                ],
+                default="N",
+                max_length=1,
+                verbose_name="Event type",
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalevent',
-            name='event_type',
-            field=models.CharField(choices=[('N', 'Weeknight Event'), ('W', 'Weekend Major'), ('M', 'Meeting'), ('O', 'Other'), ('E', 'External Event'), ('R', 'Season Registration'), ('D', 'Deadline'), ('P', 'Open Event'), ('S', 'Season Long Match Play')], default='N', max_length=1, verbose_name='Event type'),
+            model_name="historicalevent",
+            name="event_type",
+            field=models.CharField(
+                choices=[
+                    ("N", "Weeknight Event"),
+                    ("W", "Weekend Major"),
+                    ("M", "Meeting"),
+                    ("O", "Other"),
+                    ("E", "External Event"),
+                    ("R", "Season Registration"),
+                    ("D", "Deadline"),
+                    ("P", "Open Event"),
+                    ("S", "Season Long Match Play"),
+                ],
+                default="N",
+                max_length=1,
+                verbose_name="Event type",
+            ),
         ),
     ]

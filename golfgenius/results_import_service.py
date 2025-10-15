@@ -44,6 +44,156 @@ class ResultsImportService:
     def __init__(self, api_client: Optional[GolfGeniusAPIClient] = None):
         self.api_client = api_client or GolfGeniusAPIClient()
 
+    # ========== Helper Methods (High Priority Refactoring) ==========
+
+    def _validate_tournament_for_import(
+        self, tournament: Tournament, result: ResultsImportResult
+    ) -> bool:
+        """
+        Validate tournament has required Golf Genius IDs.
+
+        Args:
+            tournament: The tournament to validate
+            result: ResultsImportResult to add errors to
+
+        Returns:
+            True if valid, False if validation failed (errors added to result)
+        """
+        if not tournament.event.gg_id:
+            result.add_error(
+                "Event must first be synced with Golf Genius. Run Event Sync process."
+            )
+            return False
+
+        if not tournament.round or not tournament.round.gg_id:
+            result.add_error(
+                "Round must first be synced with Golf Genius. Run Event Sync process."
+            )
+            return False
+
+        if not tournament.gg_id:
+            result.add_error(
+                "Tournament must first be synced with Golf Genius. Run Event Sync process."
+            )
+            return False
+
+        return True
+
+    def _parse_purse_amount(
+        self, purse_str: str, context: Dict[str, Any]
+    ) -> Optional[Decimal]:
+        """
+        Parse purse string to Decimal amount.
+
+        Args:
+            purse_str: Purse string from Golf Genius (e.g., "$100.00")
+            context: Context dict for logging (tournament_id, player_name, etc.)
+
+        Returns:
+            Decimal amount if valid and > 0, None otherwise
+        """
+        if not purse_str or purse_str.strip() == "":
+            return None
+
+        try:
+            cleaned = purse_str.replace("$", "").replace(",", "").strip()
+            if not cleaned:
+                return None
+
+            amount = Decimal(cleaned)
+            return amount if amount > Decimal("0.00") else None
+
+        except (ValueError, TypeError, decimal.InvalidOperation):
+            logger.warning(
+                "Failed to parse purse amount", purse_str=purse_str, **context
+            )
+            return None
+
+    def _resolve_player_from_member_cards(
+        self,
+        member_cards: List[Dict[str, Any]],
+        aggregate: Dict[str, Any],
+        result: ResultsImportResult,
+    ) -> Optional[Player]:
+        """
+        Resolve player from Golf Genius member card ID.
+
+        Args:
+            member_cards: List of member cards from aggregate
+            aggregate: Full aggregate dict (for error messages)
+            result: ResultsImportResult to add errors to
+
+        Returns:
+            Player instance if found, None otherwise (errors added to result)
+        """
+        player_name = aggregate.get("name", "Unknown")
+
+        if not member_cards:
+            result.add_error(f"No member cards found for aggregate {player_name}")
+            return None
+
+        member_card_id = str(member_cards[0].get("member_card_id", ""))
+        if not member_card_id:
+            result.add_error(f"No member card ID found for {player_name}")
+            return None
+
+        try:
+            return Player.objects.get(gg_id=member_card_id)
+        except Player.DoesNotExist:
+            result.add_error(
+                f"Player not found with Golf Genius ID {member_card_id} for {player_name}"
+            )
+            return None
+        except Player.MultipleObjectsReturned:
+            result.add_error(
+                f"Multiple players found with Golf Genius ID {member_card_id}"
+            )
+            return None
+
+    def _delete_existing_results(self, tournament: Tournament) -> int:
+        """
+        Delete existing results for a tournament (idempotent operation).
+
+        Args:
+            tournament: The tournament to delete results for
+
+        Returns:
+            Number of deleted results
+        """
+        with transaction.atomic():
+            deleted_count = TournamentResult.objects.filter(
+                tournament=tournament
+            ).delete()[0]
+            logger.info(
+                "Deleted existing tournament results",
+                tournament_id=tournament.id,
+                deleted_count=deleted_count,
+            )
+            return deleted_count
+
+    def _fetch_gg_results(
+        self, tournament: Tournament, result: ResultsImportResult
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Fetch tournament results from Golf Genius API.
+
+        Args:
+            tournament: The tournament to fetch results for
+            result: ResultsImportResult to add errors to
+
+        Returns:
+            Results dict from API if successful, None otherwise (errors added to result)
+        """
+        try:
+            return self.api_client.get_tournament_results(
+                event_id=tournament.event.gg_id,
+                round_id=tournament.round.gg_id,
+                tournament_id=tournament.gg_id,
+            )
+        except Exception as e:
+            result.add_error(f"Failed to fetch results from Golf Genius API: {str(e)}")
+            return None
+
     def import_stroke_play_results(self, event_id: int) -> List[ResultsImportResult]:
         """
         Import stroke play tournament results from Golf Genius for tournaments with format == 'stroke' in a specific event
@@ -169,49 +319,16 @@ class ResultsImportService:
         result = ResultsImportResult(tournament)
 
         try:
-            # Check if event has Golf Genius ID
-            if not tournament.event.gg_id:
-                result.add_error(
-                    "Event must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if round has Golf Genius ID
-            if not tournament.round.gg_id:
-                result.add_error(
-                    "Round must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if tournament has Golf Genius ID
-            if not tournament.gg_id:
-                result.add_error(
-                    "Tournament must first be synced with Golf Genius. Run Event Sync process."
-                )
+            # Validate tournament has Golf Genius IDs
+            if not self._validate_tournament_for_import(tournament, result):
                 return result
 
             # Delete existing results for this tournament (idempotent operation)
-            with transaction.atomic():
-                deleted_count = TournamentResult.objects.filter(
-                    tournament=tournament
-                ).delete()[0]
-                logger.info(
-                    "Deleted existing tournament results",
-                    tournament_id=tournament.id,
-                    deleted_count=deleted_count,
-                )
+            self._delete_existing_results(tournament)
 
             # Get tournament results from Golf Genius API
-            try:
-                gg_results = self.api_client.get_tournament_results(
-                    event_id=tournament.event.gg_id,
-                    round_id=tournament.round.gg_id,
-                    tournament_id=tournament.gg_id,
-                )
-            except Exception as e:
-                result.add_error(
-                    f"Failed to fetch results from Golf Genius API: {str(e)}"
-                )
+            gg_results = self._fetch_gg_results(tournament, result)
+            if not gg_results:
                 return result
 
             # Process the results data
@@ -293,55 +410,21 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
-        # Extract purse amount and skip if $0.00 or less
-        purse_str = aggregate.get("purse", "$0.00")
-        try:
-            if not purse_str or purse_str.strip() == "":
-                return
-
-            cleaned_purse = purse_str.replace("$", "").replace(",", "").strip()
-            if not cleaned_purse:
-                return
-
-            purse_amount = Decimal(cleaned_purse)
-            if purse_amount <= 0:
-                return
-        except (ValueError, TypeError, decimal.InvalidOperation):
-            logger.warning(
-                "Failed to parse purse amount for user_scored result",
-                tournament_id=tournament.id,
-                purse_str=purse_str,
-                player_name=aggregate.get("name", "Unknown"),
-            )
+        # Extract purse amount using helper - skip if $0.00 or less
+        purse_amount = self._parse_purse_amount(
+            aggregate.get("purse", "$0.00"),
+            {
+                "tournament_id": tournament.id,
+                "player_name": aggregate.get("name", "Unknown"),
+            },
+        )
+        if not purse_amount:
             return
 
-        # Get member card ID to find player
+        # Resolve player using helper
         member_cards = aggregate.get("member_cards", [])
-        if not member_cards:
-            result.add_error(
-                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        member_card_id = str(member_cards[0].get("member_card_id", ""))
-        if not member_card_id:
-            result.add_error(
-                f"No member card ID found for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        # Find player by Golf Genius ID
-        try:
-            player = Player.objects.get(gg_id=member_card_id)
-        except Player.DoesNotExist:
-            result.add_error(
-                f"Player not found with Golf Genius ID {member_card_id} for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-        except Player.MultipleObjectsReturned:
-            result.add_error(
-                f"Multiple players found with Golf Genius ID {member_card_id}"
-            )
+        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        if not player:
             return
 
         # Extract position from rank attribute
@@ -387,49 +470,16 @@ class ResultsImportService:
         result = ResultsImportResult(tournament)
 
         try:
-            # Check if event has Golf Genius ID
-            if not tournament.event.gg_id:
-                result.add_error(
-                    "Event must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if round has Golf Genius ID
-            if not tournament.round.gg_id:
-                result.add_error(
-                    "Round must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if tournament has Golf Genius ID
-            if not tournament.gg_id:
-                result.add_error(
-                    "Tournament must first be synced with Golf Genius. Run Event Sync process."
-                )
+            # Validate tournament has Golf Genius IDs
+            if not self._validate_tournament_for_import(tournament, result):
                 return result
 
             # Delete existing results for this tournament (idempotent operation)
-            with transaction.atomic():
-                deleted_count = TournamentResult.objects.filter(
-                    tournament=tournament
-                ).delete()[0]
-                logger.info(
-                    "Deleted existing tournament results",
-                    tournament_id=tournament.id,
-                    deleted_count=deleted_count,
-                )
+            self._delete_existing_results(tournament)
 
             # Get tournament results from Golf Genius API
-            try:
-                gg_results = self.api_client.get_tournament_results(
-                    event_id=tournament.event.gg_id,
-                    round_id=tournament.round.gg_id,
-                    tournament_id=tournament.gg_id,
-                )
-            except Exception as e:
-                result.add_error(
-                    f"Failed to fetch results from Golf Genius API: {str(e)}"
-                )
+            gg_results = self._fetch_gg_results(tournament, result)
+            if not gg_results:
                 return result
 
             # Process the points results data
@@ -459,55 +509,21 @@ class ResultsImportService:
         result = ResultsImportResult(tournament)
 
         try:
-            # Check if event has Golf Genius ID
-            if not tournament.event.gg_id:
-                result.add_error(
-                    "Event must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if round has Golf Genius ID
-            if not tournament.round.gg_id:
-                result.add_error(
-                    "Round must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if tournament has Golf Genius ID
-            if not tournament.gg_id:
-                result.add_error(
-                    "Tournament must first be synced with Golf Genius. Run Event Sync process."
-                )
+            # Validate tournament has Golf Genius IDs
+            if not self._validate_tournament_for_import(tournament, result):
                 return result
 
             # Delete existing results for this tournament (idempotent operation)
-            with transaction.atomic():
-                deleted_count = TournamentResult.objects.filter(
-                    tournament=tournament
-                ).delete()[0]
-                logger.info(
-                    "Deleted existing tournament results",
-                    tournament_id=tournament.id,
-                    deleted_count=deleted_count,
-                )
+            self._delete_existing_results(tournament)
 
             # Get tournament results from Golf Genius API
-            try:
-                gg_results = self.api_client.get_tournament_results(
-                    event_id=tournament.event.gg_id,
-                    round_id=tournament.round.gg_id,
-                    tournament_id=tournament.gg_id,
-                )
-            except Exception as e:
-                result.add_error(
-                    f"Failed to fetch results from Golf Genius API: {str(e)}"
-                )
+            gg_results = self._fetch_gg_results(tournament, result)
+            if not gg_results:
                 return result
 
             # Process the skins results data
             self._process_skins_tournament_results(tournament, gg_results, result)
 
-            # Return early for skins import (processing done)
         except Exception as e:
             result.add_error(f"Unexpected error importing skins results: {str(e)}")
             logger.exception(
@@ -532,49 +548,16 @@ class ResultsImportService:
         result = ResultsImportResult(tournament)
 
         try:
-            # Check if event has Golf Genius ID
-            if not tournament.event.gg_id:
-                result.add_error(
-                    "Event must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if round has Golf Genius ID
-            if not tournament.round.gg_id:
-                result.add_error(
-                    "Round must first be synced with Golf Genius. Run Event Sync process."
-                )
-                return result
-
-            # Check if tournament has Golf Genius ID
-            if not tournament.gg_id:
-                result.add_error(
-                    "Tournament must first be synced with Golf Genius. Run Event Sync process."
-                )
+            # Validate tournament has Golf Genius IDs
+            if not self._validate_tournament_for_import(tournament, result):
                 return result
 
             # Delete existing results for this tournament (idempotent operation)
-            with transaction.atomic():
-                deleted_count = TournamentResult.objects.filter(
-                    tournament=tournament
-                ).delete()[0]
-                logger.info(
-                    "Deleted existing tournament results",
-                    tournament_id=tournament.id,
-                    deleted_count=deleted_count,
-                )
+            self._delete_existing_results(tournament)
 
             # Get tournament results from Golf Genius API
-            try:
-                gg_results = self.api_client.get_tournament_results(
-                    event_id=tournament.event.gg_id,
-                    round_id=tournament.round.gg_id,
-                    tournament_id=tournament.gg_id,
-                )
-            except Exception as e:
-                result.add_error(
-                    f"Failed to fetch results from Golf Genius API: {str(e)}"
-                )
+            gg_results = self._fetch_gg_results(tournament, result)
+            if not gg_results:
                 return result
 
             # Process the user_scored results data
@@ -656,55 +639,21 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
-        # Extract purse amount and skip if $0.00 or less
-        purse_str = aggregate.get("purse", "$0.00")
-        try:
-            if not purse_str or purse_str.strip() == "":
-                return
-
-            cleaned_purse = purse_str.replace("$", "").replace(",", "").strip()
-            if not cleaned_purse:
-                return
-
-            purse_amount = Decimal(cleaned_purse)
-            if purse_amount <= 0:
-                return
-        except (ValueError, TypeError, decimal.InvalidOperation):
-            logger.warning(
-                "Failed to parse purse amount for skins result",
-                tournament_id=tournament.id,
-                purse_str=purse_str,
-                player_name=aggregate.get("name", "Unknown"),
-            )
+        # Extract purse amount using helper - skip if $0.00 or less
+        purse_amount = self._parse_purse_amount(
+            aggregate.get("purse", "$0.00"),
+            {
+                "tournament_id": tournament.id,
+                "player_name": aggregate.get("name", "Unknown"),
+            },
+        )
+        if not purse_amount:
             return
 
-        # Get member card ID to find player
+        # Resolve player using helper
         member_cards = aggregate.get("member_cards", [])
-        if not member_cards:
-            result.add_error(
-                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        member_card_id = str(member_cards[0].get("member_card_id", ""))
-        if not member_card_id:
-            result.add_error(
-                f"No member card ID found for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        # Find player by Golf Genius ID
-        try:
-            player = Player.objects.get(gg_id=member_card_id)
-        except Player.DoesNotExist:
-            result.add_error(
-                f"Player not found with Golf Genius ID {member_card_id} for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-        except Player.MultipleObjectsReturned:
-            result.add_error(
-                f"Multiple players found with Golf Genius ID {member_card_id}"
-            )
+        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        if not player:
             return
 
         # Extract position from total attribute (number of skins won)
@@ -838,57 +787,21 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
-        # Extract purse amount and skip if $0.00 or less
-        purse_str = aggregate.get("purse", "$0.00")
-        try:
-            # Handle empty string or None values
-            if not purse_str or purse_str.strip() == "":
-                return  # Skip results with no prize money
+        # Extract purse amount using helper - skip if $0.00 or less
+        purse_amount = self._parse_purse_amount(
+            aggregate.get("purse", "$0.00"),
+            {
+                "tournament_id": tournament.id,
+                "player_name": aggregate.get("name", "Unknown"),
+            },
+        )
+        if not purse_amount:
+            return
 
-            # Remove $ and convert to decimal
-            cleaned_purse = purse_str.replace("$", "").replace(",", "").strip()
-            if not cleaned_purse:
-                return  # Skip if empty after cleaning
-
-            purse_amount = Decimal(cleaned_purse)
-            if purse_amount <= 0:
-                return  # Skip results with no prize money
-        except (ValueError, TypeError, decimal.InvalidOperation):
-            logger.warning(
-                "Failed to parse purse amount",
-                tournament_id=tournament.id,
-                purse_str=purse_str,
-                player_name=aggregate.get("name", "Unknown"),
-            )
-            return  # Skip if purse can't be parsed
-
-        # Get member card ID to find player
+        # Resolve player using helper
         member_cards = aggregate.get("member_cards", [])
-        if not member_cards:
-            result.add_error(
-                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        member_card_id = str(member_cards[0].get("member_card_id", ""))
-        if not member_card_id:
-            result.add_error(
-                f"No member card ID found for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        # Find player by Golf Genius ID
-        try:
-            player = Player.objects.get(gg_id=member_card_id)
-        except Player.DoesNotExist:
-            result.add_error(
-                f"Player not found with Golf Genius ID {member_card_id} for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-        except Player.MultipleObjectsReturned:
-            result.add_error(
-                f"Multiple players found with Golf Genius ID {member_card_id}"
-            )
+        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        if not player:
             return
 
         # Extract result data
@@ -942,33 +855,10 @@ class ResultsImportService:
             flight: Flight name from scope
             result: ResultsImportResult to track errors and success count
         """
-        # Get member card ID to find player
+        # Resolve player using helper
         member_cards = aggregate.get("member_cards", [])
-        if not member_cards:
-            result.add_error(
-                f"No member cards found for aggregate {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        member_card_id = str(member_cards[0].get("member_card_id", ""))
-        if not member_card_id:
-            result.add_error(
-                f"No member card ID found for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-
-        # Find player by Golf Genius ID
-        try:
-            player = Player.objects.get(gg_id=member_card_id)
-        except Player.DoesNotExist:
-            result.add_error(
-                f"Player not found with Golf Genius ID {member_card_id} for {aggregate.get('name', 'Unknown')}"
-            )
-            return
-        except Player.MultipleObjectsReturned:
-            result.add_error(
-                f"Multiple players found with Golf Genius ID {member_card_id}"
-            )
+        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        if not player:
             return
 
         # Extract position from rank attribute

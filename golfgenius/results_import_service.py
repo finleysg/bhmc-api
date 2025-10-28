@@ -298,8 +298,7 @@ class ResultsImportService:
 
     def _resolve_player_from_member_cards(
         self,
-        member_cards: List[Dict[str, Any]],
-        aggregate: Dict[str, Any],
+        member_card: Dict[str, Any],
         result: ResultsImportResult,
     ) -> Optional[Player]:
         """
@@ -307,28 +306,17 @@ class ResultsImportService:
 
         Args:
             member_cards: List of member cards from aggregate
-            aggregate: Full aggregate dict (for error messages)
             result: ResultsImportResult to add errors to
 
         Returns:
             Player instance if found, None otherwise (errors added to result)
         """
-        player_name = aggregate.get("name", "Unknown")
-
-        if not member_cards:
-            result.add_error(f"No member cards found for aggregate {player_name}")
-            return None
-
-        member_card_id = str(member_cards[0].get("member_card_id", ""))
-        if not member_card_id:
-            result.add_error(f"No member card ID found for {player_name}")
-            return None
-
+        member_card_id = str(member_card.get("member_card_id", ""))
         try:
             return Player.objects.get(gg_id=member_card_id)
         except Player.DoesNotExist:
             result.add_error(
-                f"Player not found with Golf Genius ID {member_card_id} for {player_name}"
+                f"Player not found with Golf Genius ID {member_card_id}"
             )
             return None
         except Player.MultipleObjectsReturned:
@@ -380,6 +368,33 @@ class ResultsImportService:
         except Exception as e:
             result.add_error(f"Failed to fetch results from Golf Genius API: {str(e)}")
             return None
+
+    def _map_member_id_to_name(
+        self, individual_results: List[Dict[str, Any]]
+    ) -> Dict[int, str]:
+        """
+        Build a mapping of member_id -> name from an individual_results collection.
+
+        Args:
+            individual_results: List of individual result dicts from an aggregate
+
+        Returns:
+            Dict where the key is member_id (int) and the value is the member's name (str).
+        """
+        mapping: Dict[int, str] = {}
+        if not individual_results:
+            return mapping
+
+        for item in individual_results:
+            member_id = item.get("member_id")
+            name = item.get("name") or ""
+            try:
+                mapping[int(member_id)] = name
+            except (ValueError, TypeError):
+                # If member_id cannot be coerced to int, skip it
+                continue
+
+        return mapping
 
     def import_stroke_play_results(self, event_id: int) -> List[ResultsImportResult]:
         """
@@ -620,7 +635,7 @@ class ResultsImportService:
             return
 
         # Resolve player using helper
-        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        player = self._resolve_player_from_member_cards(member_cards[0], result)
         if not player:
             return
 
@@ -857,7 +872,7 @@ class ResultsImportService:
             return
 
         # Resolve player using helper
-        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        player = self._resolve_player_from_member_cards(member_cards[0], result)
         if not player:
             return
 
@@ -920,12 +935,20 @@ class ResultsImportService:
             flight_name = StrokePlayResultParser.extract_flight_name(scope, default="")
             aggregates = StrokePlayResultParser.extract_aggregates(scope)
 
+            # Identify if this is a team event
+            is_team_event = len(StrokePlayResultParser.extract_member_cards(aggregates[0])) > 1
+
             # Process each aggregate (player result)
             for aggregate in aggregates:
                 try:
-                    self._process_player_result(
-                        tournament, aggregate, flight_name, result
-                    )
+                    if is_team_event:
+                        self._process_team_result(
+                            tournament, aggregate, flight_name, result
+                        )
+                    else:
+                        self._process_player_result(
+                            tournament, aggregate, flight_name, result
+                        )
                 except Exception as e:
                     result.add_error(f"Error processing player result: {str(e)}")
                     logger.exception(
@@ -1013,7 +1036,7 @@ class ResultsImportService:
             return
 
         # Resolve player using helper
-        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        player = self._resolve_player_from_member_cards(member_cards[0], result)
         if not player:
             return
 
@@ -1038,9 +1061,9 @@ class ResultsImportService:
             flight=flight if flight else "N/A",
             position=position,
             score=score,
-            points=None,  # Set to NULL as specified
+            points=None,
             amount=purse_amount,
-            details=None,  # Set to NULL as specified
+            details=None,
         )
 
         result.results_imported += 1
@@ -1051,6 +1074,66 @@ class ResultsImportService:
             position=position,
             amount=purse_amount,
         )
+
+    def _process_team_result(
+        self,
+        tournament: Tournament,
+        aggregate: Dict[str, Any],
+        flight: str,
+        result: ResultsImportResult,
+    ):
+        """
+        Process team results and create/update TournamentResult records for each team member
+
+        Args:
+            tournament: The Tournament instance
+            aggregate: Player result data from Golf Genius
+            flight: Flight name from scope
+            result: ResultsImportResult to track errors and success count
+        """
+        team = aggregate.get("name")
+
+        # Extract purse amount using helper - skip if $0.00 or less
+        purse_amount = self._parse_purse_amount(
+            aggregate.get("purse", "$0.00"),
+            {
+                "tournament_id": tournament.id,
+                "team_name": team,
+            },
+        )
+        if not purse_amount:
+            return
+
+        team_id = aggregate.get("id_str")
+        position = int(aggregate.get("rank"))
+        score = int(aggregate.get("total"))
+
+        member_cards = StrokePlayResultParser.extract_member_cards(aggregate)
+        member_map = self._map_member_id_to_name(aggregate.get("individual_results", []))
+
+        for member_card in member_cards:
+            # Don't include blinds
+            member_id = int(member_card.get("member_id"))
+            member_name = member_map.get(member_id)
+            if member_name.startswith("Bl[") and member_name.endswith("]"):
+                continue
+
+            player = self._resolve_player_from_member_cards(member_card, result)
+
+            # Create new tournament result
+            TournamentResult.objects.create(
+                tournament=tournament,
+                player=player,
+                flight=flight if flight else "N/A",
+                team_id=team_id,
+                position=position,
+                score=score,
+                points=None,
+                amount=purse_amount,
+                details=team,
+            )
+
+            result.results_imported += 1
 
     def _process_points_player_result(
         self,
@@ -1080,7 +1163,7 @@ class ResultsImportService:
         player_data = PointsResultParser.parse_player_data(aggregate, member_cards[0])
 
         # Resolve player using helper
-        player = self._resolve_player_from_member_cards(member_cards, aggregate, result)
+        player = self._resolve_player_from_member_cards(member_cards[0], result)
         if not player:
             return
 

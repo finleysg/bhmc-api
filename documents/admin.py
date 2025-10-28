@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from .models import Document, Tag, DocumentTag, PhotoTag, Photo, StaticDocument
-from .actions import generate_skins_csv, generate_and_import_skins
 
 
 class PhotoTagInline(admin.TabularInline):
@@ -16,7 +15,6 @@ class DocumentAdmin(admin.ModelAdmin):
     exclude = ("tags",)
     list_display = ["year", "title", "event", "document_type", "last_update", ]
     list_filter = ("year", "document_type", )
-    actions = [generate_skins_csv, generate_and_import_skins]
     save_on_top = True
 
     def save_model(self, request, obj, form, change):

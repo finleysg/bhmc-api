@@ -1,15 +1,25 @@
 from rest_framework import serializers
 
 from courses.serializers import HoleSerializer, CourseSerializer, TeeSerializer
-from scores.models import EventScore
+from scores.models import EventScore, EventScoreCard
 
 
 class EventScoreSerializer(serializers.ModelSerializer):
 
     hole = HoleSerializer()
-    course = CourseSerializer(read_only=True)
-    tee = TeeSerializer(read_only=True)
 
     class Meta:
         model = EventScore
-        fields = ("id", "event", "player", "course", "tee", "hole", "score", "is_net",)
+        fields = ("id", "hole", "score", "is_net",)
+
+
+class EventScoreCardSerializer(serializers.ModelSerializer):
+
+    scores = EventScoreSerializer(many=True)
+    course = CourseSerializer()
+    tee = TeeSerializer()
+
+    class Meta:
+        model = EventScoreCard
+        fields = ("id", "event", "player", "course", "tee", "handicap_index", 
+                  "course_handicap", "scores", )

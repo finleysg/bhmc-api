@@ -18,7 +18,6 @@ services:
   stripe:
     image: stripe/stripe-cli
     environment:
-      STRIPE_API_KEY: rk_test_51QYVbs4bpmQZER0To4UpsCltZHO9xcJPu4OX4NihXPfHkEHeQwxdUAIsx05564BOs4oLMp8CxZdYqHpzycOJzQZX00cMxafQsz
       STRIPE_DEVICE_NAME: docker
     command: listen --forward-to django:8000/api/hooks/stripe/acacia/
     restart: unless-stopped

@@ -38,6 +38,7 @@ class Player(models.Model):
     is_member = models.BooleanField(verbose_name="Is Member", default=False)
     last_season = models.IntegerField(verbose_name="Most Recent Membership Season", null=True, blank=True)
     gg_id = models.CharField(verbose_name="Golf Genius id: member_card_id", max_length=22, blank=True, null=True)
+    user = models.ForeignKey(verbose_name="User record", to=User, null=True, blank=True, on_delete=DO_NOTHING)
 
     history = HistoricalRecords()
 

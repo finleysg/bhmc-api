@@ -55,6 +55,18 @@ AGE_RESTRICTION_CHOICES = (
     ("U", "Under"),
     ("N", "None"),
 )
+PAYOUT_TYPE_CHOICES = (
+    ("Cash", "Cash"),
+    ("Credit", "Credit"),
+    ("Passthru", "Passthru"),
+    ("None", "None"),
+)
+PAYOUT_CHOICES = (("Individual", "Individual"), ("Team", "Team"))
+PAYOUT_STATUS_CHOICES = (
+    ("Pending", "Pending"),
+    ("Confirmed", "Confirmed"),
+    ("Paid", "Paid"),
+)
 
 
 class Event(models.Model):
@@ -244,6 +256,11 @@ class Event(models.Model):
 class FeeType(models.Model):
     name = models.CharField(verbose_name="Fee Name", max_length=30, unique=True)
     code = models.CharField(verbose_name="Fee Code", max_length=3, default="X")
+    payout = models.CharField(
+        verbose_name="Payout Type", 
+        max_length=12, 
+        default="Credit", 
+        choices=PAYOUT_TYPE_CHOICES)
     restriction = models.CharField(
         verbose_name="Restrict to",
         max_length=20,
@@ -369,12 +386,43 @@ class TournamentResult(models.Model):
         on_delete=CASCADE,
         related_name="tournament_results",
     )
-    team_id = models.CharField(verbose_name="Team id", max_length=22, blank=True, null=True)
+    team_id = models.CharField(
+        verbose_name="Team id", max_length=22, blank=True, null=True
+    )
     position = models.IntegerField(verbose_name="Position")
     score = models.IntegerField(verbose_name="Score", blank=True, null=True)
-    points = models.IntegerField(verbose_name="Points", blank=True, null=True)
     amount = models.DecimalField(
         verbose_name="Amount won", max_digits=6, decimal_places=2
+    )
+    payout_type = models.CharField(
+        verbose_name="Payout Type",
+        max_length=10,
+        blank=True,
+        null=True,
+        choices=PAYOUT_TYPE_CHOICES,
+    )
+    payout_to = models.CharField(
+        verbose_name="Payout To",
+        max_length=10,
+        blank=True,
+        null=True,
+        choices=PAYOUT_CHOICES,
+    )
+    payout_status = models.CharField(
+        verbose_name="Payout Status",
+        max_length=10,
+        blank=True,
+        null=True,
+        choices=PAYOUT_STATUS_CHOICES,
+    )
+    payout_date = models.DateTimeField(
+        verbose_name="Date and Time Paid", blank=True, null=True
+    )
+    create_date = models.DateTimeField(
+        verbose_name="Date Created", blank=True, null=True, auto_now_add=True
+    )
+    summary = models.CharField(
+        verbose_name="Summary", max_length=40, blank=True, null=True
     )
     details = models.CharField(
         verbose_name="Details", max_length=120, blank=True, null=True
@@ -391,4 +439,36 @@ class TournamentResult(models.Model):
     def __str__(self):
         return "{} - {} ({})".format(
             self.tournament.name, self.player.player_name, self.position
+        )
+
+
+class TournamentPoints(models.Model):
+    tournament = models.ForeignKey(
+        verbose_name="Tournament",
+        to=Tournament,
+        on_delete=CASCADE,
+        related_name="season_long_points",
+    )
+    player = models.ForeignKey(
+        verbose_name="Player",
+        to="register.Player",
+        on_delete=CASCADE,
+        related_name="season_long_points",
+    )
+    position = models.IntegerField(verbose_name="Position", default=999)
+    score = models.IntegerField(verbose_name="Score", blank=True, null=True)
+    points = models.IntegerField(verbose_name="Points", default=0)
+    details = models.CharField(verbose_name="Details", max_length=120, blank=True, null=True)
+    create_date = models.DateTimeField(verbose_name="Date Created", auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["tournament", "player"], name="unique_points"
+            )
+        ]
+
+    def __str__(self):
+        return "{} - {} ({})".format(
+            self.tournament.name, self.player.player_name, self.points
         )

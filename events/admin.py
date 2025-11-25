@@ -658,7 +658,6 @@ class TournamentResultAdmin(admin.ModelAdmin):
         "team_id",
         "position",
         "score",
-        "points",
         "amount",
         "details",
     ]
@@ -668,7 +667,6 @@ class TournamentResultAdmin(admin.ModelAdmin):
         "player",
         "position",
         "score",
-        "points",
         "amount",
     ]
     list_display_links = ("tournament",)

@@ -1,0 +1,97 @@
+services:
+  mysql:
+    image: mysql:8.0.39
+    environment:
+      MYSQL_ROOT_PASSWORD: sverige8
+    ports:
+      - "25060:3306"
+    volumes:
+      - dev-data:/var/lib/mysql
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  stripe:
+    image: stripe/stripe-cli
+    environment:
+      STRIPE_API_KEY: rk_test_51QYVbs4bpmQZER0To4UpsCltZHO9xcJPu4OX4NihXPfHkEHeQwxdUAIsx05564BOs4oLMp8CxZdYqHpzycOJzQZX00cMxafQsz
+      STRIPE_DEVICE_NAME: docker
+    command: listen --forward-to django:8000/api/hooks/stripe/acacia/
+    restart: unless-stopped
+    depends_on:
+      - django
+
+  mail:
+    image: axllent/mailpit
+    volumes:
+      - ./data:/data
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /scripts/start.sh
+    environment:
+      DJANGO_ENV: "docker"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+      - "5000:5000"
+    depends_on:
+      - mysql
+      - redis
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /scripts/celery.sh
+    environment:
+      DJANGO_ENV: "docker"
+    volumes:
+      - .:/app
+    depends_on:
+      - django
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /scripts/celery-beat.sh
+    environment:
+      DJANGO_ENV: "docker"
+    volumes:
+      - .:/app
+    depends_on:
+      - django
+
+  bhmc:
+    build:
+      context: ../bhmc
+      dockerfile: Dockerfile
+    volumes:
+      - ../bhmc:/app
+      - ../bhmc/node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - django
+
+volumes:
+  dev-data:

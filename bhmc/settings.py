@@ -249,10 +249,6 @@ LOGGING = {
             "handlers": ["console", "flat_line_file"],
             "level": "INFO",
         },
-        "golfgenius": {
-            "handlers": ["console", "flat_line_file"],
-            "level": "INFO",
-        },
     }
 }
 
@@ -362,7 +358,3 @@ else:
     EMAIL_PORT = 2525
     EMAIL_USE_TLS = True
     EMAIL_USE_SSL = False
-
-# Golf Genius
-GOLF_GENIUS_API_KEY = os.getenv("GOLF_GENIUS_API_KEY")
-GOLF_GENIUS_CATEGORY_ID = "4788194574457686575"

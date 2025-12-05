@@ -24,7 +24,18 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
 
     def get_queryset(self):
-        """Optionally filter by year and month"""
+        """
+        Return Event objects filtered by optional query parameters and ordered by start_date.
+        
+        Filters:
+        - Uses `year` to match Event.start_date year.
+        - Uses `month` to match Event.start_date month.
+        - Uses `season` to match Event.season; a value of "0" is ignored.
+        - Uses `active` as a number of days to compute an end datetime (now + active days), excludes events with registration_type == "N", and keeps events whose signup_start <= now and signup_end > computed end datetime.
+        
+        Returns:
+            QuerySet: Event queryset filtered according to provided query parameters and ordered by `start_date`.
+        """
         queryset = Event.objects.all()
         year = self.request.query_params.get("year", None)
         month = self.request.query_params.get("month", None)
@@ -46,11 +57,31 @@ class EventViewSet(viewsets.ModelViewSet):
         return queryset.order_by("start_date")
 
     def list(self, request, *args, **kwargs):
+        """
+        Return a list of events using the view's queryset, applied request filters, and pagination.
+        
+        Returns:
+            Response: DRF response containing the serialized page or list of Event objects.
+        """
         return super().list(request, *args, **kwargs)
 
     @transaction.atomic()
     @action(detail=True, methods=["put"], permission_classes=[IsAdminUser])
     def append_teetime(self, request, pk):
+        """
+        Append a new tee time (registration slot) to the event identified by `pk` and return the updated event.
+        
+        If the event does not allow tee time selection, a ValidationError is raised.
+        
+        Parameters:
+            pk (int): Primary key of the Event to modify.
+        
+        Returns:
+            rest_framework.response.Response: Serialized Event data reflecting the updated total_groups.
+        
+        Raises:
+            rest_framework.exceptions.ValidationError: If the event's `can_choose` is False.
+        """
         event = Event.objects.get(pk=pk)
         if not event.can_choose:
             raise ValidationError("This event does not allow tee time selection")
@@ -64,6 +95,18 @@ class EventViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
     def copy_event(self, request, pk):
+        """
+        Clone an existing Event to a new start date and return the cloned event's serialized data.
+        
+        Expects the query parameter `start_dt` in ISO format (YYYY-MM-DD). Retrieves the Event identified by `pk`, clones it with the provided start date, and returns the serialized clone.
+        
+        Parameters:
+            request: DRF request; must include `start_dt` in `request.query_params`.
+            pk: Primary key of the Event to clone.
+        
+        Returns:
+            Serialized data of the newly cloned Event.
+        """
         start_dt = request.query_params.get("start_dt")
         event = Event.objects.get(pk=pk)
         new_dt = date.fromisoformat(start_dt)
@@ -74,6 +117,16 @@ class EventViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
     def create_slots(self, request, pk):
+        """
+        Create registration slots for the specified event and return their serialized representation.
+        
+        Parameters:
+            request: The HTTP request object (used to build serializer context).
+            pk (int | str): Primary key of the event for which slots will be recreated.
+        
+        Returns:
+            list: Serialized list of the created RegistrationSlot objects.
+        """
         event = Event.objects.get(pk=pk)
 
         RegistrationSlot.objects.remove_slots_for_event(event)
@@ -87,6 +140,20 @@ class EventViewSet(viewsets.ModelViewSet):
     @transaction.atomic()
     @action(detail=True, methods=["put"], permission_classes=[IsAdminUser])
     def add_player(self, request, pk):
+        """
+        Add a player to an event registration, create or assign the corresponding slot, and create any associated admin payment.
+        
+        Creates a Registration record for the player and, depending on the event's configuration, either assigns that registration to an existing RegistrationSlot (when the event allows choosing) or creates a new slot linked to the registration. Also creates an administrative payment record for the provided fees and returns the serialized registration.
+        
+        Parameters:
+        	pk (int | str): Primary key of the Event to which the player is being added.
+        
+        Returns:
+        	serialized_registration (dict): The Registration serialized by RegistrationSerializer.
+        
+        Raises:
+        	ValidationError: If no `player_id` is provided in the request data.
+        """
         player_id = request.data.get("player_id", None)
         slot_id = request.data.get("slot_id", None)
         fee_ids = request.data.get("fees", [])

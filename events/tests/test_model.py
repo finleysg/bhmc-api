@@ -61,6 +61,12 @@ class EventModelTests(TestCase):
             event.clean()
 
     def test_weeknight_registration_signup_start_before_end(self):
+        """
+        Verifies that an Event whose signup_start is after signup_end fails validation.
+        
+        This test sets signup_start to one hour after signup_end and asserts that calling
+        event.clean() raises a ValidationError with the message "The signup start must be earlier than signup end".
+        """
         event = Event.objects.get(pk=3)
         event.signup_start = event.signup_end + timedelta(hours=1)
         with self.assertRaises(
@@ -83,6 +89,11 @@ class EventModelTests(TestCase):
         self.assertEqual(len(copy.registrations.all()), 0)
 
     def test_clone_includes_fees(self):
+        """
+        Verify that cloning an Event copies its fees to the cloned Event.
+        
+        The clone created for a new date must have one or more associated fee records.
+        """
         event = Event.objects.get(pk=4)
         new_dt = date.fromisoformat("2020-12-31")
         copy = Event.objects.clone(event, new_dt)

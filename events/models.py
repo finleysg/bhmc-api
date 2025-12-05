@@ -179,6 +179,20 @@ class Event(models.Model):
 
     @property
     def registration_window(self):
+        """
+        Determine the current registration window state for the event.
+        
+        The result is a string representing one of the possible registration states:
+        - "n/a": registration is not applicable (registration_type == "N").
+        - "past": registration window has passed.
+        - "priority": the current time is between priority_signup_start and signup_start.
+        - "registration": the current time is between signup_start and signup_end.
+        - "future": signup_start is in the future and no priority window applies.
+        - "pending": signup_start is in the future while the code previously considered the window "past" (used as a transitional state).
+        
+        Returns:
+            str: One of "n/a", "past", "priority", "registration", "future", or "pending".
+        """
         state = "n/a"
         if self.registration_type != "N":
             state = "past"
@@ -198,6 +212,12 @@ class Event(models.Model):
         return state
 
     def validate_registration_window(self):
+        """
+        Validate that signup start and end dates are present and ordered for events that require registration.
+        
+        Raises:
+            ValidationError: if registration_type is not "N" and either `signup_start` or `signup_end` is missing, or if `signup_start` is later than `signup_end`.
+        """
         if self.registration_type != "N":
             if self.signup_start is None or self.signup_end is None:
                 raise ValidationError(
@@ -210,12 +230,24 @@ class Event(models.Model):
                 )
 
     def validate_groups_size(self):
+        """
+        Ensure a group size is set when players may choose their starting hole or tee time.
+        
+        Raises:
+            ValidationError: If `can_choose` is true and `group_size` is None or zero.
+        """
         if self.can_choose and (self.group_size is None or self.group_size == 0):
             raise ValidationError(
                 "A group size is required if players are choosing their starting hole or tee time"
             )
 
     def validate_signup_size(self):
+        """
+        Validate that both minimum and maximum signup group sizes are set when the event allows registration.
+        
+        Raises:
+            ValidationError: if either `minimum_signup_group_size` or `maximum_signup_group_size` is None or zero while `registration_type` is not "N".
+        """
         if self.registration_type != "N":
             if (
                 self.minimum_signup_group_size is None
@@ -235,6 +267,12 @@ class Event(models.Model):
                 )
 
     def validate_total_groups(self):
+        """
+        Ensure `total_groups` is set when players can choose tee times and start type is "TT".
+        
+        Raises:
+            ValidationError: If `can_choose` is true, `start_type` equals "TT", and `total_groups` is None or zero.
+        """
         if self.can_choose and self.start_type == "TT":
             if self.total_groups is None or self.total_groups == 0:
                 raise ValidationError(
@@ -243,6 +281,14 @@ class Event(models.Model):
                 )
 
     def clean(self):
+        """
+        Ensure the event's configuration satisfies all business validation rules.
+        
+        Calls the model's validation helpers to check group size requirements, signup size constraints, total-groups requirements when group selection is enabled, and the registration window timing.
+        
+        Raises:
+        	django.core.exceptions.ValidationError: If any validation rule is violated.
+        """
         self.validate_groups_size()
         self.validate_signup_size()
         self.validate_total_groups()
@@ -250,6 +296,12 @@ class Event(models.Model):
 
     @staticmethod
     def autocomplete_search_fields():
+        """
+        Provide field lookups used for autocomplete searches.
+        
+        Returns:
+            tuple: Lookup strings for Django ORM filters; e.g., ("name__icontains",) to perform case-insensitive containment matches on the `name` field.
+        """
         return ("name__icontains",)
 
 
@@ -269,6 +321,12 @@ class FeeType(models.Model):
     )
 
     def __str__(self):
+        """
+        Return the model's human-readable name.
+        
+        Returns:
+            str: The instance's `name` value.
+        """
         return self.name
 
 
@@ -282,6 +340,12 @@ class EventFeeOverride(models.Model):
     )
 
     def __str__(self):
+        """
+        Provide a human-readable label for the fee override combining its restriction and amount.
+        
+        Returns:
+            str: The representation in the format "<restriction> ($<amount>)".
+        """
         return "{} (${})".format(self.restriction, self.amount)
 
 
@@ -321,6 +385,12 @@ class EventFee(models.Model):
     objects = EventFeeManager()
 
     def __str__(self):
+        """
+        Human-readable representation of the event fee combining fee type and amount.
+        
+        Returns:
+            str: A string in the format "<fee_type> ($<amount>)".
+        """
         return "{} (${})".format(self.fee_type, self.amount)
 
 
@@ -340,6 +410,12 @@ class Round(models.Model):
         ]
 
     def __str__(self):
+        """
+        Return a human-readable label for the round combining the parent event's name and the round number.
+        
+        Returns:
+            str: String in the format "<event name> - Round <round_number>".
+        """
         return "{} - Round {}".format(self.event.name, self.round_number)
 
 
@@ -367,6 +443,11 @@ class Tournament(models.Model):
         ]
 
     def __str__(self):
+        """
+        Return a human-readable representation combining the parent event name and this tournament's name.
+        
+        @returns A string in the format "<event name> - <tournament name>".
+        """
         return "{} - {}".format(self.event.name, self.name)
 
 
@@ -437,6 +518,12 @@ class TournamentResult(models.Model):
         ordering = ["tournament", "flight", "position"]
 
     def __str__(self):
+        """
+        Provide a human-readable representation of this tournament result.
+        
+        Returns:
+            str: A string formatted as "<tournament name> - <player name> (<position>)".
+        """
         return "{} - {} ({})".format(
             self.tournament.name, self.player.player_name, self.position
         )
@@ -469,6 +556,12 @@ class TournamentPoints(models.Model):
         ]
 
     def __str__(self):
+        """
+        Represent the TournamentPoints record as "TournamentName - PlayerName (points)".
+        
+        Returns:
+            str: Formatted string containing the tournament name, player name, and points.
+        """
         return "{} - {} ({})".format(
             self.tournament.name, self.player.player_name, self.points
         )

@@ -25,7 +25,12 @@ class TournamentResultEventFilter(SimpleListFilter):
     parameter_name = "event"
 
     def _get_events_with_results(self, current_season_year: int) -> QuerySet[Event]:
-        """Get events from current season that have tournament results"""
+        """
+        Retrieve events in the specified season that have at least one tournament result.
+        
+        Returns:
+            QuerySet[Event]: Events in the given season that have one or more associated tournament results, ordered by start_date then name.
+        """
         return (
             Event.objects.filter(
                 season=current_season_year,
@@ -38,12 +43,28 @@ class TournamentResultEventFilter(SimpleListFilter):
     def _get_all_current_season_events(
         self, current_season_year: int
     ) -> QuerySet[Event]:
-        """Get all events from current season as fallback"""
+        """
+        Return all events for the given season ordered by start date and name.
+        
+        Parameters:
+            current_season_year (int): Year of the season to filter events by.
+        
+        Returns:
+            QuerySet[Event]: Events in the specified season ordered by `start_date`, then `name`.
+        """
         return Event.objects.filter(season=current_season_year).order_by(
             "start_date", "name"
         )
 
     def lookups(self, request, model_admin):
+        """
+        Builds the admin filter choices for current-season events that have associated tournament results.
+        
+        If retrieving events with results fails, falls back to all events in the current season; if that also fails, returns an empty list.
+        
+        Returns:
+            list[tuple[int, str]]: Tuples of (event_id, "start_date - event_name") suitable for Django admin filter choices, or an empty list if no events could be retrieved.
+        """
         current_season_year = current_season()
         events = []
 
@@ -64,6 +85,12 @@ class TournamentResultEventFilter(SimpleListFilter):
         return events
 
     def queryset(self, request, queryset):
+        """
+        Filter the provided queryset to tournament results belonging to the selected event.
+        
+        Returns:
+            QuerySet: TournamentResult queryset filtered to the event whose id matches the current filter value, or the original queryset if no event is selected.
+        """
         if self.value():
             return queryset.filter(tournament__event__id=self.value())
         return queryset
@@ -81,6 +108,17 @@ class TournamentByEventFilter(SimpleListFilter):
     parameter_name = "tournament"
 
     def lookups(self, request, model_admin):
+        """
+        Provide tournament choices for the admin filter based on the "event" GET parameter.
+        
+        Reads the "event" parameter from the provided request and returns a list of tuples suitable for Django admin filter lookups. Each tuple is (tournament_id_as_str, display), where display is formatted as "<Round or 'No Round'> - <tournament name>". If the "event" parameter is missing or an error occurs while fetching tournaments, an empty list is returned.
+        
+        Parameters:
+            request (HttpRequest): The incoming request used to read the "event" GET parameter.
+        
+        Returns:
+            list[tuple[str, str]]: A list of (tournament id, display string) tuples for the given event, or an empty list.
+        """
         event_id = request.GET.get("event")
         if not event_id:
             return []
@@ -106,6 +144,11 @@ class TournamentByEventFilter(SimpleListFilter):
         return choices
 
     def queryset(self, request, queryset):
+        """
+        Filter the provided queryset to the tournament selected by the admin filter.
+        
+        @returns Filtered queryset limited to the selected tournament when a value is set, the original queryset otherwise.
+        """
         if self.value():
             return queryset.filter(tournament__id=self.value())
         return queryset
@@ -232,6 +275,15 @@ class EventAdmin(admin.ModelAdmin):
     ]
 
     def event_type_display(self, obj):
+        """
+        Return the human-readable label for the event's type.
+        
+        Parameters:
+            obj (Event): The Event model instance whose event type label to retrieve.
+        
+        Returns:
+            label (str): Human-readable label for the event's type.
+        """
         return obj.get_event_type_display()
 
     event_type_display.short_description = "Event Type"

@@ -22,6 +22,12 @@ class EventScoreCard(models.Model):
         ]
 
     def __str__(self):
+        """
+        Provide a human-readable representation of the scorecard combining its event and player.
+        
+        Returns:
+            str: A string in the format "<event>: <player>" where `event` and `player` are the related objects' string representations.
+        """
         return "{}: {}".format(self.event, self.player)
 
 

@@ -35,4 +35,10 @@ class SeasonLongPoints(models.Model):
         ]
 
     def __str__(self):
+        """
+        Provide a human-readable representation of the SeasonLongPoints instance.
+        
+        Returns:
+            str: Formatted string '<event>: <player> points' where <event> and <player> are the related Event and Player representations.
+        """
         return "{}: {} points".format(self.event, self.player)

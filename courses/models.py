@@ -26,6 +26,12 @@ class Hole(models.Model):
         ]
 
     def __str__(self):
+        """
+        Provide a human-readable label combining the course name and hole number.
+        
+        Returns:
+            A string in the format "<course name> Hole <hole_number>".
+        """
         return "{} Hole {}".format(self.course.name, self.hole_number)
 
 
@@ -40,4 +46,10 @@ class Tee(models.Model):
         ]
 
     def __str__(self):
+        """
+        Human-readable representation combining the course and tee names.
+        
+        Returns:
+            str: The string "<course name> - <tee name>".
+        """
         return "{} - {}".format(self.course.name, self.name)

@@ -12,6 +12,16 @@ class Command(BaseCommand):
     help = "Transfer registrations from one event to another. Development use only."
 
     def add_arguments(self, parser):
+        """
+        Add command-line arguments required by the transfer_registrations management command.
+        
+        Parameters:
+            parser: argparse.ArgumentParser
+                The parser to which the command adds:
+                  - source_event_id (int): positional ID of the source event to transfer from.
+                  - dest_event_id (int): positional ID of the destination event to transfer to.
+                  - --dry-run / --dry-run (flag): when provided, show actions without committing changes.
+        """
         parser.add_argument("source_event_id", type=int)
         parser.add_argument("dest_event_id", type=int)
         parser.add_argument(
@@ -22,6 +32,25 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """
+        Transfer registrations, slots, payments, and fees from one event to another based on CLI options.
+        
+        Creates a new Registration for each registration on the source event, reassigns matching destination RegistrationSlot entries to the new registration (matching by hole, starting_order, and slot), duplicates Payments once per source Payment and associates them with the destination event, and recreates RegistrationFee records linked to the corresponding destination EventFee. If `dry_run` is True, all database changes are rolled back at the end of the command.
+        
+        Parameters:
+            options (dict): Command options; must include:
+                - "source_event_id" (int): primary key of the source Event.
+                - "dest_event_id" (int): primary key of the destination Event.
+                - "dry_run" (bool, optional): if True, perform a trial run and roll back changes.
+        
+        Raises:
+            CommandError: if the source or destination Event does not exist;
+                          if a destination slot lookup does not return exactly one slot;
+                          if a matching EventFee on the destination event cannot be found.
+        
+        Returns:
+            None
+        """
         src_id = options["source_event_id"]
         dst_id = options["dest_event_id"]
         dry_run = options.get("dry_run", False)

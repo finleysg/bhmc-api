@@ -23,6 +23,12 @@ class HoleViewSet(viewsets.ModelViewSet):
 
     @method_decorator(cache_page(60 * 60 * 24))
     def list(self, request, *args, **kwargs):
+        """
+        Return a list response of serialized model instances for this viewset (honors the view's caching decorator).
+        
+        Returns:
+            rest_framework.response.Response: Response containing the serialized queryset, respecting pagination and any applied filters.
+        """
         return super().list(request, *args, **kwargs)
 
 
@@ -33,4 +39,10 @@ class TeeViewSet(viewsets.ModelViewSet):
 
     @method_decorator(cache_page(60 * 60 * 24))
     def list(self, request, *args, **kwargs):
+        """
+        Return a list response of serialized model instances for this viewset (honors the view's caching decorator).
+        
+        Returns:
+            rest_framework.response.Response: Response containing the serialized queryset, respecting pagination and any applied filters.
+        """
         return super().list(request, *args, **kwargs)

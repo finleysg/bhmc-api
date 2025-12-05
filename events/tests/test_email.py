@@ -19,6 +19,15 @@ from events.models import Event, EventFee
 
 
 def create_teetime_event(splits):
+    """
+    Create a WeeknightEvent configured for teetimes with a 3:00 PM start.
+    
+    Parameters:
+        splits (str|None): Tee time split configuration (e.g., "8", "8,9") or None to use the default split.
+    
+    Returns:
+        WeeknightEvent: A WeeknightEvent instance with start_time "3:00 PM", start_type "TT", and tee_time_splits set to `splits`.
+    """
     event = WeeknightEventFactory()
     event.start_time = "3:00 PM"
     event.start_type = "TT"

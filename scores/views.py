@@ -84,6 +84,18 @@ def import_scores(request):
 
 
 def save_scores(event, course, player, score_map, is_net):
+    """
+    Create or update EventScore records for a given event, course, and player from the provided score_map.
+    
+    If no EventScore records exist for the (event, player, is_net) combination, a new EventScore is created for each hole on the course; otherwise the existing records' `score` fields are updated to match `score_map`.
+    
+    Parameters:
+        event (Event): The event to associate with the scores.
+        course (Course): The course containing the holes for which scores are provided.
+        player (Player): The player whose scores are being saved.
+        score_map (dict[int, int]): Mapping from hole number to score value.
+        is_net (bool): Whether the scores are net scores (True) or gross scores (False).
+    """
     scores = EventScore.objects.filter(event=event, player=player, is_net=is_net)
     if len(scores) == 0:
         new_scores = []

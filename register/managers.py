@@ -54,6 +54,24 @@ class RegistrationManager(models.Manager):
     @transaction.atomic()
     def create_and_reserve(self, user, player, event, course, registration_slots, signed_up_by):
 
+        """
+        Reserve one or more signup slots for a user’s registration on an event.
+        
+        Parameters:
+        	user: The Django User who owns the registration.
+        	player: The Player to assign to the first reserved slot (or slot 0 for non-choosable events).
+        	event: The Event for which slots are being reserved.
+        	course: The Course instance associated with the reservation.
+        	registration_slots (list[dict] | iterable): For choosable events, an iterable of slot descriptors containing at least an "id" key identifying slots to reserve.
+        	signed_up_by: The user performing the signup action (may differ from `user`).
+        
+        Returns:
+        	registration: The created or updated Registration instance linked to the reserved slots.
+        
+        Raises:
+        	MissingSlotsError: If none of the requested slot IDs exist.
+        	SlotConflictError: If some requested slots are missing or any requested slot is not available ("A").
+        """
         if event.can_choose:
             slot_ids = [slot["id"] for slot in registration_slots]
             logger.info("Checking slots", eventId=event.id, course=course.name, user=signed_up_by, slots=slot_ids)

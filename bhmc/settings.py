@@ -115,7 +115,6 @@ INSTALLED_APPS = (
     "register",
     "reporting",
     "scores",
-    "golfgenius",
 )
 
 MIDDLEWARE = (
@@ -285,7 +284,6 @@ DATABASES = {
         'PASSWORD': os.getenv("DATABASE_PASSWORD"),
         'HOST': os.getenv("DATABASE_HOST"),
         'PORT': os.getenv("DATABASE_PORT"),
-        'TIME_ZONE': 'America/Chicago',
     }
 }
 

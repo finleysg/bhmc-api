@@ -74,7 +74,7 @@ class RegistrationManager(models.Manager):
 
             logger.info("Reserving slots", eventId=event.id, course=course.name, user=signed_up_by, slots=slot_ids)
             for i, slot in enumerate(slots):
-                if i == 0:
+                if i == 0:  # TODO: bug?
                     slot.player = player
                 slot.status = "P"
                 slot.registration = reg

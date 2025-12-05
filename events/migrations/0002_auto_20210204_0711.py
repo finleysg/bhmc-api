@@ -4,25 +4,56 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0001_initial'),
+        ("events", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='feetype',
-            name='restriction',
-            field=models.CharField(choices=[('Members', 'Members'), ('Returning Members', 'Returning Members'), ('New Members', 'New Members'), ('Seniors', 'Seniors'), ('Non-Seniors', 'Non-Seniors'), ('None', 'None')], default='None', max_length=20, verbose_name='Restrict to'),
+            model_name="feetype",
+            name="restriction",
+            field=models.CharField(
+                choices=[
+                    ("Members", "Members"),
+                    ("Returning Members", "Returning Members"),
+                    ("New Members", "New Members"),
+                    ("Seniors", "Seniors"),
+                    ("Non-Seniors", "Non-Seniors"),
+                    ("None", "None"),
+                ],
+                default="None",
+                max_length=20,
+                verbose_name="Restrict to",
+            ),
         ),
         migrations.AlterField(
-            model_name='event',
-            name='registration_type',
-            field=models.CharField(choices=[('M', 'Member'), ('G', 'Member Guest'), ('O', 'Open'), ('N', 'None')], default='M', max_length=1, verbose_name='Registration type'),
+            model_name="event",
+            name="registration_type",
+            field=models.CharField(
+                choices=[
+                    ("M", "Member"),
+                    ("G", "Member Guest"),
+                    ("O", "Open"),
+                    ("N", "None"),
+                ],
+                default="M",
+                max_length=1,
+                verbose_name="Registration type",
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalevent',
-            name='registration_type',
-            field=models.CharField(choices=[('M', 'Member'), ('G', 'Member Guest'), ('O', 'Open'), ('N', 'None')], default='M', max_length=1, verbose_name='Registration type'),
+            model_name="historicalevent",
+            name="registration_type",
+            field=models.CharField(
+                choices=[
+                    ("M", "Member"),
+                    ("G", "Member Guest"),
+                    ("O", "Open"),
+                    ("N", "None"),
+                ],
+                default="M",
+                max_length=1,
+                verbose_name="Registration type",
+            ),
         ),
     ]

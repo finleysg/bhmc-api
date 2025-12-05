@@ -58,4 +58,27 @@ class SeasonSettings(models.Model):
                                          on_delete=DO_NOTHING)
 
     def __str__(self):
+        """
+        Provide a human-readable label for the season indicating whether it is active.
+        
+        Returns:
+            label (str): The season followed by "Active" if is_active is True, otherwise "Inactive".
+        """
         return "{} ({})".format(self.season, "Active" if self.is_active else "Inactive")
+
+
+class GolfGeniusIntegrationLog(models.Model):
+    event = models.ForeignKey(verbose_name="Event", to=Event, related_name="integration_logs", on_delete=DO_NOTHING)
+    action_name = models.CharField(verbose_name="Action Name", max_length=20)
+    action_date = models.DateTimeField(verbose_name="Date", auto_now_add=True)
+    is_successful = models.BooleanField(verbose_name="Action Completed Successfully")
+    details = models.TextField(verbose_name="Serialized Details", null=True, blank=True)
+
+    def __str__(self):
+        """
+        Return a human-readable representation of the integration log.
+        
+        Returns:
+            str: A string in the format "Event {event_id} ({action_name} - {action_date})".
+        """
+        return "Event {} ({} - {})".format(self.event.id, self.action_name, self.action_date)

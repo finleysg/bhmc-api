@@ -27,10 +27,12 @@ router.register(r"champions", core_views.MajorChampionViewSet, "champions")
 router.register(r"dam-cup", damcup_views.DamCupViewSet, "dam-cup")
 router.register(r"low-scores", core_views.LowScoreViewSet, "low-scores")
 router.register(r"courses", course_views.CourseViewSet, "courses")
+router.register(r"tees", course_views.TeeViewSet, "tees")
 router.register(r"documents", document_views.DocumentViewSet, "documents")
 router.register(r"photos", document_views.PhotoViewSet, "photos")
 router.register(r"events", event_views.EventViewSet, "events")
 router.register(r"fee-types", event_views.FeeTypeViewSet, "fee-types")
+router.register(r"tournament-results", event_views.TournamentResultViewSet, "tournament-results")
 router.register(r"news", messaging_views.AnnouncementViewSet, "news")
 router.register(r"policies", policy_views.PolicyViewSet, "policies")
 router.register(r"page-content", content_views.PageContentViewSet, "page-content")
@@ -53,11 +55,6 @@ urlpatterns = [
       path("api/celery-check", core_views.ping_celery),
       path("api/contact/", messaging_views.contact_message),
       path("api/hooks/stripe/acacia/", payment_views.payment_complete_acacia),
-      path("api/import-champions/", core_views.import_champions),
-      path("api/import-low-scores/", core_views.import_low_scores),
-      path("api/import-points/", damcup_views.import_points),
-      path("api/import-major-points/", damcup_views.import_major_points),
-      path("api/import-scores/", scoring_views.import_scores),
       path("auth/", include("djoser.urls")),
       path("auth/token/login/", core_views.TokenCreateView.as_view(), name="login"),
       path("auth/token/logout/", core_views.TokenDestroyView.as_view(), name="logout"),

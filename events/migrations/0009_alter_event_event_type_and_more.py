@@ -4,20 +4,49 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('events', '0008_event_team_size_historicalevent_team_size'),
+        ("events", "0008_event_team_size_historicalevent_team_size"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='event',
-            name='event_type',
-            field=models.CharField(choices=[('N', 'Weeknight Event'), ('W', 'Weekend Major'), ('H', 'Holiday Pro-shop Event'), ('M', 'Meeting'), ('O', 'Other'), ('E', 'External Event'), ('R', 'Season Registration'), ('D', 'Deadline'), ('P', 'Open Event')], default='N', max_length=1, verbose_name='Event type'),
+            model_name="event",
+            name="event_type",
+            field=models.CharField(
+                choices=[
+                    ("N", "Weeknight Event"),
+                    ("W", "Weekend Major"),
+                    ("H", "Holiday Pro-shop Event"),
+                    ("M", "Meeting"),
+                    ("O", "Other"),
+                    ("E", "External Event"),
+                    ("R", "Season Registration"),
+                    ("D", "Deadline"),
+                    ("P", "Open Event"),
+                ],
+                default="N",
+                max_length=1,
+                verbose_name="Event type",
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalevent',
-            name='event_type',
-            field=models.CharField(choices=[('N', 'Weeknight Event'), ('W', 'Weekend Major'), ('H', 'Holiday Pro-shop Event'), ('M', 'Meeting'), ('O', 'Other'), ('E', 'External Event'), ('R', 'Season Registration'), ('D', 'Deadline'), ('P', 'Open Event')], default='N', max_length=1, verbose_name='Event type'),
+            model_name="historicalevent",
+            name="event_type",
+            field=models.CharField(
+                choices=[
+                    ("N", "Weeknight Event"),
+                    ("W", "Weekend Major"),
+                    ("H", "Holiday Pro-shop Event"),
+                    ("M", "Meeting"),
+                    ("O", "Other"),
+                    ("E", "External Event"),
+                    ("R", "Season Registration"),
+                    ("D", "Deadline"),
+                    ("P", "Open Event"),
+                ],
+                default="N",
+                max_length=1,
+                verbose_name="Event type",
+            ),
         ),
     ]

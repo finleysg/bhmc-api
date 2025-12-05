@@ -31,10 +31,7 @@ bhmc-api.iml
 
 db-backup.sh
 venv/
-./docker-compose.yml
-docker-compose.yml
 
 # SQL
-sql/
 data/
-
+files/

@@ -1,9 +1,7 @@
 import structlog
 from django.contrib import admin
-from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
 from django.db.models import QuerySet
-from django.http import HttpRequest
 
 from core.util import current_season
 from register.admin import CurrentSeasonFilter
@@ -234,14 +232,15 @@ class EventAdmin(admin.ModelAdmin):
                         "payments_end",
                         "priority_signup_start",
                     ),
-                    (
-                        "group_size",
-                        "team_size",
-                        "total_groups",
-                        "registration_maximum",
-                        "minimum_signup_group_size",
-                        "maximum_signup_group_size",
-                    ),
+            (
+                "group_size",
+                "team_size",
+                "total_groups",
+                "registration_maximum",
+                "signup_waves",
+                "minimum_signup_group_size",
+                "maximum_signup_group_size",
+            ),
                     (
                         "ghin_required",
                         "can_choose",

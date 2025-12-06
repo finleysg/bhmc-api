@@ -163,6 +163,9 @@ class Event(models.Model):
     gg_id = models.CharField(
         verbose_name="Golf Genius id: event_id", max_length=22, blank=True, null=True
     )
+    signup_waves = models.IntegerField(
+        verbose_name="Signup waves", blank=True, null=True
+    )
 
     class Meta:
         constraints = [

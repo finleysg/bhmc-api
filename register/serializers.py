@@ -1,6 +1,3 @@
-import logging
-from datetime import timedelta, datetime
-
 import structlog
 from django.db import IntegrityError
 from django.utils import timezone as tz
@@ -11,7 +8,6 @@ from django.contrib.auth.models import User
 from courses.models import Course
 from documents.serializers import PhotoSerializer
 from events.serializers import EventFeeSerializer
-from payments.utils import get_offset, DEFAULT_INTERVAL
 from .exceptions import (
     EventFullError,
     EventRegistrationNotOpenError,
@@ -244,7 +240,16 @@ class RegistrationSerializer(serializers.ModelSerializer):
             logger.info("Creating a registration")
             validate_registration_is_open(event)
             if event.can_choose and len(slots) > 0:
-                validate_wave_is_available(event, slots[0].get("starting_order"))
+                # For shotgun events, get hole_number from the first slot's hole
+                hole_number = None
+                if event.start_type == "SG" and slots[0].get("hole_id"):
+                    from courses.models import Hole
+                    try:
+                        hole = Hole.objects.get(pk=slots[0].get("hole_id"))
+                        hole_number = hole.hole_number
+                    except Hole.DoesNotExist:
+                        pass  # Will fall back to None
+                validate_wave_is_available(event, slots[0].get("starting_order"), hole_number)
             validate_event_is_not_full(event)
 
         return Registration.objects.create_and_reserve(user, player, event, course, slots, signed_up_by)
@@ -293,33 +298,44 @@ def validate_course_for_event(event, course_id):
 
 
 def validate_wave_is_available(event, starting_order):
-    if event.registration_window == "priority" and event.can_choose:
-        this_wave = get_starting_wave(event.tee_time_splits, starting_order) # 1-4: wave based on the given starting order
-        current_wave = get_current_wave() # 1-4: wave based on the current time
+    if event.registration_window == "priority" and event.can_choose and event.signup_waves:
+        this_wave = get_starting_wave(event, starting_order) # wave based on the given starting order
+        current_wave = get_current_wave(event) # wave based on the current time
         if this_wave > current_wave:
             raise EventRegistrationWaveError(this_wave)
 
 
-def get_current_wave():
-    current_time = datetime.now()
-    if current_time.minute < 15:
-        return 1
-    elif current_time.minute < 30:
-        return 2
-    elif current_time.minute < 45:
-        return 3
-    else:
-        return 4
+def get_current_wave(event):
+    if event.signup_waves is None or event.signup_waves <= 0 or event.priority_signup_start is None or event.signup_start is None:
+        return 999
+    now = tz.now()
+    if now < event.priority_signup_start:
+        return 0
+    if now >= event.signup_start:
+        return event.signup_waves + 1
+    priority_duration_minutes = (event.signup_start - event.priority_signup_start).total_seconds() / 60
+    if priority_duration_minutes <= 0:
+        return event.signup_waves + 1
+    wave_duration = priority_duration_minutes / event.signup_waves
+    elapsed_minutes = (now - event.priority_signup_start).total_seconds() / 60
+    current_wave = int(elapsed_minutes // wave_duration) + 1
+    return min(current_wave, event.signup_waves)
 
 
-def get_starting_wave(tee_time_splits, starting_order):
-    intervals = [int(i) for i in tee_time_splits.split(',')] if tee_time_splits is not None else [DEFAULT_INTERVAL]
-    delta = get_offset(int(starting_order), intervals)
-    if delta < 60:
+def get_starting_wave(event, starting_order, hole_number=None):
+    if event.signup_waves is None or event.signup_waves <= 0:
         return 1
-    elif delta < 120:
-        return 2
-    elif delta < 180:
-        return 3
+    if event.total_groups is None or event.total_groups <= 0:
+        return 1
+
+    # For shotgun starts, use hole_number to create a unique index across all groups
+    if event.start_type == "SG" and hole_number is not None:
+        # Calculate effective index: (hole_number - 1) * 2 + starting_order
+        # This gives: Hole1A=0, Hole1B=1, Hole2A=2, Hole2B=3, etc.
+        effective_order = (hole_number - 1) * 2 + starting_order
     else:
-        return 4
+        effective_order = starting_order
+
+    slots_per_wave = (event.total_groups + event.signup_waves - 1) // event.signup_waves
+    wave = (effective_order // slots_per_wave) + 1
+    return min(wave, event.signup_waves)

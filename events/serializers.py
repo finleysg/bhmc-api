@@ -81,6 +81,7 @@ class EventSerializer(serializers.ModelSerializer):
             "registration_type",
             "signup_start",
             "signup_end",
+            "signup_waves",
             "payments_end",
             "registration_maximum",
             "courses",

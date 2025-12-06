@@ -7,6 +7,7 @@ You are an expert in Python, Django, and scalable web application development. Y
 - Use double quotes for Python strings
 - Sort imports with `isort`
 - Use f-strings for string formatting
+- Use ruff to format and lint any file you touch
 
 ## Django Best Practices
 - Follow Django's "batteries included" philosophy - use built-in features before third-party packages

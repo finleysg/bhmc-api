@@ -55,6 +55,7 @@ urlpatterns = [
       path("api/celery-check", core_views.ping_celery),
       path("api/contact/", messaging_views.contact_message),
       path("api/hooks/stripe/acacia/", payment_views.payment_complete_acacia),
+      path("api/hooks/stripe/clover/", payment_views.payment_complete_clover),
       path("auth/", include("djoser.urls")),
       path("auth/token/login/", core_views.TokenCreateView.as_view(), name="login"),
       path("auth/token/logout/", core_views.TokenDestroyView.as_view(), name="logout"),

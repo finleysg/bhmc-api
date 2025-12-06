@@ -227,6 +227,43 @@ def payment_complete_acacia(request):
         return Response(status=400)
 
 
+
+@csrf_exempt
+@api_view(("POST",))
+@permission_classes((permissions.AllowAny,))
+def payment_complete_clover(request):
+    try:
+        # Verify and construct the Stripe event
+        payload = request.body
+        sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+
+        if event is None:
+            return Response(status=400)
+
+        handlers = {
+            "payment_intent.payment_failed": _handle_payment_failed,
+            "payment_intent.succeeded": _handle_payment_succeeded,
+            "refund.created": _handle_refund_created,
+            "refund.updated": _handle_refund_updated,
+        }
+
+        handler = handlers.get(event.type)
+        if handler:
+            handler(event)
+        else:
+            logger.debug("Unhandled event", event_type=event.type)
+
+        return Response(status=200)
+
+    except stripe.error.SignatureVerificationError as se:
+        logger.error("Invalid signature in webhook", error=str(se))
+        return Response(status=400)
+    except Exception as e:
+        logger.error("Webhook processing failed", error=str(e))
+        return Response(status=400)
+
+
 def _handle_payment_failed(event):
     payment_intent = event.data.object
     error = payment_intent.last_payment_error

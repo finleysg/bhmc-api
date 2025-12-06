@@ -242,10 +242,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
             if event.can_choose and len(slots) > 0:
                 # For shotgun events, get hole_number from the first slot's hole
                 hole_number = None
-                if event.start_type == "SG" and slots[0].get("hole_id"):
+                if event.start_type == "SG" and slots[0].get("hole"):
                     from courses.models import Hole
                     try:
-                        hole = Hole.objects.get(pk=slots[0].get("hole_id"))
+                        hole = Hole.objects.get(pk=slots[0].get("hole"))
                         hole_number = hole.hole_number
                     except Hole.DoesNotExist:
                         pass  # Will fall back to None
@@ -297,9 +297,9 @@ def validate_course_for_event(event, course_id):
     return course
 
 
-def validate_wave_is_available(event, starting_order):
+def validate_wave_is_available(event, starting_order, hole_number=None):
     if event.registration_window == "priority" and event.can_choose and event.signup_waves:
-        this_wave = get_starting_wave(event, starting_order) # wave based on the given starting order
+        this_wave = get_starting_wave(event, starting_order, hole_number) # wave based on the given starting order
         current_wave = get_current_wave(event) # wave based on the current time
         if this_wave > current_wave:
             raise EventRegistrationWaveError(this_wave)

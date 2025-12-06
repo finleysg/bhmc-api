@@ -277,6 +277,31 @@ class WaveLogicTests(TestCase):
             with self.assertRaises(EventRegistrationWaveError):
                 validate_wave_is_available(self.event, 20)
 
+    def test_validate_wave_is_available_with_hole_number(self):
+        """Test that validate_wave_is_available correctly uses hole_number for shotgun starts."""
+        # Set up event for priority window and shotgun start
+        self.event.start_type = "SG"
+        self.event.priority_signup_start = tz.now() - timedelta(hours=1)
+        self.event.signup_start = tz.now() + timedelta(hours=1)
+        self.event.can_choose = True
+        self.event.signup_waves = 4
+        self.event.total_groups = 40
+        self.event.save()
+
+        # Mock time to be in priority window and current wave to be 2
+        mock_now = tz.now() - timedelta(minutes=30)  # Between priority_signup_start and signup_start
+        with mock.patch('django.utils.timezone.now', return_value=mock_now), \
+             mock.patch('register.serializers.get_current_wave', return_value=2):
+            # For hole 1, starting_order 0: effective_order = (1-1)*2 + 0 = 0, wave = (0//10) + 1 = 1 (should pass)
+            validate_wave_is_available(self.event, 0, hole_number=1)
+
+            # For hole 10, starting_order 0: effective_order = (10-1)*2 + 0 = 18, wave = (18//10) + 1 = 2 (should pass)
+            validate_wave_is_available(self.event, 0, hole_number=10)
+
+            # For hole 15, starting_order 0: effective_order = (15-1)*2 + 0 = 28, wave = (28//10) + 1 = 3 (should fail)
+            with self.assertRaises(EventRegistrationWaveError):
+                validate_wave_is_available(self.event, 0, hole_number=15)
+
     def test_shotgun_wave_assignment(self):
         """Test wave assignment behavior for shotgun starts where starting_order may be low/repeated."""
         # Simulate a shotgun event with 36 groups (18 holes * 2 groups per hole)

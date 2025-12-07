@@ -126,24 +126,26 @@ class WaveLogicTests(TestCase):
 
     def test_get_starting_wave_uneven_distribution(self):
         """Test slot distribution with uneven division (42 groups / 4 waves)."""
-        # Ceiling division: (42 + 4 - 1) // 4 = 11 slots per wave
+        # New logic: distribute remainder evenly among first waves
+        # base = 42 // 4 = 10, remainder = 42 % 4 = 2
+        # First 2 waves get 11 slots each, last 2 waves get 10 slots each
         self.event.total_groups = 42
         self.event.save()
 
-        # Wave 1: slots 0-10
+        # Wave 1: slots 0-10 (11 slots)
         self.assertEqual(get_starting_wave(self.event, 0), 1)
         self.assertEqual(get_starting_wave(self.event, 10), 1)
 
-        # Wave 2: slots 11-21
+        # Wave 2: slots 11-21 (11 slots)
         self.assertEqual(get_starting_wave(self.event, 11), 2)
         self.assertEqual(get_starting_wave(self.event, 21), 2)
 
-        # Wave 3: slots 22-32
+        # Wave 3: slots 22-31 (10 slots)
         self.assertEqual(get_starting_wave(self.event, 22), 3)
-        self.assertEqual(get_starting_wave(self.event, 32), 3)
+        self.assertEqual(get_starting_wave(self.event, 31), 3)
 
-        # Wave 4: slots 33-41 (remaining)
-        self.assertEqual(get_starting_wave(self.event, 33), 4)
+        # Wave 4: slots 32-41 (10 slots)
+        self.assertEqual(get_starting_wave(self.event, 32), 4)
         self.assertEqual(get_starting_wave(self.event, 41), 4)
 
     def test_get_starting_wave_edge_cases(self):
@@ -173,18 +175,18 @@ class WaveLogicTests(TestCase):
         """Test boundary conditions for wave assignment."""
         # Test with 5 waves
         self.event.signup_waves = 5
-        self.event.total_groups = 37  # (37 + 5 - 1) // 5 = 8 slots per wave
+        self.event.total_groups = 37  # New logic: base=7, remainder=2, first 2 waves get 8 slots each, last 3 get 7
         self.event.save()
 
-        # Wave 1: 0-7, Wave 2: 8-15, Wave 3: 16-23, Wave 4: 24-31, Wave 5: 32-36
+        # Wave 1: 0-7 (8 slots), Wave 2: 8-15 (8 slots), Wave 3: 16-22 (7 slots), Wave 4: 23-29 (7 slots), Wave 5: 30-36 (7 slots)
         self.assertEqual(get_starting_wave(self.event, 7), 1)
         self.assertEqual(get_starting_wave(self.event, 8), 2)
         self.assertEqual(get_starting_wave(self.event, 15), 2)
         self.assertEqual(get_starting_wave(self.event, 16), 3)
-        self.assertEqual(get_starting_wave(self.event, 23), 3)
-        self.assertEqual(get_starting_wave(self.event, 24), 4)
-        self.assertEqual(get_starting_wave(self.event, 31), 4)
-        self.assertEqual(get_starting_wave(self.event, 32), 5)
+        self.assertEqual(get_starting_wave(self.event, 22), 3)
+        self.assertEqual(get_starting_wave(self.event, 23), 4)
+        self.assertEqual(get_starting_wave(self.event, 29), 4)
+        self.assertEqual(get_starting_wave(self.event, 30), 5)
         self.assertEqual(get_starting_wave(self.event, 36), 5)
 
     def test_validate_wave_is_available_success(self):

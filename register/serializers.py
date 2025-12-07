@@ -245,7 +245,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
                 if event.start_type == "SG" and slots[0].get("hole"):
                     from courses.models import Hole
                     try:
-                        hole = Hole.objects.get(pk=slots[0].get("hole"))
+                        hole = slots[0].get("hole")
                         hole_number = hole.hole_number
                     except Hole.DoesNotExist:
                         pass  # Will fall back to None
@@ -336,6 +336,11 @@ def get_starting_wave(event, starting_order, hole_number=None):
     else:
         effective_order = starting_order
 
-    slots_per_wave = (event.total_groups + event.signup_waves - 1) // event.signup_waves
-    wave = (effective_order // slots_per_wave) + 1
-    return min(wave, event.signup_waves)
+    # New distribution logic: distribute remainder evenly among first waves
+    base = event.total_groups // event.signup_waves
+    remainder = event.total_groups % event.signup_waves
+    cutoff = remainder * (base + 1)
+    if effective_order < cutoff:
+        return (effective_order // (base + 1)) + 1
+    else:
+        return remainder + ((effective_order - cutoff) // base) + 1

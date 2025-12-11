@@ -2,7 +2,7 @@ import csv
 
 from decimal import Decimal
 
-from django.db import connection, transaction
+from django.db import connection, transaction, models
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import permissions
@@ -23,8 +23,10 @@ from .serializers import (
     PlayerSerializer,
     SimplePlayerSerializer,
     UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer, PlayerHandicapSerializer,
+    validate_registration_is_open,
 )
 from .utils import get_target_event_fee
+from .exceptions import RegistrationFullError, EventFullError, PlayerConflictError
 
 
 @permission_classes((permissions.IsAuthenticated,))
@@ -257,6 +259,97 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             payment.save()
 
         return Response(status=204)
+
+    @transaction.atomic()
+    @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
+    def add_players(self, request, pk):
+        from datetime import timedelta
+        from django.utils import timezone as tz
+
+        player_ids = [p["id"] for p in request.data.get("players", [])]
+        if not player_ids:
+            raise ValidationError("No players provided")
+
+        registration = get_object_or_404(Registration, pk=pk)
+        event = registration.event
+
+        # Validate registration window
+        validate_registration_is_open(event)
+
+        # Validate players not already registered
+        existing = RegistrationSlot.objects.filter(
+            event=event, player_id__in=player_ids
+        ).exclude(status="A").values_list("player_id", flat=True)
+        if existing:
+            raise PlayerConflictError()
+
+        players = list(Player.objects.filter(id__in=player_ids))
+        if len(players) != len(player_ids):
+            raise ValidationError("One or more players not found")
+
+        # Validate space and reserve slots
+        if event.can_choose:
+            # Find available slots in same group (hole/starting_order)
+            first_slot = registration.slots.first()
+            available = list(
+                RegistrationSlot.objects.select_for_update()
+                .filter(event=event, hole=first_slot.hole, starting_order=first_slot.starting_order, status="A")
+                .order_by("slot")[: len(players)]
+            )
+            if len(available) < len(players):
+                raise RegistrationFullError()
+            for i, slot in enumerate(available):
+                slot.player = players[i]
+                slot.status = "P"
+                slot.registration = registration
+                slot.save()
+            new_slots = available
+        else:
+            # Check event capacity
+            reserved_count = RegistrationSlot.objects.filter(event=event, status="R").count()
+            if event.registration_maximum and reserved_count + len(players) > event.registration_maximum:
+                raise EventFullError()
+            # Check registration group capacity
+            current_slots = registration.slots.count()
+            if current_slots + len(players) > event.maximum_signup_group_size:
+                raise RegistrationFullError()
+            # Create new slots
+            max_slot = registration.slots.aggregate(models.Max("slot"))["slot__max"] or -1
+            new_slots = []
+            for i, player in enumerate(players):
+                slot = RegistrationSlot.objects.create(
+                    event=event,
+                    registration=registration,
+                    player=player,
+                    status="P",
+                    starting_order=registration.starting_order,
+                    slot=max_slot + 1 + i,
+                )
+                new_slots.append(slot)
+
+        # Extend expiry
+        registration.expires = tz.now() + timedelta(minutes=10)
+        registration.save()
+
+        # Create payment for required fees
+        required_fees = list(event.fees.filter(is_required=True))
+        payment = Payment.objects.create(
+            event=event,
+            user=request.user,
+            payment_code="pending",
+            notification_type="C",
+        )
+        for slot in new_slots:
+            for fee in required_fees:
+                RegistrationFee.objects.create(
+                    event_fee=fee,
+                    registration_slot=slot,
+                    payment=payment,
+                    amount=fee.amount,
+                )
+
+        serializer = RegistrationSerializer(registration, context={"request": request})
+        return Response({"registration": serializer.data, "payment_id": payment.id}, status=200)
 
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):

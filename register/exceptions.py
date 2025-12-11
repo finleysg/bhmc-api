@@ -36,6 +36,13 @@ class EventFullError(APIException):
         self.detail = "The event field is full"
 
 
+class RegistrationFullError(APIException):
+
+    def __init__(self):
+        self.status_code = 400
+        self.detail = "The registration group is full"
+
+
 class EventRegistrationNotOpenError(APIException):
 
     def __init__(self):

@@ -279,7 +279,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         # Validate players not already registered
         existing = RegistrationSlot.objects.filter(
             event=event, player_id__in=player_ids
-        ).exclude(status="A").values_list("player_id", flat=True)
+        ).exclude(status="A").select_for_update().values_list("player_id", flat=True)
         if existing:
             raise PlayerConflictError()
 
@@ -306,7 +306,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             new_slots = available
         else:
             # Check event capacity
-            reserved_count = RegistrationSlot.objects.filter(event=event, status="R").count()
+            reserved_count = RegistrationSlot.objects.filter(event=event, status__in=["R", "P"]).count()
             if event.registration_maximum and reserved_count + len(players) > event.registration_maximum:
                 raise EventFullError()
             # Check registration group capacity
@@ -327,7 +327,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
                 )
                 new_slots.append(slot)
 
-        # Extend expiry
+        # Reset expiry - give the user 10 minutes to complete payment
         registration.expires = tz.now() + timedelta(minutes=10)
         registration.save()
 

@@ -6,12 +6,18 @@ from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from courses.models import Course
 from payments.utils import create_admin_payment
 from register.models import RegistrationSlot, Player, Registration
-from register.serializers import RegistrationSlotSerializer, RegistrationSerializer
+from register.serializers import (
+    RegistrationSlotSerializer,
+    RegistrationSerializer,
+    get_starting_wave,
+    get_current_wave,
+)
 from .models import Event, FeeType, TournamentResult
 from .serializers import (
     EventSerializer,
@@ -201,6 +207,62 @@ class EventViewSet(viewsets.ModelViewSet):
 
         serializer = RegistrationSerializer(registration, context={"request": request})
         return Response(serializer.data, status=200)
+
+    @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
+    def available_groups(self, request, pk):
+        """
+        Return available tee times (TT) or starting holes (SG) for registration.
+
+        Query params:
+            course_id: Required - course to check
+            player_count: Required - number of players needing slots
+        """
+        event = Event.objects.get(pk=pk)
+
+        if not event.can_choose:
+            raise ValidationError("This event does not allow tee time/starting hole selection")
+
+        course_id = request.query_params.get("course_id")
+        player_count = request.query_params.get("player_count")
+
+        if not course_id:
+            raise ValidationError("course_id is required")
+        if not player_count:
+            raise ValidationError("player_count is required")
+
+        try:
+            player_count = int(player_count)
+            if player_count < 1:
+                raise ValueError()
+        except ValueError:
+            raise ValidationError("player_count must be a positive integer")
+
+        course = Course.objects.get(pk=course_id)
+        if not event.courses.filter(pk=course_id).exists():
+            raise ValidationError("Course is not associated with this event")
+
+        grouped = RegistrationSlot.objects.get_available_groups(event, course, player_count)
+
+        # Filter by wave availability during priority signup
+        current_wave = get_current_wave(event)
+        result = []
+        for (hole_id, starting_order), slots in grouped.items():
+            hole_number = slots[0].hole.hole_number if slots else None
+            group_wave = get_starting_wave(event, starting_order, hole_number)
+            if group_wave <= current_wave:
+                result.append({
+                    "hole_number": hole_number,
+                    "starting_order": starting_order,
+                    "slots": RegistrationSlotSerializer(slots, many=True, context={"request": request}).data,
+                })
+
+        # Sort by hole number then starting_order
+        result.sort(key=lambda x: (
+            x["slots"][0]["hole"] if x["slots"] else 0,
+            x["starting_order"],
+        ))
+
+        return Response(result)
 
 
 class FeeTypeViewSet(viewsets.ModelViewSet):

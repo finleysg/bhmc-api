@@ -293,8 +293,8 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             first_slot = registration.slots.first()
             available = list(
                 RegistrationSlot.objects.select_for_update()
-                .filter(event=event, hole=first_slot.hole, starting_order=first_slot.starting_order, status="A")
-                .order_by("slot")[: len(players)]
+                    .filter(event=event, hole=first_slot.hole, starting_order=first_slot.starting_order, status="A")
+                    .order_by("slot")[: len(players)]
             )
             if len(available) < len(players):
                 raise RegistrationFullError()

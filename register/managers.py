@@ -11,7 +11,8 @@ from datetime import timedelta
 from django.utils import timezone as tz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Max, Q
+from collections import defaultdict
+from django.db.models import Count, Max, Q
 
 from courses.models import Hole
 from payments.models import Payment
@@ -283,6 +284,43 @@ class RegistrationSlotManager(models.Manager):
                     .filter(player__isnull=True) \
                     .delete()
         return count
+
+    def get_available_groups(self, event, course, player_count):
+        """
+        Return groups with at least player_count available slots.
+        Groups are defined by (hole, starting_order) combination.
+        """
+        # Find groups with enough available slots
+        group_counts = (
+            self.filter(event=event, hole__course=course, status="A")
+            .values("hole", "starting_order")
+            .annotate(available_count=Count("id"))
+            .filter(available_count__gte=player_count)
+        )
+
+        # Build Q filter for matching groups
+        group_keys = [(g["hole"], g["starting_order"]) for g in group_counts]
+        if not group_keys:
+            return {}
+
+        q_filters = Q()
+        for hole_id, starting_order in group_keys:
+            q_filters |= Q(hole_id=hole_id, starting_order=starting_order)
+
+        # Fetch all available slots for these groups
+        slots = list(
+            self.filter(event=event, status="A")
+            .filter(q_filters)
+            .select_related("hole", "player")
+            .order_by("hole__hole_number", "starting_order", "slot")
+        )
+
+        # Group slots by (hole_id, starting_order)
+        grouped = defaultdict(list)
+        for slot in slots:
+            grouped[(slot.hole.hole_number, slot.starting_order)].append(slot)
+
+        return grouped
 
 
 class RegistrationFeeManager(models.Manager):

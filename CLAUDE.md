@@ -31,10 +31,10 @@ uv run python manage.py migrate
 uv run python manage.py makemigrations
 
 # Lint with ruff
-uvx ruff check
+uvx ruff check {file or folder}
 
 # Format with ruff
-uvx ruff format
+uvx ruff format {file or folder}
 
 # Docker development (starts MySQL, Redis, Mailpit, Django, Celery)
 docker-compose up

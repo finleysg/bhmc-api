@@ -256,7 +256,6 @@ class EventViewSet(viewsets.ModelViewSet):
         current_wave = get_current_wave(event)
         result = []
         for (hole_number, starting_order), slots in grouped.items():
-            # hole_number = slots[0].hole.hole_number if slots else None
             group_wave = get_starting_wave(event, starting_order, hole_number)
             if group_wave <= current_wave:
                 result.append(

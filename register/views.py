@@ -1,8 +1,9 @@
 import csv
 
+from collections import defaultdict
 from decimal import Decimal
 
-from django.db import connection, transaction
+from django.db import connection, transaction, models
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import permissions
@@ -13,18 +14,28 @@ from rest_framework.serializers import ValidationError
 
 from documents.models import Document
 from events.models import Event
-from payments.models import Payment
+from payments.models import Payment, Refund
 from payments.utils import get_start
 from reporting.views import fetch_all_as_dictionary
-from .models import Registration, RegistrationSlot, Player, RegistrationFee, PlayerHandicap
+from .models import (
+    Registration,
+    RegistrationSlot,
+    Player,
+    RegistrationFee,
+    PlayerHandicap,
+)
 from .serializers import (
     RegistrationSlotSerializer,
     RegistrationSerializer,
     PlayerSerializer,
     SimplePlayerSerializer,
-    UpdatableRegistrationSlotSerializer, RegistrationFeeSerializer, PlayerHandicapSerializer,
+    UpdatableRegistrationSlotSerializer,
+    RegistrationFeeSerializer,
+    PlayerHandicapSerializer,
+    validate_registration_is_open,
 )
 from .utils import get_target_event_fee
+from .exceptions import RegistrationFullError, EventFullError, PlayerConflictError
 
 
 @permission_classes((permissions.IsAuthenticated,))
@@ -113,7 +124,6 @@ class PlayerViewSet(viewsets.ModelViewSet):
 
 
 class RegistrationViewSet(viewsets.ModelViewSet):
-
     serializer_class = RegistrationSerializer
 
     def get_queryset(self):
@@ -126,11 +136,15 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         if event_id is not None:
             queryset = queryset.filter(event=event_id).prefetch_related("slots")
         if player_id is not None:
-            queryset = queryset.filter(slots__player_id=player_id).prefetch_related("slots")
+            queryset = queryset.filter(slots__player_id=player_id).prefetch_related(
+                "slots"
+            )
         if seasons:
             queryset = queryset.filter(event__season__in=seasons)
         if is_self == "me":
-            queryset = queryset.filter(user=self.request.user.id).prefetch_related("slots")
+            queryset = queryset.filter(user=self.request.user.id).prefetch_related(
+                "slots"
+            )
 
         return queryset
 
@@ -147,7 +161,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         return Response(status=204)
 
     @transaction.atomic()
-    @action(detail=True, methods=["put"], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
     def move(self, request, pk):
         source_slots = request.data.get("source_slots", [])
         destination_slots = request.data.get("destination_slots", [])
@@ -160,10 +174,14 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             destination = RegistrationSlot.objects.get(pk=destination_slots[index])
 
             user_name = request.user.get_full_name()
-            player_name = "{} {}".format(source.player.first_name, source.player.last_name)
+            player_name = "{} {}".format(
+                source.player.first_name, source.player.last_name
+            )
             source_start = get_start(event, registration, source)
             destination_start = get_start(event, registration, destination)
-            message = "\n{} moved from {} to {} by {}".format(player_name, source_start, destination_start, user_name)
+            message = "\n{} moved from {} to {} by {}".format(
+                player_name, source_start, destination_start, user_name
+            )
             if registration.notes is None:
                 registration.notes = message
             else:
@@ -188,23 +206,60 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         return Response(status=204)
 
     @transaction.atomic()
-    @action(detail=True, methods=["delete"], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
     def drop(self, request, pk):
-        source_slots = request.data.get("source_slots", [])
+        source_slot_ids = request.data.get("source_slots", [])
         registration = Registration.objects.filter(pk=pk).get()
+        user_name = request.user.get_full_name()
 
-        for slot_id in source_slots:
-            source = registration.slots.get(pk=slot_id)
+        # 1. Load all source slots in one query
+        source_slots_qs = (
+            registration.slots.filter(pk__in=source_slot_ids)
+            .select_related("player")
+            .prefetch_related("fees", "fees__payment")
+        )
+        source_slots_list = list(source_slots_qs)
 
-            user_name = request.user.get_full_name()
-            player_name = "{} {}".format(source.player.first_name, source.player.last_name)
-            message = "\n{} dropped from the event by {}".format(player_name, user_name)
-            if registration.notes is None:
-                registration.notes = message
-            else:
-                registration.notes = registration.notes + "\n" + message
-            registration.save()
+        # 2. Group fees by payment and issue refunds
+        fees_by_payment = defaultdict(list)
+        for slot in source_slots_list:
+            for fee in slot.fees.all():
+                if fee.is_paid and fee.payment and fee.payment.confirmed:
+                    # Skip payments without a Stripe payment intent
+                    if not fee.payment.payment_code.startswith("pi_"):
+                        continue
+                    fees_by_payment[fee.payment_id].append(fee)
 
+        for payment_id, fees in fees_by_payment.items():
+            payment = Payment.objects.get(pk=payment_id)
+            refund_amount = sum(fee.amount for fee in fees)
+            player_names = ", ".join(
+                set(
+                    f"{f.registration_slot.player.first_name} {f.registration_slot.player.last_name}"
+                    for f in fees
+                    if f.registration_slot and f.registration_slot.player
+                )
+            )
+            notes = f"Dropped: {player_names} by {user_name}"
+            # This will raise if Stripe fails, rolling back the transaction
+            Refund.objects.create_refund(request.user, payment, refund_amount, notes)
+            for fee in fees:
+                fee.is_paid = False
+                fee.save()
+
+        # 3. Record action
+        all_players = ", ".join(
+            f"{s.player.first_name} {s.player.last_name}" for s in source_slots_list
+        )
+        message = f"{all_players} dropped from event by {user_name}"
+        if registration.notes is None:
+            registration.notes = message
+        else:
+            registration.notes = registration.notes + "\n" + message
+        registration.save()
+
+        # 4. Drop players
+        for source in source_slots_list:
             for fee in source.fees.all():
                 fee.registration_slot = None
                 fee.save()
@@ -222,9 +277,11 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["put"], permission_classes=[IsAdminUser])
     def cancel_expired(self, request):
         cleaned = Registration.objects.clean_up_expired()
-        return Response("Cleaned up " + str(cleaned) + " registration slots", status=204)
+        return Response(
+            "Cleaned up " + str(cleaned) + " registration slots", status=204
+        )
 
-    @action(detail=True, methods=['put'], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=["put"], permission_classes=[IsAdminUser])
     def move_registration(self, request, pk):
         target_event_id = request.data.get("target_event_id", None)
         if target_event_id is None:
@@ -236,7 +293,9 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
         registration.event = target_event
         registration.slots.all().update(event=target_event)
-        registration.notes = f"Moved player(s) from {source_event.name} to {target_event.name}."
+        registration.notes = (
+            f"Moved player(s) from {source_event.name} to {target_event.name}."
+        )
         registration.save()
 
         # Find any related payments and move them to the target event
@@ -258,6 +317,114 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
         return Response(status=204)
 
+    @transaction.atomic()
+    @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
+    def add_players(self, request, pk):
+        from datetime import timedelta
+        from django.utils import timezone as tz
+
+        player_ids = [p["id"] for p in request.data.get("players", [])]
+        if not player_ids:
+            raise ValidationError("No players provided")
+
+        registration = get_object_or_404(Registration, pk=pk)
+        event = registration.event
+
+        # Validate registration window
+        validate_registration_is_open(event)
+
+        # Validate players not already registered
+        existing = (
+            RegistrationSlot.objects.filter(event=event, player_id__in=player_ids)
+            .exclude(status="A")
+            .select_for_update()
+            .values_list("player_id", flat=True)
+        )
+        if existing:
+            raise PlayerConflictError()
+
+        players = list(Player.objects.filter(id__in=player_ids))
+        if len(players) != len(player_ids):
+            raise ValidationError("One or more players not found")
+
+        # Validate space and reserve slots
+        if event.can_choose:
+            # Find available slots in same group (hole/starting_order)
+            first_slot = registration.slots.first()
+            available = list(
+                RegistrationSlot.objects.select_for_update()
+                .filter(
+                    event=event,
+                    hole=first_slot.hole,
+                    starting_order=first_slot.starting_order,
+                    status="A",
+                )
+                .order_by("slot")[: len(players)]
+            )
+            if len(available) < len(players):
+                raise RegistrationFullError()
+            for i, slot in enumerate(available):
+                slot.player = players[i]
+                slot.status = "P"
+                slot.registration = registration
+                slot.save()
+            new_slots = available
+        else:
+            # Check event capacity
+            reserved_count = RegistrationSlot.objects.filter(
+                event=event, status__in=["R", "P"]
+            ).count()
+            if (
+                event.registration_maximum
+                and reserved_count + len(players) > event.registration_maximum
+            ):
+                raise EventFullError()
+            # Check registration group capacity
+            current_slots = registration.slots.count()
+            if current_slots + len(players) > event.maximum_signup_group_size:
+                raise RegistrationFullError()
+            # Create new slots
+            max_slot = (
+                registration.slots.aggregate(models.Max("slot"))["slot__max"] or -1
+            )
+            new_slots = []
+            for i, player in enumerate(players):
+                slot = RegistrationSlot.objects.create(
+                    event=event,
+                    registration=registration,
+                    player=player,
+                    status="P",
+                    starting_order=registration.starting_order,
+                    slot=max_slot + 1 + i,
+                )
+                new_slots.append(slot)
+
+        # Reset expiry - give the user 10 minutes to complete payment
+        registration.expires = tz.now() + timedelta(minutes=10)
+        registration.save()
+
+        # Create payment for required fees
+        required_fees = list(event.fees.filter(is_required=True))
+        payment = Payment.objects.create(
+            event=event,
+            user=request.user,
+            payment_code="pending",
+            notification_type="C",
+        )
+        for slot in new_slots:
+            for fee in required_fees:
+                RegistrationFee.objects.create(
+                    event_fee=fee,
+                    registration_slot=slot,
+                    payment=payment,
+                    amount=fee.amount,
+                )
+
+        serializer = RegistrationSerializer(registration, context={"request": request})
+        return Response(
+            {"registration": serializer.data, "payment_id": payment.id}, status=200
+        )
+
 
 class RegistrationSlotViewsSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
@@ -272,6 +439,8 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
         player_id = self.request.query_params.get("player_id", None)
         is_open = self.request.query_params.get("is_open", False)
         seasons = self.request.query_params.getlist("seasons", None)
+        hole_id = self.request.query_params.get("hole_id", None)
+        starting_order = self.request.query_params.get("starting_order", None)
 
         if event_id is not None:
             queryset = queryset.filter(event=event_id)
@@ -281,11 +450,14 @@ class RegistrationSlotViewsSet(viewsets.ModelViewSet):
             queryset = queryset.filter(event__season__in=seasons)
         if is_open:
             queryset = queryset.filter(status="A")
+        if hole_id is not None:
+            queryset = queryset.filter(hole=hole_id)
+        if starting_order is not None:
+            queryset = queryset.filter(starting_order=starting_order)
         return queryset
 
 
 class RegistrationFeeViewsSet(viewsets.ModelViewSet):
-
     serializer_class = RegistrationFeeSerializer
 
     def get_queryset(self):
@@ -304,7 +476,6 @@ class RegistrationFeeViewsSet(viewsets.ModelViewSet):
 
 
 class PlayerHandicapViewsSet(viewsets.ModelViewSet):
-
     serializer_class = PlayerHandicapSerializer
 
     def get_queryset(self):
@@ -319,7 +490,6 @@ class PlayerHandicapViewsSet(viewsets.ModelViewSet):
 @api_view(("POST",))
 @permission_classes((permissions.AllowAny,))
 def import_handicaps(request):
-
     season = request.data.get("season", 0)
     document_id = request.data.get("document_id", 0)
 
@@ -328,7 +498,7 @@ def import_handicaps(request):
     player_map = {player.ghin: player for player in players}
 
     with document.file.open("r") as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        reader = csv.reader(csvfile, delimiter=",", quotechar='"')
         next(reader)  # skip header
 
         for row in reader:
@@ -337,7 +507,9 @@ def import_handicaps(request):
             if player is None:
                 continue
 
-            player_hcp = PlayerHandicap(season=season, player=player, handicap=get_index(row[1]))
+            player_hcp = PlayerHandicap(
+                season=season, player=player, handicap=get_index(row[1])
+            )
             player_hcp.save()
 
     return Response(status=204)

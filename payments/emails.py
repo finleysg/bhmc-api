@@ -21,6 +21,21 @@ with open(logo_file, "rb") as logo:
 
 
 def send_payment_notification(payment, registration, player):
+    """
+    Dispatches and sends the appropriate payment-related notification emails based on the payment's notification_type.
+    
+    Behavior by notification_type:
+    - "R": send member welcome and, if present, a notes notification for the event.
+    - "N": send member welcome and a new-member notification including player details.
+    - "M": send match-play confirmation and, if present, a notes notification for the event.
+    - "C": send event registration confirmation and, if present, a notes notification for the event.
+    - "U": send a registration update confirmation.
+    
+    Parameters:
+        payment: Payment object containing at least `user`, `event`, and `notification_type`.
+        registration: Registration object (provides `notes` and slot information used by some notifications).
+        player: Player object associated with the user; used when composing new-member notifications.
+    """
     user = payment.user
     event = payment.event
     logger.info("Running send_payment_notification", email=user.email, notification_type=payment.notification_type)
@@ -42,6 +57,12 @@ def send_payment_notification(payment, registration, player):
 
 
 def send_member_welcome(user):
+    """
+    Send a welcome email to a user containing account and match-play links and the club logo.
+    
+    Parameters:
+        user (User): The user who will receive the welcome email; the user's email and first name are used in the message.
+    """
     send_templated_mail(
         template_name="welcome.html",
         from_email=sender_email,
@@ -112,6 +133,17 @@ def send_match_play_confirmation(user):
 
 def send_event_confirmation(user, event, registration, payment):
 
+    """
+    Send registration confirmation emails for an event to the registrant and relevant recipients.
+    
+    Sends a confirmation email to the registrant containing event, player and payment details (including the payment confirmation code). Then resends the same confirmation with the confirmation code hidden to additional recipients derived from the registration (for example event administrators or teammates), if any.
+    
+    Parameters:
+        user (User): The user who initiated the action (email recipient for the primary message).
+        event (Event): The event for which the registration was made.
+        registration (Registration): The registration containing slots, the signer name, and related metadata.
+        payment (Payment): The payment record containing amounts, fees, payment code, and payment details.
+    """
     slots = registration.slots.all()
     payment_details = payment.payment_details.all()
     required_fees = get_required_fees(event, payment_details)
@@ -159,6 +191,17 @@ def send_event_confirmation(user, event, registration, payment):
 
 def send_update_confirmation(user, event, registration, payment):
 
+    """
+    Send an email to the registrant and related recipients notifying them of an updated event registration.
+    
+    Builds an email context from the registration, payment, and event (fees, players, start info, confirmation code, links, and logo), sends a registration update email to the user's email address including the confirmation code, then sends the same email without the confirmation code to additional recipients derived from the registration slots.
+    
+    Parameters:
+    	user (User): The user who owns the account/address to receive the primary email.
+    	event (Event): The event whose registration was updated.
+    	registration (Registration): The registration record containing slots and signer information.
+    	payment (Payment): The payment associated with the registration (used for fees, transaction fee, and confirmation code).
+    """
     payment_details = payment.payment_details.all()
     required_fees = get_required_fees(event, payment_details)
     optional_fees = get_optional_fees(event, payment_details)
@@ -205,6 +248,15 @@ def send_update_confirmation(user, event, registration, payment):
 
 
 def send_refund_notification(payment, refund):
+    """
+    Notify a user by email about a processed refund for their event registration.
+    
+    The email contains the event name and date, the formatted refund amount, the refund confirmation code, a link to the event, and the inline logo image.
+    
+    Parameters:
+        payment (Payment): The payment record associated with the refunded registration; provides event and user.
+        refund (Refund): The refund record containing `refund_amount` and `refund_code`.
+    """
     event = payment.event
     user = payment.user
     

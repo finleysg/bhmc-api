@@ -148,6 +148,15 @@ class RegistrationManager(models.Manager):
             pass
 
     def payment_confirmed(self, registration_id):
+        """
+        Mark a registration's payment as confirmed by updating its pending slots to confirmed and return the registration.
+        
+        Parameters:
+            registration_id (int): Primary key of the registration to confirm.
+        
+        Returns:
+            Registration or None: The Registration instance whose slots with status `"X"` were updated to `"R"`, or `None` if no registration with the given id exists.
+        """
         try:
             reg = self.filter(pk=registration_id).get()
             reg.slots.filter(status="X").update(**{"status": "R"})

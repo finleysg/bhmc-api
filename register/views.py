@@ -163,6 +163,21 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     @transaction.atomic()
     @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
     def move(self, request, pk):
+        """
+        Move one or more players from specified source registration slots to corresponding destination slots within the same registration.
+        
+        This action reassigns player ownership and registration fees from each source slot to the matching destination slot (by index), updates slot statuses, optionally updates the registration's course when moving to a different tee, and appends a note to the registration describing the move.
+        
+        Parameters:
+            request: DRF Request containing JSON keys:
+                - "source_slots" (list[int]): ordered list of source RegistrationSlot IDs to move.
+                - "destination_slots" (list[int]): ordered list of destination RegistrationSlot IDs to receive players; must match length of "source_slots" and share the same tee time/hole.
+            pk (int): ID of the Registration being modified.
+        
+        Returns:
+            dict: On success, a response payload with key "destination" containing the computed destination start information.
+            Error behavior: Returns an HTTP 400 response if provided destination slots do not share the same tee time/hole.
+        """
         source_slot_ids = request.data.get("source_slots", [])
         destination_slot_ids = request.data.get("destination_slots", [])
 
@@ -361,6 +376,26 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     @transaction.atomic()
     @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
     def add_players(self, request, pk):
+        """
+        Add one or more players to an existing registration, reserving or creating slots and creating a pending payment for required fees.
+        
+        Adds the provided players to the registration identified by `pk` after validating the registration window, ensuring none of the players are already registered for the event, and enforcing event and group capacity rules. If the event allows choosing slots, available open slots in the registration's group are assigned; otherwise new registration slots are created. The registration expiry is extended by 10 minutes and a pending Payment is created with RegistrationFee records for all required event fees.
+        
+        Parameters:
+            request: DRF request with JSON body containing a `players` list of objects with `id` keys.
+            pk (int): Primary key of the Registration to update.
+        
+        Returns:
+            Response containing:
+              - `registration`: serialized registration data (updated slots and expiry)
+              - `payment_id`: ID of the created Payment
+        
+        Raises:
+            ValidationError: when no players are provided or one or more players are not found.
+            PlayerConflictError: when one or more players are already registered (excluding status "A").
+            RegistrationFullError: when the registration's group cannot accommodate the new players.
+            EventFullError: when the event's overall capacity is exceeded.
+        """
         from datetime import timedelta
         from django.utils import timezone as tz
 

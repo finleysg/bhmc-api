@@ -113,6 +113,19 @@ class RefundSerializer(serializers.ModelSerializer):
         fields = ("id", "payment", "refund_code", "refund_amount", "notes", )
 
     def create(self, validated_data):
+        """
+        Create a Stripe refund for the provided payment and persist a corresponding Refund record.
+        
+        Expects validated_data to contain:
+        - payment: Payment instance to refund.
+        - refund_amount: Decimal/float refund amount in major currency units (e.g., dollars); this is converted to cents for Stripe.
+        - notes (optional): Text notes for the refund (defaults to empty string).
+        
+        If saving the Refund raises an IntegrityError because a concurrent webhook already created the same refund, the existing Refund with the matching refund_code is fetched and returned.
+        
+        Returns:
+            Refund: The created or existing Refund instance.
+        """
         user = self.context.get("request").user
         notes = validated_data.get("notes", "")
         payment = validated_data.get("payment")

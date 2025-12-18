@@ -31,6 +31,22 @@ def calculate_payment_amount(amount_due):
 
 def derive_notification_type(event, player, payment_details):
 
+    """
+    Determine the notification type code for a payment related to an event and player.
+    
+    Returns one of the notification codes based on event type, player history, and whether required fees are present in the provided payment details:
+    - If the event's type is "R": returns "R" when the player is re-registering from the previous season, otherwise "N".
+    - If the event's type is "S": returns "M".
+    - For other event types: returns "C" when required fees are included in payment_details, otherwise "U".
+    
+    Parameters:
+        event: Event-like object with at least an `event_type` attribute.
+        player: Player-like object with at least a `last_season` attribute.
+        payment_details: Iterable of payment detail objects used to determine presence of required fees.
+    
+    Returns:
+        str: One of `"R"`, `"N"`, `"M"`, `"C"`, or `"U"` representing the notification type.
+    """
     if event.event_type == "R":  # season registration
         season = current_season()
         if player.last_season == (season - 1):
@@ -51,6 +67,15 @@ def derive_notification_type(event, player, payment_details):
 
 def get_amount_due(event, payment_details):
     # TODO: verify that the amount_received is a valid override
+    """
+    Compute the total amount due from a sequence of payment detail entries.
+    
+    Parameters:
+        payment_details (iterable): An iterable of objects each exposing an `amount` (Decimal) to include in the total.
+    
+    Returns:
+        Decimal: Sum of all `amount` values from `payment_details`.
+    """
     amount_due = Decimal(0.0)
     amounts = [detail.amount for detail in payment_details]
     for amount in amounts:
@@ -153,6 +178,18 @@ def get_players(event, slots, payment_details):
 
 
 def get_fees(event, payment_details):
+    """
+    Builds a list of fee descriptions and formatted amounts for the given event and payment details.
+    
+    Parameters:
+        event: Event model instance whose fees are used to map fee types.
+        payment_details: Iterable of payment detail objects containing `event_fee` and numeric `amount`.
+    
+    Returns:
+        List[dict]: Each dict has keys:
+            - "description": the fee type name from the matched event fee.
+            - "amount": the fee amount formatted as a currency string (e.g., "$12.34").
+    """
     player_fees = []
     for fee in payment_details:
         event_fee = next((f for f in event.fees.all() if f == fee.event_fee), None)
@@ -165,6 +202,16 @@ def get_fees(event, payment_details):
 
 # Get slots only for players with payment changes
 def get_payment_slots(registration, payment_details):
+    """
+    Return the registration's slots that are referenced by the provided payment detail records.
+    
+    Parameters:
+        registration: Registration-like object with a `slots` relation supporting `.filter(pk__in=...)`.
+        payment_details: Iterable of objects each exposing a `registration_slot_id` attribute or field.
+    
+    Returns:
+        QuerySet: A queryset of registration slots whose primary keys appear in `payment_details`.
+    """
     slot_ids = set()
     for fee in payment_details:
         slot_ids.add(fee.registration_slot_id)
@@ -174,6 +221,16 @@ def get_payment_slots(registration, payment_details):
 
 # Get emails for the rest of the group
 def get_recipients(user, slots):
+    """
+    Return a list of email addresses for players in the provided slots excluding the given user's email.
+    
+    Parameters:
+        user: User-like object with an `email` attribute to exclude from recipients.
+        slots: Iterable of slot-like objects; each may have a `player` attribute (which may be None) and a `player.email`.
+    
+    Returns:
+        list[str]: Email addresses of slot players that exist and are not the same as `user.email`.
+    """
     recipients = []
     for slot in slots:
         if slot.player is not None and slot.player.email != user.email:

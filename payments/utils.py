@@ -45,7 +45,9 @@ def derive_notification_type(event, player, payment_details):
     # "edit" (skins payment, or other fees, after the initial registration)
     if has_required_fees(event, payment_details):
         return "C"
-
+    else:
+        return "U"
+    
 
 def get_amount_due(event, payment_details):
     # TODO: verify that the amount_received is a valid override
@@ -159,6 +161,15 @@ def get_fees(event, payment_details):
             "amount": "${:,.2f}".format(fee.amount)
         })
     return player_fees
+
+
+# Get slots only for players with payment changes
+def get_payment_slots(registration, payment_details):
+    slot_ids = set()
+    for fee in payment_details:
+        slot_ids.add(fee.registration_slot_id)
+        
+    return registration.slots.filter(pk__in=slot_ids)
 
 
 # Get emails for the rest of the group

@@ -163,30 +163,71 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     @transaction.atomic()
     @action(detail=True, methods=["put"], permission_classes=[IsAuthenticated])
     def move(self, request, pk):
-        source_slots = request.data.get("source_slots", [])
-        destination_slots = request.data.get("destination_slots", [])
+        source_slot_ids = request.data.get("source_slots", [])
+        destination_slot_ids = request.data.get("destination_slots", [])
 
         registration = Registration.objects.filter(pk=pk).get()
         event = registration.event
 
-        for index, slot_id in enumerate(source_slots):
-            source = registration.slots.get(pk=slot_id)
-            destination = RegistrationSlot.objects.get(pk=destination_slots[index])
+        # Load all slots upfront
+        source_slots = list(
+            registration.slots.filter(pk__in=source_slot_ids).select_related(
+                "player", "hole"
+            )
+        )
+        destination_slots = list(
+            RegistrationSlot.objects.filter(pk__in=destination_slot_ids).select_related(
+                "hole", "hole__course"
+            )
+        )
 
-            user_name = request.user.get_full_name()
-            player_name = "{} {}".format(
-                source.player.first_name, source.player.last_name
-            )
-            source_start = get_start(event, registration, source)
-            destination_start = get_start(event, registration, destination)
-            message = "\n{} moved from {} to {} by {}".format(
-                player_name, source_start, destination_start, user_name
-            )
-            if registration.notes is None:
-                registration.notes = message
-            else:
-                registration.notes = registration.notes + "\n" + message
-            registration.save()
+        # Validate destination slots are same tee time/hole
+        if len(destination_slots) > 1:
+            first = destination_slots[0]
+            for dest in destination_slots[1:]:
+                if (
+                    dest.hole_id != first.hole_id
+                    or dest.starting_order != first.starting_order
+                ):
+                    return Response(
+                        {"error": "Destination slots must be same tee time/hole"},
+                        status=400,
+                    )
+
+        # Build note message before loop
+        user_name = request.user.get_full_name()
+        source_start = get_start(event, registration, source_slots[0])
+        # Temporarily set registration course to destination for get_start
+        dest_course = (
+            destination_slots[0].hole.course if destination_slots[0].hole else None
+        )
+        original_course = registration.course
+        registration.course = dest_course
+        destination_start = get_start(event, registration, destination_slots[0])
+        registration.course = original_course
+
+        player_names = ", ".join(
+            f"{s.player.first_name} {s.player.last_name}" for s in source_slots
+        )
+        message = f"\n{player_names} moved from {source_start} to {destination_start} by {user_name}"
+        if registration.notes is None:
+            registration.notes = message
+        else:
+            registration.notes = registration.notes + "\n" + message
+
+        # Update course if different
+        if dest_course and dest_course != original_course:
+            registration.course = dest_course
+
+        registration.save()
+
+        # Create lookup for destination slots by index
+        dest_by_id = {slot.id: slot for slot in destination_slots}
+        source_by_id = {slot.id: slot for slot in source_slots}
+
+        for index, slot_id in enumerate(source_slot_ids):
+            source = source_by_id[slot_id]
+            destination = dest_by_id[destination_slot_ids[index]]
 
             for fee in source.fees.all():
                 fee.registration_slot = destination
@@ -203,7 +244,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             destination.status = "R"
             destination.save()
 
-        return Response(status=204)
+        return Response({"destination": destination_start}, status=200)
 
     @transaction.atomic()
     @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
@@ -409,7 +450,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             event=event,
             user=request.user,
             payment_code="pending",
-            notification_type="C",
+            notification_type="U",
         )
         for slot in new_slots:
             for fee in required_fees:

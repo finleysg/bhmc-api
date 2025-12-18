@@ -151,7 +151,7 @@ class RegistrationManager(models.Manager):
         try:
             reg = self.filter(pk=registration_id).get()
             reg.slots.filter(status="X").update(**{"status": "R"})
-            return reg.slots.filter(status="R")
+            return reg
         except ObjectDoesNotExist:
             pass
         

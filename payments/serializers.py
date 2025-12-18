@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import stripe
 
+from django.db import IntegrityError
 from rest_framework import serializers
 
 from payments.models import Payment, Refund
@@ -124,11 +125,15 @@ class RefundSerializer(serializers.ModelSerializer):
             reason="requested_by_customer",
         )
 
-        refund = Refund(payment=payment,
-                        issuer=user,
-                        refund_code=stripe_refund.stripe_id,
-                        refund_amount=refund_amount,
-                        notes=notes)
-        refund.save()
+        try:
+            refund = Refund(payment=payment,
+                            issuer=user,
+                            refund_code=stripe_refund.stripe_id,
+                            refund_amount=refund_amount,
+                            notes=notes)
+            refund.save()
+        except IntegrityError:
+            # Webhook won the race - fetch the existing record
+            refund = Refund.objects.get(refund_code=stripe_refund.stripe_id)
 
         return refund

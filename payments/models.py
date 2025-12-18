@@ -11,7 +11,7 @@ NOTIFICATION_CHOICES = (
     ("R", "Returning Member"),
     ("C", "Signup Confirmation"),
     ("M", "Match Play"),
-    ("O", "General Online Payment"),
+    ("U", "Update Registration"),
 )
 
 
@@ -36,7 +36,7 @@ class Payment(models.Model):
 
 class Refund(models.Model):
     payment = models.ForeignKey(verbose_name="Payment", to=Payment, related_name="refunds", on_delete=CASCADE)
-    refund_code = models.CharField(verbose_name="Refund code", max_length=40)
+    refund_code = models.CharField(verbose_name="Refund code", max_length=40, unique=True)
     refund_amount = models.DecimalField(verbose_name="Refund amount", max_digits=5, decimal_places=2, default=0.0)
     issuer = models.ForeignKey(verbose_name="Issuer", to=User, on_delete=DO_NOTHING)
     notes = models.TextField(verbose_name="Notes", blank=True, null=True)

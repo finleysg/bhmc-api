@@ -139,7 +139,8 @@ class RegistrationTests(TestCase):
                     "starting_order": 0,
                     "slot": 0,
                     "status": "A",
-                    "hole_id": 1
+                    "hole": 1,
+                    "player": None
                 },
                 {
                     "event": 3,
@@ -147,7 +148,8 @@ class RegistrationTests(TestCase):
                     "starting_order": 0,
                     "slot": 1,
                     "status": "A",
-                    "hole_id": 1
+                    "hole": 1,
+                    "player": None
                 },
                 {
                     "event": 3,
@@ -155,7 +157,8 @@ class RegistrationTests(TestCase):
                     "starting_order": 0,
                     "slot": 2,
                     "status": "A",
-                    "hole_id": 1
+                    "hole": 1,
+                    "player": None
                 }
             ]
         })
@@ -299,7 +302,8 @@ class RegistrationTests(TestCase):
                     "starting_order": 0,
                     "slot": 0,
                     "status": "A",
-                    "hole_id": 1
+                    "hole": 1,
+                    "player": None
                 },
                 {
                     "event": 3,
@@ -307,7 +311,8 @@ class RegistrationTests(TestCase):
                     "starting_order": 0,
                     "slot": 1,
                     "status": "A",
-                    "hole_id": 1
+                    "hole": 1,
+                    "player": None
                 },
                 {
                     "event": 3,
@@ -315,7 +320,8 @@ class RegistrationTests(TestCase):
                     "starting_order": 0,
                     "slot": 2,
                     "status": "A",
-                    "hole_id": 1
+                    "hole": 1,
+                    "player": None
                 }
             ]
         })

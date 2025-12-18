@@ -34,7 +34,6 @@ from .serializers import (
     PlayerHandicapSerializer,
     validate_registration_is_open,
 )
-from .utils import get_target_event_fee
 from .exceptions import RegistrationFullError, EventFullError, PlayerConflictError
 
 
@@ -597,3 +596,8 @@ def get_index(cell):
         return Decimal(idx[1:]) * -1
     else:
         return Decimal(idx)
+    
+
+def get_target_event_fee(source_fee, source_event, target_event):
+    fee_type_id = source_event.fees.filter(pk=source_fee.event_fee_id)[0].fee_type_id
+    return target_event.fees.filter(fee_type_id=fee_type_id)[0]

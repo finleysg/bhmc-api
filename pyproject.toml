@@ -1,6 +1,6 @@
 [project]
 name = "bhmc-api"
-version = "0.1.0"
+version = "2026.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -33,4 +33,9 @@ dependencies = [
     "requests==2.32.5",
     "stripe==14.0.1",
     "xlrd==2.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "factory-boy>=3.3.3",
 ]

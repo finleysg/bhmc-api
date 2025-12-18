@@ -112,27 +112,27 @@ def handle_refund_created(self, refund):
             "metadata": f"Refund id: {refund_id}, amount: {amount}",
         }
 
-    # Ensure we have a refund record
-    try:
-        local_refund = Refund.objects.get(refund_code=refund_id)
+    # Ensure we have a refund record (get_or_create handles race condition with serializer)
+    local_refund, created = Refund.objects.get_or_create(
+        refund_code=refund_id,
+        defaults={
+            "payment": payment,
+            "refund_amount": amount,
+            "issuer": _get_stripe_system_user(),
+            "notes": reason,
+            "confirmed": False,
+        },
+    )
+    if created:
+        logger.info(
+            "Refund created at Stripe", refund_id=refund_id, payment_intent_id=payment_intent_id
+        )
+    else:
         logger.info(
             "Refund found - created by our system",
             id=local_refund.id,
             refund_id=refund_id,
             payment_intent_id=payment_intent_id,
-        )
-    except ObjectDoesNotExist:
-        local_refund = Refund(
-            payment=payment,
-            refund_code=refund_id,
-            refund_amount=amount,
-            issuer=_get_stripe_system_user(),
-            notes=reason,
-            confirmed=False,
-        )
-        local_refund.save()
-        logger.info(
-            "Refund created at Stripe", refund_id=refund_id, payment_intent_id=payment_intent_id
         )
 
     try:

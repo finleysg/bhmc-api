@@ -10,6 +10,19 @@ from core.views import is_localhost
 logger = structlog.get_logger(__name__)
 
 
+def _has_unique_error(exc):
+    """Check if ValidationError has a unique constraint error in non_field_errors."""
+    if not isinstance(exc, ValidationError):
+        return False
+    if not isinstance(exc.detail, dict):
+        return False
+    errors = exc.detail.get("non_field_errors")
+    if isinstance(errors, list) and len(errors) > 0:
+        if hasattr(errors[0], "code") and errors[0].code == "unique":
+            return True
+    return False
+
+
 def custom_exception_handler(exc, context):
 
     if isinstance(exc, OSError):
@@ -33,7 +46,7 @@ def custom_exception_handler(exc, context):
             response = Response({'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         set_rollback()
 
-    if isinstance(exc, ValidationError) and exc.detail["non_field_errors"][0].code == "unique":
+    if _has_unique_error(exc):
         response = Response({"detail": "The player selected has already signed up or is in the process of signing up"}, status=status.HTTP_409_CONFLICT)
 
     if len(exc.args) > 0 and exc.args[0] == "Invalid token.":

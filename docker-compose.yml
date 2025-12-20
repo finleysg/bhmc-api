@@ -54,29 +54,37 @@ services:
       - mysql
       - redis
 
-  celery:
+  nestjs:
     build:
-      context: .
-      dockerfile: Dockerfile
-    entrypoint: /scripts/celery.sh
-    environment:
-      DJANGO_ENV: "docker"
+      context: ../bhmc-admin
+      dockerfile: apps/api/Dockerfile
     volumes:
-      - .:/app
+      - ../bhmc-admin:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    ports:
+      - "3333:3333"
+    environment:
+      - NODE_ENV=development
     depends_on:
-      - django
+      - mysql
+    restart: unless-stopped
 
-  celery-beat:
+  next:
     build:
-      context: .
-      dockerfile: Dockerfile
-    entrypoint: /scripts/celery-beat.sh
-    environment:
-      DJANGO_ENV: "docker"
+      context: ../bhmc-admin
+      dockerfile: apps/web/Dockerfile
     volumes:
-      - .:/app
+      - ../bhmc-admin:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    ports:
+      - "3100:3100"
+    env_file:
+     - ../bhmc-admin/apps/web/.env.development
     depends_on:
-      - django
+      - nestjs
+    restart: unless-stopped
 
   bhmc:
     build:

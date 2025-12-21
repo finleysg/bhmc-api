@@ -469,7 +469,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
                     registration=registration,
                     player=player,
                     status="P",
-                    starting_order=registration.starting_order,
+                    starting_order=0,
                     slot=max_slot + 1 + i,
                 )
                 new_slots.append(slot)

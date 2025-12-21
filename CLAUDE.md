@@ -62,10 +62,6 @@ docker-compose up
 - Token authentication with Djoser for user management
 - `ModelViewSet` pattern for CRUD operations with `@action` decorators for custom endpoints
 - Custom managers for complex queries (e.g., `EventManager`, `RegistrationSlotManager`)
-- Model validation in `clean()` methods
-- `simple_history` for audit trails on key models
-- Celery tasks for async operations (payments, notifications)
-- Stripe webhooks at `/api/hooks/stripe/acacia/` and `/api/hooks/stripe/clover/`
 
 ### Database
 - MySQL 8.4 (production and Docker)

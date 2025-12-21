@@ -78,7 +78,7 @@ class RegistrationAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            "fields": (("event", "course", "starting_hole", "starting_order", ), )
+            "fields": (("event", "course", ), )
         }),
         (None, {
             "fields": (("user", "signed_up_by", "created_date", "expires", ), )

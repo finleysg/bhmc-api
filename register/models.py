@@ -69,8 +69,6 @@ class Registration(models.Model):
     user = models.ForeignKey(verbose_name="User", to=User, null=True, blank=True, on_delete=DO_NOTHING)
     signed_up_by = models.CharField(verbose_name="Signed up by", max_length=40, null=True, blank=True)
     expires = models.DateTimeField(verbose_name="Expiration", null=True, blank=True)
-    starting_hole = models.IntegerField(verbose_name="Starting hole", blank=True, default=1)
-    starting_order = models.IntegerField(verbose_name="Starting order", default=0)
     notes = models.TextField(verbose_name="Registration notes", blank=True, null=True)
     created_date = models.DateTimeField(verbose_name="Created date", auto_now_add=True)
     gg_id = models.CharField(verbose_name="Golf Genius id: group_id from the teesheet", max_length=22, blank=True,

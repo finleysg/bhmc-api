@@ -84,8 +84,6 @@ class Command(BaseCommand):
                     user=reg.user,
                     signed_up_by=reg.signed_up_by,
                     expires=None,
-                    starting_hole=reg.starting_hole,
-                    starting_order=reg.starting_order,
                     notes=reg.notes,
                     # Do not copy gg_id/created_date - dev-only data
                 )

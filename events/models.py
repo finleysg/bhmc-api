@@ -67,7 +67,14 @@ PAYOUT_STATUS_CHOICES = (
     ("Confirmed", "Confirmed"),
     ("Paid", "Paid"),
 )
-
+TOURNAMENT_FORMAT_CHOICES = (
+    ("Skins", "Skins"),
+    ("Stroke", "Stroke"),
+    ("Team", "Team"),
+    ("Quota", "Quota"),
+    ("UserScored", "UserScored"),
+    ("Other", "Other"),
+)
 
 class Event(models.Model):
     event_type = models.CharField(
@@ -431,7 +438,7 @@ class Tournament(models.Model):
     )
     name = models.CharField(verbose_name="Tournament name", max_length=120)
     format = models.CharField(
-        verbose_name="Format", max_length=20, blank=True, null=True
+        verbose_name="Format", max_length=20, choices=TOURNAMENT_FORMAT_CHOICES
     )
     is_net = models.BooleanField(verbose_name="Is Net", default=False)
     gg_id = models.CharField(

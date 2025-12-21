@@ -210,8 +210,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
             "event",
             "course",
             "signed_up_by",
-            "starting_hole",
-            "starting_order",
             "notes",
             "slots",
             "expires",

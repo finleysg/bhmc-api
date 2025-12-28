@@ -197,7 +197,7 @@ class EmailUtilsTests(TestCase):
         holes = list(course.holes.all())
         event_fees = list(EventFee.objects.filter(event=6).all())
         registration = Registration(
-            event=event, course=course, starting_hole=2, starting_order=0
+            event=event, course=course
         )
         player1 = Player(id=1, email="player1@test.com")
         player2 = Player(id=2, email="player2@test.com")
@@ -257,7 +257,7 @@ class EmailUtilsTests(TestCase):
         holes = list(course.holes.all())
         event_fees = list(EventFee.objects.filter(event=6).all())
         registration = Registration(
-            event=event, course=course, starting_hole=2, starting_order=0
+            event=event, course=course
         )
         user1 = User(id=1, email="player1@test.com")
         player1 = Player(id=1, email="player1@test.com")
@@ -325,7 +325,7 @@ class EmailUtilsTests(TestCase):
         course = Course.objects.get(pk=1)
         holes = list(course.holes.all())
         registration = Registration(
-            event=event, course=course, starting_hole=2, starting_order=0
+            event=event, course=course
         )
         user1 = User(id=1, email="player1@test.com")
         player1 = Player(id=1, email="player1@test.com")

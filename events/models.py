@@ -513,7 +513,7 @@ class TournamentResult(models.Model):
         verbose_name="Date Created", blank=True, null=True, auto_now_add=True
     )
     summary = models.CharField(
-        verbose_name="Summary", max_length=40, blank=True, null=True
+        verbose_name="Summary", max_length=120, blank=True, null=True
     )
     details = models.CharField(
         verbose_name="Details", max_length=120, blank=True, null=True

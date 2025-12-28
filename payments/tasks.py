@@ -177,12 +177,12 @@ def handle_refund_created(self, refund):
         send_refund_notification(payment, local_refund)
     except Exception as e:
         logger.error("Refund notification failed", error=str(e))
-    finally:
-        return {
-            "message": "Refund created",
-            "payment_code": payment_intent_id,
-            "metadata": f"Refund id: {refund_id}, amount: {amount}",
-        }
+
+    return {
+        "message": "Refund created",
+        "payment_code": payment_intent_id,
+        "metadata": f"Refund id: {refund_id}, amount: {amount}",
+    }
 
 
 @shared_task(

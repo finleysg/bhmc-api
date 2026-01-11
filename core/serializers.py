@@ -15,15 +15,20 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     groups = GroupSerializer(many=True)
+    player_id = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("id", "username", "first_name", "last_name", "email",
-                  "is_authenticated", "is_staff", "is_active", "groups", )
-        read_only_fields = ("id", "is_authenticated", "is_staff", "is_active", )
+        fields = ("id", "username", "first_name", "last_name", "email", "player_id",
+                  "is_authenticated", "is_staff", "is_active", "groups", "is_superuser", )
+        read_only_fields = ("id", "is_authenticated", "is_staff", "is_active", "is_superuser", "player_id", )
+
+    def get_player_id(self, obj):
+        player = obj.player_set.first()
+        return player.id if player else None
 
     def update(self, instance, validated_data):
-        player = Player.objects.get(email=instance.email)
+        player = Player.objects.get(user_id=instance.id)
 
         instance.first_name = validated_data.get("first_name", instance.first_name)
         instance.last_name = validated_data.get("last_name", instance.last_name)
@@ -54,7 +59,7 @@ class UserCreateSerializer(serializers.Serializer):
         ghin = validated_data["ghin"].strip()
         exists = User.objects.filter(email=email).exists()
         if exists:
-            raise ValidationError("user already exists")
+            raise ValidationError("user with that email already exists")
         elif ghin is not None:
             if ghin == "":
                 ghin = None
@@ -72,7 +77,7 @@ class UserCreateSerializer(serializers.Serializer):
             is_active=False,
         )
 
-        Player.objects.create(first_name=user.first_name, last_name=user.last_name, email=user.email, ghin=ghin)
+        Player.objects.create(user_id=user.id, first_name=user.first_name, last_name=user.last_name, email=user.email, ghin=ghin)
 
         return user
 

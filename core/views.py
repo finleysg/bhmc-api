@@ -133,7 +133,7 @@ class TokenCreateView(djoser.views.TokenCreateView):
             secure = not is_localhost,
             httponly = True,
             samesite = "Lax",
-            domain = "data.bhmc.org" if not is_localhost else None,
+            domain = ".bhmc.org" if not is_localhost else None,
         )
 
         response.data = "Welcome!"
@@ -152,7 +152,7 @@ class TokenDestroyView(djoser.views.TokenDestroyView):
             key = "access_token",
             path = "/",
             samesite = "Lax",
-            domain = "data.bhmc.org" if not is_localhost else None,
+            domain = ".bhmc.org" if not is_localhost else None,
         )
         response.status_code = status.HTTP_204_NO_CONTENT
         utils.logout_user(request)

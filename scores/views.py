@@ -25,7 +25,6 @@ class EventScoreCardViewSet(viewsets.ModelViewSet):
         season = self.request.query_params.get("season", None)
         event_id = self.request.query_params.get("event", None)
         player_id = self.request.query_params.get("player", None)
-        is_net = self.request.query_params.get("is_net", None)
 
         if season is None and event_id is None and player_id is None:
             return queryset.none
@@ -39,12 +38,7 @@ class EventScoreCardViewSet(viewsets.ModelViewSet):
         if player_id is not None:
             queryset = queryset.filter(player=player_id)
 
-        if is_net == "true":
-            queryset = queryset.filter(is_net=True)
-        elif is_net == "false":
-            queryset = queryset.filter(is_net=False)
-
-        return queryset.order_by("event__start_date", "player")
+        return queryset.order_by("event__start_date", "player").distinct()
 
 
 class EventScoreViewSet(viewsets.ModelViewSet):

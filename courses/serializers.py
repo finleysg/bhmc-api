@@ -23,3 +23,10 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ("id", "name", "number_of_holes", "gg_id", "holes", "tees", )
+
+
+class SimpleCourseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Course
+        fields = ("id", "name", "number_of_holes", )

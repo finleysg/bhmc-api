@@ -9,12 +9,36 @@ from documents.models import Document
 from documents.utils import open_xls_workbook
 from events.models import Event
 from register.models import Player
-from scores.models import EventScore
-from scores.serializers import EventScoreSerializer
+from scores.models import EventScore, EventScoreCard
+from scores.serializers import EventScoreCardSerializer, EventScoreSerializer
 from scores.utils import is_hole_scores, get_score_type, get_course, get_score_rows, get_player_name, get_scores
 
 
 logger = structlog.get_logger(__name__)
+
+
+class EventScoreCardViewSet(viewsets.ModelViewSet):
+    serializer_class = EventScoreCardSerializer
+    
+    def get_queryset(self):
+        queryset = EventScoreCard.objects.all()
+        season = self.request.query_params.get("season", None)
+        event_id = self.request.query_params.get("event", None)
+        player_id = self.request.query_params.get("player", None)
+
+        if season is None and event_id is None and player_id is None:
+            return queryset.none
+
+        if season is not None:
+            queryset = queryset.filter(event__season=season)
+
+        if event_id is not None:
+            queryset = queryset.filter(event=event_id)
+
+        if player_id is not None:
+            queryset = queryset.filter(player=player_id)
+
+        return queryset.order_by("event__start_date", "player").distinct()
 
 
 class EventScoreViewSet(viewsets.ModelViewSet):

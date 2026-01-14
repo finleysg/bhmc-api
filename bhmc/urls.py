@@ -43,7 +43,7 @@ router.register(r"registration", register_views.RegistrationViewSet, "registrati
 router.register(r"registration-fees", register_views.RegistrationFeeViewsSet, "registration-fees")
 router.register(r"registration-slots", register_views.RegistrationSlotViewsSet, "registration-slots")
 router.register(r"reports", reporting_views.ReportViewSet, "reports")
-router.register(r"scores", scoring_views.EventScoreViewSet, "scores")
+router.register(r"scores", scoring_views.EventScoreCardViewSet, "scores")
 router.register(r"season-long-points", damcup_views.SeasonLongPointsViewSet, "season-long-points")
 router.register(r"settings", core_views.SeasonSettingsViewSet, "settings")
 router.register(r"static-documents", document_views.StaticDocumentViewSet, "static-documents")
@@ -52,7 +52,6 @@ router.register(r"tags", content_views.TagViewSet, "tags")
 urlpatterns = [
       path("admin/", admin.site.urls),
       path("api/", include(router.urls)),
-      path("api/celery-check", core_views.ping_celery),
       path("api/contact/", messaging_views.contact_message),
       path("api/hooks/stripe/acacia/", payment_views.payment_complete_acacia),
       path("api/hooks/stripe/clover/", payment_views.payment_complete_clover),

@@ -16,13 +16,13 @@ services:
     restart: unless-stopped
 
   stripe:
-    image: stripe/stripe-cli
+    image: stripe/stripe-cli:v1.34.0
     environment:
       STRIPE_DEVICE_NAME: docker
-    command: listen --forward-to django:8000/api/hooks/stripe/clover/
+    command: listen --forward-to nestjs:3333/stripe/webhook/clover/
     restart: unless-stopped
     depends_on:
-      - django
+      - nestjs
 
   mail:
     image: axllent/mailpit

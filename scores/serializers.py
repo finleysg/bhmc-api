@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from courses.serializers import HoleSerializer, CourseSerializer, TeeSerializer
+from courses.serializers import HoleSerializer, CourseSerializer, SimpleCourseSerializer, TeeSerializer
 from scores.models import EventScore, EventScoreCard
 
 
@@ -16,7 +16,7 @@ class EventScoreSerializer(serializers.ModelSerializer):
 class EventScoreCardSerializer(serializers.ModelSerializer):
 
     scores = EventScoreSerializer(many=True)
-    course = CourseSerializer()
+    course = SimpleCourseSerializer()
     tee = TeeSerializer()
 
     class Meta:

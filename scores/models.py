@@ -4,6 +4,7 @@ from django.db.models import UniqueConstraint, CASCADE, DO_NOTHING
 from courses.models import Hole, Course, Tee
 from events.models import Event
 from register.models import Player
+from scores.managers import EventScoreCardManager
 
 
 class EventScoreCard(models.Model):
@@ -21,22 +22,14 @@ class EventScoreCard(models.Model):
             UniqueConstraint(fields=["event", "player"], name="unique_event_scorecard")
         ]
 
+    objects = EventScoreCardManager()
+
     def __str__(self):
-        """
-        Provide a human-readable representation of the scorecard combining its event and player.
-        
-        Returns:
-            str: A string in the format "<event>: <player>" where `event` and `player` are the related objects' string representations.
-        """
-        return "{}: {}".format(self.event, self.player)
+        return "{} {} {}".format(self.event, self.player, self.course)
 
 
 class EventScore(models.Model):
-    scorecard = models.ForeignKey(verbose_name="Scorecard", to=EventScoreCard, on_delete=CASCADE, null=True, blank=True)
-    event = models.ForeignKey(verbose_name="Event", to=Event, on_delete=CASCADE, null=True, blank=True)
-    player = models.ForeignKey(verbose_name="Player", to=Player, on_delete=CASCADE, null=True, blank=True)
-    course = models.ForeignKey(verbose_name="Course", to=Course, null=True, blank=True, on_delete=CASCADE)
-    tee = models.ForeignKey(verbose_name="Tee", to=Tee, null=True, blank=True, on_delete=CASCADE)
+    scorecard = models.ForeignKey(verbose_name="Scorecard", to=EventScoreCard, related_name="scores", on_delete=CASCADE, null=True, blank=True)
     hole = models.ForeignKey(verbose_name="Hole", to=Hole, on_delete=CASCADE)
     score = models.IntegerField(verbose_name="Score")
     is_net = models.BooleanField(verbose_name="Is Net?", default=False)
@@ -44,9 +37,6 @@ class EventScore(models.Model):
     class Meta:
         verbose_name = "Event Score"
         verbose_name_plural = "Event Scores"
-        constraints = [
-            UniqueConstraint(fields=["event", "player", "hole", "is_net"], name="unique_event_score")
-        ]
 
     def __str__(self):
-        return "{}: {} {} {} {}".format(self.event, self.player, self.hole, self.score, "net" if self.is_net else "gross")
+        return "{} {} {}".format(self.hole, self.score, "net" if self.is_net else "gross")

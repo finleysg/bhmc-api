@@ -25,7 +25,7 @@ class EventScoreCard(models.Model):
     objects = EventScoreCardManager()
 
     def __str__(self):
-        return "{}: {}".format(self.event, self.player, self.course)
+        return "{} {} {}".format(self.event, self.player, self.course)
 
 
 class EventScore(models.Model):
